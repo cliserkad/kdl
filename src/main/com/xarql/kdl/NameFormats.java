@@ -1,4 +1,4 @@
-package com.xarql.kdl;
+package main.com.xarql.kdl;
 
 public class NameFormats {
     public static final String INIT   = "<init>";
@@ -75,8 +75,19 @@ public class NameFormats {
         return true;
     }
 
-    public static void checkKDLConstName(String in) {
+    public static String checkKDLConstName(String in) {
         if(!isKDLConstName(in))
             throw new IllegalArgumentException("The string " + in + " is not a valid kdl const name. Const names are limited to the characters A-Z and _ only");
+        return in;
+    }
+
+    public static boolean isKDLTypeName(String in) {
+        return Text.isLatinWord(in) && Text.firstLetterIsUppercase(in);
+    }
+
+    public static String checkKDLTypeName(String in) {
+        if(!isKDLTypeName(in))
+            throw new IllegalArgumentException("The string " + in + " is not a valid kdl type name. Type names are limited to the latin alphabet and must start with an uppercase letter");
+        return in;
     }
 }

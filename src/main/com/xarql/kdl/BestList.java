@@ -1,4 +1,4 @@
-package com.xarql.kdl;
+package main.com.xarql.kdl;
 
 import java.util.ArrayList;
 
@@ -36,6 +36,11 @@ public class BestList<E> extends ArrayList<E> {
             if(!add(e))
                 output = false;
         return output;
+    }
+
+    public final void removeAmount(int amount) {
+        for(int i = 0; i < amount; i++)
+            remove(0);
     }
 
     public String spread() {

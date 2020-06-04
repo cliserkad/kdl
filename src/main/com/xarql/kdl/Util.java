@@ -1,4 +1,4 @@
-package com.xarql.kdl;
+package main.com.xarql.kdl;
 
 public class Util {
 

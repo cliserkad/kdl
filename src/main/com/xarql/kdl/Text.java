@@ -1,4 +1,4 @@
-package com.xarql.kdl;
+package main.com.xarql.kdl;
 
 public class Text {
     public static final char[] PUNCTUATION_MARKS = { ':', '.', ',', ';', '?', '!', '"', '\'' };
@@ -44,7 +44,7 @@ public class Text {
      * @return true if all chars are in the latin alphabet */
     public static boolean isLatinWord(String word) {
         for(int i = 0; i < word.length(); i++)
-            if(!a_z(word.charAt(i)) || !A_Z(word.charAt(i)))
+            if(!a_z(word.charAt(i)) && !A_Z(word.charAt(i)))
                 return false;
         return true;
     }
@@ -55,7 +55,7 @@ public class Text {
      * @return true if all chars are latin */
     public static boolean isLatin(String in) {
         for(int i = 0; i < in.length(); i++)
-            if(!a_z(in.charAt(i)) || !A_Z(in.charAt(i)) || !Character.isWhitespace(in.charAt(i)))
+            if(!a_z(in.charAt(i)) && !A_Z(in.charAt(i)) && !Character.isWhitespace(in.charAt(i)))
                 return false;
         return true;
     }
@@ -174,4 +174,7 @@ public class Text {
         return output;
     }
 
+    public static boolean firstLetterIsUppercase(String in) {
+        return !isEmpty(in) && Character.isUpperCase(in.charAt(0));
+    }
 }
