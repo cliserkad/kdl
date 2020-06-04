@@ -7,24 +7,24 @@ package main.com.xarql.kdl;
 // skip over whitespace
 WS : [ \t\r\n]+ -> skip;
 
-DIGIT      : [0-9];
-UPLETTER   : [A-Z];
-DNLETTER   : [a-z];
-LETTER     : UPLETTER | DNLETTER;
-ALPHANUM   : LETTER | DIGIT;
-UNDERSCORE : '_';
+fragment DIGIT      : [0-9];
+fragment UPLETTER   : [A-Z];
+fragment DNLETTER   : [a-z];
+fragment LETTER     : UPLETTER | DNLETTER;
+fragment ALPHANUM   : LETTER | DIGIT;
+fragment UNDERSCORE : '_';
 
-CLASSNAME : UPLETTER LETTER+;
-PROCNAME  : DNLETTER ALPHANUM+;
-CONSTNAME : UPLETTER (UPLETTER | DIGIT | UNDERSCORE0
+CONSTNAME : UPLETTER (UPLETTER | DIGIT | UNDERSCORE)+;
+CLASSNAME : UPLETTER (LETTER)+;
+VARNAME   : DNLETTER (LETTER)+;
 
 ESCAPED_QUOTE : '\\"';
 
 // literals
-string : '"' ( ESCAPED_QUOTE | ~('\n'|'\r') )*? '"';
+STRING : '"' (ESCAPED_QUOTE | ~'"')* '"';
 number: DIGIT+;
 bool: 'true' | 'false';
-literal: number | bool | string;
+literal: number | bool | STRING;
 
 type: basetype | CLASSNAME;
 basetype: 'boolean' | 'int' | 'string';
