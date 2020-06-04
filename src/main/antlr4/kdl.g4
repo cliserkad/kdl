@@ -26,9 +26,21 @@ number: DIGIT+;
 bool: 'true' | 'false';
 literal: number | bool | STRING;
 
+
+
+// method calls
+methodCallStatement: methodCall ('.' regularMethodCall)* ';';
+methodCall: regularMethodCall | objectiveMethodCall | staticMethodCall;
+regularMethodCall: VARNAME parameterSet;
+objectiveMethodCall: VARNAME '.' regularMethodCall;
+staticMethodCall: CLASSNAME '.' regularMethodCall;
+parameterSet: '(' parameter? (',' parameter)* ')';
+parameter: methodCall | VARNAME | CONSTNAME;
+
 type: basetype | CLASSNAME;
 basetype: 'boolean' | 'int' | 'string';
 
 source: clazz;
-clazz: 'class' CLASSNAME '{' constant* '}';
+clazz: 'class' CLASSNAME '{' (constant | run)* '}';
 constant: 'const' CONSTNAME '=' literal ';';
+run: 'run' '{' methodCallStatement '}';
