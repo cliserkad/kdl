@@ -1,39 +1,51 @@
 package main.com.xarql.kdl;
 
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.pattern.ParseTreeMatch;
+import org.antlr.v4.runtime.tree.pattern.ParseTreePattern;
+import org.antlr.v4.runtime.tree.xpath.XPath;
+
+import java.util.Collection;
+import java.util.List;
+
 public class SourceListener extends kdlBaseListener {
-    private Source src;
+    private Builder owner;
+
+    public SourceListener(Builder owner) {
+         this.owner = owner;
+    }
 
     private boolean lookingForConstLiteral = false;
 
     @Override
     public void enterClazz(kdlParser.ClazzContext clazzCtx) {
-        src = new Source(clazzCtx.getText());
+        owner.src = new Source(clazzCtx.getText());
     }
 
     @Override
-    public void enterConstant(kdlParser.ConstantContext ctx) {
-        src.constants.add(new Constant(ctx.CONSTNAME().getText()));
-        lookingForConstLiteral = true;
-    }
-
-    @Override
-    public void enterBool(kdlParser.BoolContext ctx) {
-        if(lookingForConstLiteral) {
-            latestConstant().value = new BooleanValue(Boolean.valueOf(ctx.getText()));
-            lookingForConstLiteral = false;
+    public void enterLiteral(kdlParser.LiteralContext ctx) {
+        if(ctx.getParent() instanceof kdlParser.ConstantContext) {
+            kdlParser.ConstantContext parent = (kdlParser.ConstantContext) ctx.getParent();
+            Constant c = new Constant(parent.getChild(1).toString());
+            if(ctx.STRING() != null)
+                c.value = new StringValue(ctx.STRING().toString());
+            else if(ctx.bool() != null) {
+                if(ctx.bool().TRUE() != null)
+                    c.value = new BooleanValue(true);
+                else
+                    c.value = new BooleanValue(false);
+            }
+            else
+                System.out.println("FUCK IT DIDN'T WORK");
+            owner.src.constants.add(c);
         }
     }
 
     @Override
-    public void enterString(kdlParser.StringContext ctx) {
-        if(lookingForConstLiteral) {
-            latestConstant().value = new StringValue(ctx.getText().substring(0, ctx.getText().length() - 2));
-            lookingForConstLiteral = false;
-        }
-    }
+    public void enterRun(kdlParser.RunContext ctx) {
+       for(kdlParser.StatementContext state : ctx.statement()){
 
-    private Constant latestConstant() {
-        return src.constants.get(src.constants.size() - 1);
+        }
     }
 
 }

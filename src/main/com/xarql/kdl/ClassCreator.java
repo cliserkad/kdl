@@ -17,17 +17,8 @@ public class ClassCreator implements Opcodes {
     private File   source;
     private String pkg;
 
-    final BestList<String> tokens;
-
-    public static void main(String[] args) throws IOException, Exception {
-        ClassCreator cc = new ClassCreator(Lexer.TEST_SOURCE);
-        cc.write();
-    }
-
     public ClassCreator(File source) throws IOException {
         this.source = source;
-        tokens = Lexer.getTokens(source);
-
         System.out.println("done!");
     }
 

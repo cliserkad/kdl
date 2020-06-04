@@ -5,11 +5,12 @@ import java.util.List;
 
 public class Source {
     public final String   className;
-    public List<Constant> constants;
+    public BestList<Constant> constants;
+    public MethodDef mainMethodDef;
 
     public Source(String className) {
         this.className = className;
-        constants = new ArrayList<>();
+        constants = new BestList<>();
     }
 
 }

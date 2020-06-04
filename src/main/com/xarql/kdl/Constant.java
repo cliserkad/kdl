@@ -10,9 +10,17 @@ public class Constant {
         this.name = name;
     }
 
+    public String toString() {
+        return name + " : " + value;
+    }
+
     public static abstract class Value {
         public abstract Class<?> valueType();
 
         public abstract Object value();
+
+        public String toString() {
+            return value().toString();
+        }
     }
 }

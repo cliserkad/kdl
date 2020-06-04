@@ -14,7 +14,7 @@ public class NameFormats {
                 return false;
 
         /* Method names are further constrained so that, with the exception of the
-         * special method names <init> and <clinit> (§2.9), they must not contain the
+         * special method names <init> and <clinit> (ï¿½2.9), they must not contain the
          * ASCII characters < or > (that is, left angle bracket or right angle
          * bracket). */
         if(!str.equals(INIT) && !str.equals(CLINIT))
@@ -43,7 +43,7 @@ public class NameFormats {
         /* In this internal form, the ASCII periods (.) that normally separate the
          * identifiers which make up the binary name are replaced by ASCII forward
          * slashes (/). The identifiers themselves must be unqualified names
-         * (§4.2.2). */
+         * (ï¿½4.2.2). */
         if(str.contains("."))
             return false;
         String[] parts = str.split("/");
@@ -55,7 +55,7 @@ public class NameFormats {
     }
 
     public static boolean isKDLVariableName(String in) {
-        return !Keyword.matches(in) && !Text.isLatinWord(in);
+        return !Text.isLatinWord(in);
     }
 
     public static void checkKDLVariableName(String in) {
