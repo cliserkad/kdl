@@ -1,4 +1,4 @@
-package main.com.xarql.kdl;
+package com.xarql.kdl;
 
 public class Constant {
 	public final String name;

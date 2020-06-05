@@ -1,6 +1,6 @@
-package main.com.xarql.kdl.names;
+package com.xarql.kdl.names;
 
-import main.com.xarql.kdl.StringOutput;
+import com.xarql.kdl.StringOutput;
 
 public class ReturnValue implements StringOutput {
 	public static final ReturnValue VOID_RETURN = new ReturnValue();

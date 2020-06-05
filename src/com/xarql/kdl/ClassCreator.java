@@ -1,9 +1,9 @@
-package main.com.xarql.kdl;
+package com.xarql.kdl;
 
 import com.xarql.kdl.antlr4.kdlLexer;
 import com.xarql.kdl.antlr4.kdlParser;
-import main.com.xarql.kdl.names.BaseType;
-import main.com.xarql.kdl.names.NameFormats;
+import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.NameFormats;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;

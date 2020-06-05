@@ -1,6 +1,6 @@
-package main.com.xarql.kdl.names;
+package com.xarql.kdl.names;
 
-import main.com.xarql.kdl.BestList;
+import com.xarql.kdl.BestList;
 
 public interface CommonNames {
 	public static final InternalName                 STRING_IN    = new InternalName(String.class);

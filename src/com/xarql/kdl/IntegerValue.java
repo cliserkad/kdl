@@ -1,4 +1,4 @@
-package main.com.xarql.kdl;
+package com.xarql.kdl;
 
 public class IntegerValue extends Constant.Value {
 	private final int val;
@@ -8,12 +8,12 @@ public class IntegerValue extends Constant.Value {
 	}
 
 	@Override
-	public Class<?> valueType( ) {
+	public Class<?> valueType() {
 		return Integer.class;
 	}
 
 	@Override
-	public Object value( ) {
+	public Object value() {
 		return val;
 	}
 }

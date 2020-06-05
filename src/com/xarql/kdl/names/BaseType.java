@@ -1,6 +1,6 @@
-package main.com.xarql.kdl.names;
+package com.xarql.kdl.names;
 
-import main.com.xarql.kdl.StringOutput;
+import com.xarql.kdl.StringOutput;
 
 public enum BaseType implements StringOutput {
 	INT('I'), BOOLEAN('Z'), LONG('J'), FLOAT('F'), DOUBLE('D');

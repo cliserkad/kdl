@@ -1,4 +1,4 @@
-package main.com.xarql.kdl;
+package com.xarql.kdl;
 
 public interface StringOutput {
 	String stringOutput();

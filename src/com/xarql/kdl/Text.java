@@ -1,4 +1,4 @@
-package main.com.xarql.kdl;
+package com.xarql.kdl;
 
 public class Text {
 	public static final char[] PUNCTUATION_MARKS = {':', '.', ',', ';', '?', '!', '"', '\''};

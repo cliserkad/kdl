@@ -1,4 +1,4 @@
-package main.com.xarql.kdl.names;
+package com.xarql.kdl.names;
 
 public class NameFormats {
 	public static final String INIT   = "<init>";

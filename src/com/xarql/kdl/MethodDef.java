@@ -1,8 +1,8 @@
-package main.com.xarql.kdl;
+package com.xarql.kdl;
 
+import com.xarql.kdl.names.InternalObjectName;
+import com.xarql.kdl.names.ReturnValue;
 import jdk.internal.org.objectweb.asm.Opcodes;
-import main.com.xarql.kdl.names.InternalObjectName;
-import main.com.xarql.kdl.names.ReturnValue;
 
 import java.util.List;
 

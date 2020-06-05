@@ -1,16 +1,16 @@
-package main.com.xarql.kdl;
+package com.xarql.kdl;
 
 import com.xarql.kdl.antlr4.kdlBaseListener;
 import com.xarql.kdl.antlr4.kdlParser;
-import main.com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.CommonNames;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import java.io.PrintStream;
 
-import static main.com.xarql.kdl.names.NameFormats.internalName;
-import static main.com.xarql.kdl.names.NameFormats.internalObjectName;
+import static com.xarql.kdl.names.NameFormats.internalName;
+import static com.xarql.kdl.names.NameFormats.internalObjectName;
 
 public class SourceListener extends kdlBaseListener implements Opcodes, CommonNames {
 	private final ClassCreator owner;

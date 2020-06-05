@@ -1,4 +1,4 @@
-package main.com.xarql.kdl;
+package com.xarql.kdl;
 
 import java.util.ArrayList;
 import java.util.List;
