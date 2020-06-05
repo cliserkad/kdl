@@ -1,26 +1,36 @@
 package main.com.xarql.kdl;
 
 public class Constant {
-    public final String name;
-    public Value        value;
+	public final String name;
+	public       Value  value;
 
-    public Constant(String name) {
-        if(name == null || name.isEmpty())
-            throw new IllegalArgumentException("Constant name may not be empty");
-        this.name = name;
-    }
+	public Constant(final String name, final Value value) {
+		if(name == null || name.isEmpty())
+			throw new IllegalArgumentException("Constant name may not be empty");
+		this.name = name;
+	}
 
-    public String toString() {
-        return name + " : " + value;
-    }
+	public Constant(final String name) {
+		this(name, null);
+	}
 
-    public static abstract class Value {
-        public abstract Class<?> valueType();
+	@Override
+	public String toString( ) {
+		return name + " : " + value;
+	}
 
-        public abstract Object value();
+	public boolean isEmpty( ) {
+		return value == null;
+	}
 
-        public String toString() {
-            return value().toString();
-        }
-    }
+	public static abstract class Value {
+		public abstract Class<?> valueType( );
+
+		public abstract Object value( );
+
+		@Override
+		public String toString( ) {
+			return value().toString();
+		}
+	}
 }

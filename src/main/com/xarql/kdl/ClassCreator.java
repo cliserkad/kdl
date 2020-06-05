@@ -1,97 +1,132 @@
 package main.com.xarql.kdl;
 
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.objectweb.asm.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
 public class ClassCreator implements Opcodes {
-    public static final int CONST = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
+	public static final int    CONST              = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
+	public static final String BOOLEAN_DESCRIPTOR = "Z";
+	public static final String INT_DESCRIPTOR     = "I";
 
-    private String name;
-    private File   source;
-    private String pkg;
+	public static final File DEFAULT_LOC = new File(System.getProperty("user.home") + "/Documents/kdl/Test.kdl");
 
-    public ClassCreator(File source) throws IOException {
-        this.source = source;
-        System.out.println("done!");
-    }
+	// set in constructor
+	private final File               input;
+	private final ClassWriter        cw;
+	private final BestList<Constant> constants;
+	private       SourceListener     sl;
+	private       String             className;
+	private       boolean            nameSet;
 
-    public void write() {
-        try {
-            Files.write(source.toPath().resolveSibling(name + ".class"), create());
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
+	public ClassCreator(final File input) {
+		this.input = input;
+		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		constants = new BestList<>();
+	}
 
-    public byte[] create() throws Exception {
-        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-        MethodVisitor mv;
-        AnnotationVisitor av0;
+	public static void main(final String[] args) {
+		final ClassCreator cc = new ClassCreator(DEFAULT_LOC);
+		cc.build();
+		cc.write();
+	}
 
-        String internalName;
-        if(pkg != null)
-            internalName = pkg.replace('.', '/') + '/' + name;
-        else
-            internalName = name;
-        String internalObjectName = 'L' + internalName + ';';
-        cw.visit(V1_8, ACC_PUBLIC + ACC_SUPER, internalName, null, NameFormats.internalName(Object.class), null);
-        cw.visitSource(name + ".kdl", null);
+	public boolean build( ) {
+		try {
+			final String fileContent = new String(Files.readAllBytes(input.toPath()));
+			final kdlLexer lex = new kdlLexer(CharStreams.fromString(fileContent));
+			final CommonTokenStream tokens = new CommonTokenStream(lex);
+			final kdlParser parser = new kdlParser(tokens);
+			final ParseTree tree = parser.source();
+			sl = new SourceListener(this);
+			ParseTreeWalker.DEFAULT.walk(sl, tree);
+			return true;
+		} catch(final IOException ioe) {
+			return false;
+		}
+	}
 
-        addStringConstant(cw, "HELLO_WORLD", "hello world");
+	public void write( ) {
+		try {
+			cw.visitEnd();
+			Files.write(input.toPath().resolveSibling(className + ".class"), cw.toByteArray());
+		} catch(final Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-        {
-            mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-            mv.visitCode();
-            Label l0 = new Label();
-            mv.visitLabel(l0);
-            mv.visitLineNumber(3, l0);
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
-            mv.visitInsn(RETURN);
-            Label l1 = new Label();
-            mv.visitLabel(l1);
-            mv.visitLocalVariable("this", internalObjectName, null, l0, l1, 0);
-            mv.visitMaxs(0, 0);
-            mv.visitEnd();
-        }
-        {
-            mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
-            mv.visitCode();
+	/**
+	 * Sets the name of this class to the given className.
+	 * @param className name of class, Ex. Test
+	 * @return success of operation
+	 */
+	public boolean setClassName(final String className) {
+		if(!nameSet) {
+			this.className = className;
+			nameSet = true;
 
-            Label l0 = new Label();
-            mv.visitLabel(l0);
-            mv.visitLineNumber(7, l0);
-            mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-            mv.visitLdcInsn("hello world");
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
-            Label l1 = new Label();
-            mv.visitLabel(l1);
-            mv.visitLineNumber(8, l1);
-            mv.visitInsn(RETURN);
+			// give name to ClassWriter
+			cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, internalName(), null, NameFormats.internalName(Object.class), null);
+			cw.visitSource(className + ".kdl", null);
 
-            Label l2 = new Label();
-            mv.visitLabel(l2);
-            mv.visitLocalVariable("args", "[Ljava/lang/String;", null, l0, l2, 0);
-            mv.visitMaxs(0, 0);
-            mv.visitEnd();
-        }
-        cw.visitEnd();
+			return true;
+		}
+		else
+			return false;
+	}
 
-        return cw.toByteArray();
-    }
+	public String internalObjectName( ) {
+		return "L" + className + ";";
+	}
 
-    public static void addStringConstant(ClassWriter cw, String constName, String str) {
-        NameFormats.checkKDLConstName(constName);
-        FieldVisitor fv = cw.visitField(CONST, constName, NameFormats.internalObjectName(String.class), null, str);
-        fv.visitEnd();
-    }
+	public String internalName( ) {
+		return className;
+	}
+
+	public void addConstant(final Constant c) {
+		if(c.value instanceof StringValue)
+			addStringConstant(c.name, c.value.toString());
+		else if(c.value instanceof BooleanValue)
+			addBooleanConstant(c.name, (boolean) c.value.value());
+		else if(c.value instanceof IntegerValue)
+			addIntegerConstant(c.name, (int) c.value.value());
+	}
+
+	public void addIntegerConstant(final String constName, final int val) {
+		final FieldVisitor fv = cw.visitField(CONST, constName, INT_DESCRIPTOR, null, val);
+		fv.visitEnd();
+	}
+
+	public void addBooleanConstant(final String constName, final boolean val) {
+		final FieldVisitor fv = cw.visitField(CONST, constName, BOOLEAN_DESCRIPTOR, null, val);
+		fv.visitEnd();
+	}
+
+	public void addStringConstant(final String constName, final String str) {
+		final FieldVisitor fv = cw.visitField(CONST, constName, NameFormats.internalObjectName(String.class), null, str);
+		fv.visitEnd();
+	}
+
+	public void addDefaultConstructor(final ClassWriter cw) {
+		final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+		mv.visitCode();
+		final Label l0 = new Label();
+		mv.visitLabel(l0);
+		mv.visitLineNumber(3, l0);
+		mv.visitVarInsn(Opcodes.ALOAD, 0);
+		mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+		mv.visitInsn(Opcodes.RETURN);
+		final Label l1 = new Label();
+		mv.visitLabel(l1);
+		mv.visitLocalVariable("this", internalObjectName(), null, l0, l1, 0);
+		mv.visitMaxs(0, 0);
+		mv.visitEnd();
+	}
 
 }
