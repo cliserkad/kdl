@@ -1,5 +1,9 @@
 package main.com.xarql.kdl;
 
+import com.xarql.kdl.antlr4.kdlLexer;
+import com.xarql.kdl.antlr4.kdlParser;
+import main.com.xarql.kdl.names.BaseType;
+import main.com.xarql.kdl.names.NameFormats;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -11,49 +15,52 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class ClassCreator implements Opcodes {
-	public static final int    CONST              = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
-	public static final String BOOLEAN_DESCRIPTOR = "Z";
-	public static final String INT_DESCRIPTOR     = "I";
+	public static final int CONST = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
 
 	public static final File DEFAULT_LOC = new File(System.getProperty("user.home") + "/Documents/kdl/Test.kdl");
 
 	// set in constructor
-	private final File               input;
-	private final ClassWriter        cw;
-	private final BestList<Constant> constants;
-	private       SourceListener     sl;
-	private       String             className;
-	private       boolean            nameSet;
+	private final File                input;
+	private final ClassWriter         cw;
+	private final BestList<Constant>  constants;
+	private final BestList<Import>    imports;
+	private final BestList<MethodDef> methods;
+	private       SourceListener      sl;
+	private       String              className;
+	private       boolean             nameSet;
 
 	public ClassCreator(final File input) {
 		this.input = input;
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		constants = new BestList<>();
+		imports = new BestList<>();
+		methods = new BestList<>();
 	}
 
-	public static void main(final String[] args) {
+	public static void main(String[] args) {
 		final ClassCreator cc = new ClassCreator(DEFAULT_LOC);
 		if(!cc.build())
-			System.out.println("Failed to read IO");
+			System.err.println("Failed to read IO");
 		cc.write();
 	}
 
-	public boolean hasConstant(final String name) {
-		return constant(name) != null;
+	public void addMethodDef(MethodDef md) {
+		methods.add(md);
 	}
 
-	public Constant constant(final String name) {
-		System.out.println(constants);
-		System.out.println(constants.size());
+	public boolean hasConstant(final String name) {
+		return resolveConstant(name) != null;
+	}
+
+	public Constant resolveConstant(final String name) {
 		for(Constant c : constants) {
-			System.out.println(c.name);
 			if(c.name.equals(name))
 				return c;
 		}
-		return null;
+		throw new IllegalArgumentException("Constant " + name + " does not exist");
 	}
 
-	public boolean build( ) {
+	public boolean build() {
 		try {
 			final String fileContent = new String(Files.readAllBytes(input.toPath()));
 			final kdlLexer lex = new kdlLexer(CharStreams.fromString(fileContent));
@@ -61,6 +68,9 @@ public class ClassCreator implements Opcodes {
 			final kdlParser parser = new kdlParser(tokens);
 			final ParseTree tree = parser.source();
 			sl = new SourceListener(this);
+			sl.newPass();
+			ParseTreeWalker.DEFAULT.walk(sl, tree);
+			sl.newPass();
 			ParseTreeWalker.DEFAULT.walk(sl, tree);
 			return true;
 		} catch(final IOException ioe) {
@@ -68,7 +78,7 @@ public class ClassCreator implements Opcodes {
 		}
 	}
 
-	public void write( ) {
+	public void write() {
 		try {
 			cw.visitEnd();
 			Files.write(input.toPath().resolveSibling(className + ".class"), cw.toByteArray());
@@ -97,32 +107,49 @@ public class ClassCreator implements Opcodes {
 			return false;
 	}
 
-	public String internalObjectName( ) {
+	public String internalObjectName() {
 		return "L" + className + ";";
 	}
 
-	public String internalName( ) {
+	public String internalName() {
 		return className;
 	}
 
-	public MethodVisitor addMainMethod( ) {
-		final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
-		mv.visitCode();
-		return mv;
+	public MethodVisitor defineMethod(MethodDef md) {
+		if(methods.contains(md)) {
+			final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);
+			mv.visitCode();
+			return mv;
+		}
+		else
+			throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
 	}
 
-	public void addConstant(final Constant c) {
+	public Import resolveClassName(String className) {
+		for(Import imp : imports)
+			if(imp.className.equals(className))
+				return imp;
+		return null;
+	}
+
+	public void addImport(final Import imp) {
+		imports.add(imp);
+	}
+
+	public boolean addConstant(final Constant c) {
+		if(constants.contains(c))
+			return false;
 		FieldVisitor fv;
 		if(c.value instanceof StringValue)
 			fv = cw.visitField(CONST, c.name, NameFormats.internalObjectName(String.class), null, c.value.toString());
 		else if(c.value instanceof BooleanValue)
-			fv = cw.visitField(CONST, c.name, BOOLEAN_DESCRIPTOR, null, (boolean) c.value.value());
+			fv = cw.visitField(CONST, c.name, BaseType.BOOLEAN.stringOutput(), null, c.value.value());
 		else if(c.value instanceof IntegerValue)
-			fv = cw.visitField(CONST, c.name, INT_DESCRIPTOR, null, (int) c.value.value());
+			fv = cw.visitField(CONST, c.name, BaseType.INT.stringOutput(), null, c.value.value());
 		else
 			throw new UnsupportedOperationException("The class " + c.value.getClass() + " could not be resolved to a const type");
 		fv.visitEnd();
-		constants.add(c);
+		return constants.add(c);
 	}
 
 	public void addDefaultConstructor(final ClassWriter cw) {

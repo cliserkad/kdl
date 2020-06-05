@@ -15,21 +15,30 @@ public class Constant {
 	}
 
 	@Override
-	public String toString( ) {
+	public String toString() {
 		return name + " : " + value;
 	}
 
-	public boolean isEmpty( ) {
+	public boolean isEmpty() {
 		return value == null;
 	}
 
-	public static abstract class Value {
-		public abstract Class<?> valueType( );
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof Constant) {
+			Constant other = (Constant) o;
+			return other.name.equals(name);
+		}
+		return false;
+	}
 
-		public abstract Object value( );
+	public static abstract class Value {
+		public abstract Class<?> valueType();
+
+		public abstract Object value();
 
 		@Override
-		public String toString( ) {
+		public String toString() {
 			return value().toString();
 		}
 	}
