@@ -33,8 +33,24 @@ public class ClassCreator implements Opcodes {
 
 	public static void main(final String[] args) {
 		final ClassCreator cc = new ClassCreator(DEFAULT_LOC);
-		cc.build();
+		if(!cc.build())
+			System.out.println("Failed to read IO");
 		cc.write();
+	}
+
+	public boolean hasConstant(final String name) {
+		return constant(name) != null;
+	}
+
+	public Constant constant(final String name) {
+		System.out.println(constants);
+		System.out.println(constants.size());
+		for(Constant c : constants) {
+			System.out.println(c.name);
+			if(c.name.equals(name))
+				return c;
+		}
+		return null;
 	}
 
 	public boolean build( ) {
@@ -89,28 +105,24 @@ public class ClassCreator implements Opcodes {
 		return className;
 	}
 
+	public MethodVisitor addMainMethod( ) {
+		final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+		mv.visitCode();
+		return mv;
+	}
+
 	public void addConstant(final Constant c) {
+		FieldVisitor fv;
 		if(c.value instanceof StringValue)
-			addStringConstant(c.name, c.value.toString());
+			fv = cw.visitField(CONST, c.name, NameFormats.internalObjectName(String.class), null, c.value.toString());
 		else if(c.value instanceof BooleanValue)
-			addBooleanConstant(c.name, (boolean) c.value.value());
+			fv = cw.visitField(CONST, c.name, BOOLEAN_DESCRIPTOR, null, (boolean) c.value.value());
 		else if(c.value instanceof IntegerValue)
-			addIntegerConstant(c.name, (int) c.value.value());
-	}
-
-	public void addIntegerConstant(final String constName, final int val) {
-		final FieldVisitor fv = cw.visitField(CONST, constName, INT_DESCRIPTOR, null, val);
+			fv = cw.visitField(CONST, c.name, INT_DESCRIPTOR, null, (int) c.value.value());
+		else
+			throw new UnsupportedOperationException("The class " + c.value.getClass() + " could not be resolved to a const type");
 		fv.visitEnd();
-	}
-
-	public void addBooleanConstant(final String constName, final boolean val) {
-		final FieldVisitor fv = cw.visitField(CONST, constName, BOOLEAN_DESCRIPTOR, null, val);
-		fv.visitEnd();
-	}
-
-	public void addStringConstant(final String constName, final String str) {
-		final FieldVisitor fv = cw.visitField(CONST, constName, NameFormats.internalObjectName(String.class), null, str);
-		fv.visitEnd();
+		constants.add(c);
 	}
 
 	public void addDefaultConstructor(final ClassWriter cw) {
