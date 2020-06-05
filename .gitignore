@@ -1,4 +1,8 @@
 /bin/*
 *.class
 /target/*
+/.idea/*
+*.project
+*.iml
+
 
