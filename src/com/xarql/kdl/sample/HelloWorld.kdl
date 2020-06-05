@@ -1,0 +1,5 @@
+class HelloWorld {
+  run {
+    println("hello world");
+  }
+}
