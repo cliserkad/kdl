@@ -9,7 +9,8 @@ import java.util.List;
 public class MethodDef implements StringOutput, Opcodes {
 	public static final MethodDef MAIN = new MethodDef(Type.MTD, "main", new BestList<>(new InternalObjectName(String.class, 1)), null, ACC_PUBLIC + ACC_STATIC);
 
-	public static final int DEFAULT_ACCESS = ACC_STATIC;
+	public static final String INIT           = "<init>";
+	public static final int    DEFAULT_ACCESS = ACC_STATIC;
 
 	public final Type                     type;
 	public final String                   methodName;

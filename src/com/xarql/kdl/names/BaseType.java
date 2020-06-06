@@ -1,14 +1,21 @@
 package com.xarql.kdl.names;
 
+import com.xarql.kdl.Constant;
 import com.xarql.kdl.StringOutput;
 
 public enum BaseType implements StringOutput {
-	INT('I'), BOOLEAN('Z'), LONG('J'), FLOAT('F'), DOUBLE('D');
+	INT('I', new Constant<>(CommonNames.DEFAULT, 0)), BOOLEAN('Z', new Constant<>(CommonNames.DEFAULT, false));
 
-	char rep;
+	char        rep;
+	Constant<?> defaultValue;
 
-	BaseType(char rep) {
+	BaseType(char rep, Constant<?> defaultValue) {
 		this.rep = rep;
+		this.defaultValue = defaultValue;
+	}
+
+	public Constant<?> getDefaultValue() {
+		return defaultValue;
 	}
 
 	@Override

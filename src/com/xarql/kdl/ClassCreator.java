@@ -17,17 +17,17 @@ import java.nio.file.Files;
 public class ClassCreator implements Opcodes {
 	public static final int CONST = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
 
-	public static final File DEFAULT_LOC = new File(System.getProperty("user.home") + "/Documents/kdl/Test.kdl");
-
+	public static final File                DEFAULT_LOC = new File(System.getProperty("user.home") + "/Documents/kdl/");
 	// set in constructor
-	private final File                input;
-	private final ClassWriter         cw;
-	private final BestList<Constant>  constants;
-	private final BestList<Import>    imports;
-	private final BestList<MethodDef> methods;
-	private       SourceListener      sl;
-	private       String              className;
-	private       boolean             nameSet;
+	private final       File                input;
+	private final       ClassWriter         cw;
+	private final       BestList<Constant>  constants;
+	private final       BestList<Import>    imports;
+	private final       BestList<MethodDef> methods;
+	public              Scope               currentScope;
+	private             SourceListener      sl;
+	private             String              className;
+	private             boolean             nameSet;
 
 	public ClassCreator(final File input) {
 		this.input = input;
@@ -38,10 +38,18 @@ public class ClassCreator implements Opcodes {
 	}
 
 	public static void main(String[] args) {
-		final ClassCreator cc = new ClassCreator(DEFAULT_LOC);
-		if(!cc.build())
-			System.err.println("Failed to read IO");
-		cc.write();
+		for(File f : DEFAULT_LOC.listFiles()) {
+			if(f.getName().endsWith(".kdl")) {
+				ClassCreator cc = new ClassCreator(f);
+				if(!cc.build())
+					System.err.println("Failed to read IO");
+				cc.write();
+			}
+		}
+	}
+
+	public LocalVariable getLocalVariable(String name) {
+		return currentScope.getVariable(name);
 	}
 
 	public void addMethodDef(MethodDef md) {
@@ -115,11 +123,12 @@ public class ClassCreator implements Opcodes {
 		return className;
 	}
 
-	public MethodVisitor defineMethod(MethodDef md) {
+	public LinedMethodVisitor defineMethod(MethodDef md, int line) {
 		if(methods.contains(md)) {
+			currentScope = new Scope("Method " + md.methodName + " of class " + className, new Label());
 			final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);
 			mv.visitCode();
-			return mv;
+			return new LinedMethodVisitor(mv, line);
 		}
 		else
 			throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
@@ -136,16 +145,16 @@ public class ClassCreator implements Opcodes {
 		imports.add(imp);
 	}
 
-	public boolean addConstant(final Constant c) {
+	public boolean addConstant(final Constant<?> c) {
 		if(constants.contains(c))
 			return false;
 		FieldVisitor fv;
-		if(c.value instanceof StringValue)
+		if(c.value instanceof String)
 			fv = cw.visitField(CONST, c.name, NameFormats.internalObjectName(String.class), null, c.value.toString());
-		else if(c.value instanceof BooleanValue)
-			fv = cw.visitField(CONST, c.name, BaseType.BOOLEAN.stringOutput(), null, c.value.value());
-		else if(c.value instanceof IntegerValue)
-			fv = cw.visitField(CONST, c.name, BaseType.INT.stringOutput(), null, c.value.value());
+		else if(c.value instanceof Boolean)
+			fv = cw.visitField(CONST, c.name, BaseType.BOOLEAN.stringOutput(), null, c.value);
+		else if(c.value instanceof Integer)
+			fv = cw.visitField(CONST, c.name, BaseType.INT.stringOutput(), null, c.value);
 		else
 			throw new UnsupportedOperationException("The class " + c.value.getClass() + " could not be resolved to a const type");
 		fv.visitEnd();

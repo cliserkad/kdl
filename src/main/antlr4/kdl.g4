@@ -24,6 +24,8 @@ BODY_OPEN: '{'; // opening bracket
 BODY_CLOSE: '}'; // closing bracket
 PARAM_OPEN: '('; // opening paren
 PARAM_CLOSE: ')'; // closing paren
+BRACE_OPEN: '[';
+BRACE_CLOSE: ']';
 DOT: '.';
 SEPARATOR: ',';
 STATEMENT_END: ';';
@@ -57,31 +59,29 @@ bool: TRUE | FALSE;
 literal: bool | STRING | number;
 number: ('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')*;
 
-statement: methodCallStatement | variableDeclaration | variableAssignment;
+statement: methodCall | variableDeclaration | variableAssignment;
+
 mathExpression: valueExpression operator valueExpression;
-valueExpression: ~'+' methodCallChain | literal | VARNAME | CONSTNAME;
+valueExpression: methodCall | literal | VARNAME | CONSTNAME;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 
-variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN (valueExpression | mathExpression))? STATEMENT_END;
-variableAssignment: VARNAME (SEPARATOR VARNAME)* ASSIGN valueExpression STATEMENT_END;
+variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN literal)? STATEMENT_END;
+variableAssignment: variable (SEPARATOR VARNAME)* ASSIGN valueExpression STATEMENT_END;
 typedVariable: type VARNAME;
+variable: VARNAME | arrayAccess;
+arrayAccess: VARNAME BRACE_OPEN number BRACE_CLOSE;
 
 // method calls
-methodCallStatement: methodCallChain STATEMENT_END;
-methodCallChain: methodCall (DOT regularMethodCall)*;
-methodCall: regularMethodCall | objectiveMethodCall | staticMethodCall;
-regularMethodCall: VARNAME parameterSet;
-objectiveMethodCall: VARNAME DOT regularMethodCall;
-staticMethodCall: CLASSNAME DOT regularMethodCall;
+methodCall: VARNAME parameterSet STATEMENT_END;
 parameterSet: PARAM_OPEN parameter? (SEPARATOR parameter)* PARAM_CLOSE;
 parameter: DIGIT+ | literal | CONSTNAME | methodCall | VARNAME;
 
 // method definitions
 methodDefinition: methodType type VARNAME parameterDefinition '{' methodBody '}';
-methodType: METHOD | FUNCTION | RUN;
+methodType: METHOD | FUNCTION;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 
-methodBody: methodCallStatement* returnStatement;
+methodBody: methodCall* returnStatement;
 returnStatement: RETURN (VARNAME | literal) ';';
 
 type: basetype | CLASSNAME;

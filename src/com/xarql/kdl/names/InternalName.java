@@ -3,11 +3,8 @@ package com.xarql.kdl.names;
 import com.xarql.kdl.StringOutput;
 
 public class InternalName implements StringOutput {
-	public static final InternalName FLOAT   = new InternalName(BaseType.FLOAT);
 	public static final InternalName INT     = new InternalName(BaseType.INT);
 	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN);
-	public static final InternalName LONG    = new InternalName(BaseType.LONG);
-	public static final InternalName DOUBLE  = new InternalName(BaseType.DOUBLE);
 
 	public final Class<?> clazz;
 	public final BaseType base;
@@ -20,6 +17,10 @@ public class InternalName implements StringOutput {
 	private InternalName(BaseType base) {
 		this.base = base;
 		clazz = null;
+	}
+
+	public InternalObjectName object() {
+		return new InternalObjectName(this);
 	}
 
 	public boolean isClassType() {

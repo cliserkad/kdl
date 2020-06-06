@@ -21,6 +21,10 @@ public class BestList<E> extends ArrayList<E> {
 		add(elements);
 	}
 
+	public static <E> BestList<E> list(E... element) {
+		return new BestList<>(element);
+	}
+
 	// unchecked because parent add() function in ArrayList is also unchecked
 	@SafeVarargs
 	public final boolean add(E... elements) {

@@ -28,6 +28,12 @@ public class InternalObjectName implements StringOutput {
 		this(new InternalName(clazz));
 	}
 
+	public static InternalObjectName checkNonNull(InternalObjectName name) {
+		if(name == null)
+			throw new IllegalArgumentException("InternalObjectName instance may not be null");
+		return name;
+	}
+
 	private String objectInstance() {
 		return OBJECT_PREFIX + internalName.stringOutput() + OBJECT_SUFFIX;
 	}

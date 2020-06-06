@@ -1,0 +1,6 @@
+class Variable {
+    run {
+        string msg = ""
+        println(msg);
+    }
+}
