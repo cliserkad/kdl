@@ -4,8 +4,8 @@ import com.xarql.kdl.BestList;
 import com.xarql.kdl.MethodDef;
 
 public interface CommonNames {
-	String BASETYPE_INT    = "int";
-	String BASETYPE_STRING = "string";
+	String KEYWORD_INT    = "int";
+	String KEYWORD_STRING = "string";
 
 	InternalName                 STRING_IN    = new InternalName(String.class);
 	String                       STRING_IN_S  = STRING_IN.toString();

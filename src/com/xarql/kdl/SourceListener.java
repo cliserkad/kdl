@@ -2,7 +2,9 @@ package com.xarql.kdl;
 
 import com.xarql.kdl.antlr4.kdlBaseListener;
 import com.xarql.kdl.antlr4.kdlParser;
+import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -45,6 +47,62 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
+	private static String parseStringLit(kdlParser.LiteralContext literal) {
+		if(literal.STRING_LIT() != null) {
+			return crush(literal.STRING_LIT().toString());
+		}
+		else
+			throw new NullPointerException("Couldn't parse string from literal " + literal.getText() + " because non was present");
+	}
+
+	private static boolean parseBool(kdlParser.BoolContext bool) {
+		if(bool.TRUE() != null)
+			return true;
+		else
+			return false;
+	}
+
+	private static int parseNumber(kdlParser.NumberContext number) {
+		try {
+			return Integer.valueOf(number.getText());
+		} catch(final NumberFormatException nfe) {
+			System.err.println("Couldn't convert the literal " + number.getText() + " to an int.");
+			return 0;
+		}
+	}
+
+	private static BaseType parseLiteralType(kdlParser.LiteralContext lit) {
+		if(lit.bool() != null)
+			return BaseType.BOOLEAN;
+		else if(lit.number() != null) {
+			return BaseType.INT;
+		}
+		else if(lit.STRING_LIT() != null) {
+			return BaseType.STRING;
+		}
+		else
+			throw new IllegalArgumentException("Couldn't parse type of literal " + lit.getText());
+	}
+
+	private static NameAndType parseTypedVariable(kdlParser.TypedVariableContext ctx) {
+		String name = ctx.VARNAME().toString();
+
+		InternalName type;
+		if(ctx.type().basetype().BOOLEAN() != null) {
+			type = BOOLEAN;
+		}
+		else if(ctx.type().basetype().INT() != null) {
+			type = INT;
+		}
+		else if(ctx.type().basetype().STRING() != null) {
+			type = STRING_IN;
+		}
+		else
+			throw new IllegalArgumentException("Couldn't resolve type of variable");
+
+		return new NameAndType(name, type);
+	}
+
 	public int getPass() {
 		return pass;
 	}
@@ -70,26 +128,16 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		if(pass == 1) {
 			Constant c = null;
 			final String name = ctx.CONSTNAME().toString();
-			final kdlParser.LiteralContext literal = ctx.literal();
-			if(literal.STRING() != null)
-				c = new Constant<>(name, crush(literal.STRING().toString()));
-			else if(literal.bool() != null) {
-				if(literal.bool().TRUE() != null)
-					c = new Constant<>(name, true);
-				else
-					c = new Constant<>(name, false);
+
+			switch(parseLiteralType(ctx.literal())) {
+				case BOOLEAN:
+					c = new Constant<>(name, parseBool(ctx.literal().bool()));
+				case INT:
+					c = new Constant<>(name, parseNumber(ctx.literal().number()));
+				case STRING:
+					c = new Constant<>(name, parseStringLit(ctx.literal()));
 			}
-			else if(literal.number() != null) {
-				try {
-					c = new Constant<>(name, Integer.valueOf(literal.number().getText()));
-				} catch(final NumberFormatException nfe) {
-					System.err.println("Couldn't convert the const " + literal.number().getText() + " to an int.");
-					c = new Constant<>(name, INT.base.getDefaultValue());
-				}
-			}
-			else {
-				throw new IllegalArgumentException("Type of const " + c.name + " could not be inferred. It appeared as " + ctx.getText());
-			}
+
 			if(!owner.addConstant(c))
 				throw new IllegalArgumentException("The const name " + c.name + " was taken by another const with value " + owner.resolveConstant(c.name).value);
 		}
@@ -109,24 +157,17 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 				if(statement.variableDeclaration() != null) {
 					final kdlParser.VariableDeclarationContext varDec = statement.variableDeclaration();
 					final kdlParser.TypedVariableContext typedVar = varDec.typedVariable();
-					if(typedVar.type().basetype() != null) {
-						final String baseType = typedVar.type().basetype().getText();
-
-						// handle "string" base type
-						if(baseType.equals(BASETYPE_STRING)) {
-							LocalVariable var = new LocalVariable(owner.currentScope, typedVar.VARNAME().toString(), STRING_ION);
-							if(varDec.literal().STRING() != null) {
-								lmv.visitLdcInsn(crush(varDec.literal().STRING().toString()));
-							}
-							else
-								throw new IllegalArgumentException("Variable declaration with type string had right side argument of " + varDec.literal().getText());
-							lmv.visitVarInsn(ASTORE, var.localIndex);
-						}
-						else
-							System.out.println("baseType was actually " + baseType);
-					}
+					NameAndType varNAT = parseTypedVariable(typedVar);
+					if(varNAT.type.equals(BOOLEAN))
+						lmv.visitLdcInsn(parseBool(varDec.literal().bool()));
+					else if(varNAT.type.equals(INT))
+						lmv.visitLdcInsn(parseNumber(varDec.literal().number()));
+					else if(varNAT.type.equals(STRING_IN))
+						lmv.visitLdcInsn(parseStringLit(varDec.literal()));
 					else
-						System.out.println("basetype shouldn't be null");
+						throw new IllegalArgumentException("Variable declaration with type string had right side argument of " + varDec.literal().getText());
+					LocalVariable var = new LocalVariable(owner.currentScope, varNAT.name, new InternalObjectName(varNAT.type));
+					lmv.visitVarInsn(ASTORE, var.localIndex);
 				}
 				else if(statement.methodCall() != null) {
 					final kdlParser.MethodCallContext methodCall = statement.methodCall();
@@ -159,16 +200,21 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 	public String paramToText(kdlParser.ParameterContext pc) {
 		if(pc.literal() != null) {
-			if(pc.literal().STRING() != null)
-				return crush(pc.literal().STRING().getText());
-			else
-				return pc.literal().getText();
+			switch(parseLiteralType(pc.literal())) {
+				case BOOLEAN:
+					return pc.literal().bool().toString();
+				case INT:
+					return pc.literal().number().toString();
+				case STRING:
+					return parseStringLit(pc.literal());
+			}
 		}
 		else if(pc.CONSTNAME() != null) {
 			return owner.resolveConstant(pc.CONSTNAME().toString()).value.toString();
 		}
 		else
-			throw new IllegalArgumentException("This cannot be used for variables");
+			throw new IllegalArgumentException("This value could not be known at compile time");
+		return null;
 	}
 
 }

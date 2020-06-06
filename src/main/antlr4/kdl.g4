@@ -16,8 +16,12 @@ FUNCTION: 'fnc';
 TRUE: 'true';
 FALSE: 'false';
 RETURN: 'return';
-INT: 'int';
 SEE: 'see';
+
+// base types
+INT: 'int';
+BOOLEAN: 'boolean';
+STRING: 'string';
 
 // syntax
 BODY_OPEN: '{'; // opening bracket
@@ -54,9 +58,9 @@ QUALIFIED_NAME: (DNTEXT '.')+ CLASSNAME;
 ESCAPED_QUOTE : '\\"';
 
 // literals
-STRING : '"' (ESCAPED_QUOTE | ~'"')* '"';
+STRING_LIT : '"' (ESCAPED_QUOTE | ~'"')* '"';
 bool: TRUE | FALSE;
-literal: bool | STRING | number;
+literal: bool | STRING_LIT | number;
 number: ('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')*;
 
 statement: methodCall | variableDeclaration | variableAssignment;
@@ -85,7 +89,7 @@ methodBody: methodCall* returnStatement;
 returnStatement: RETURN (VARNAME | literal) ';';
 
 type: basetype | CLASSNAME;
-basetype: INT | 'string';
+basetype: BOOLEAN | INT | STRING;
 
 source: see* clazz;
 see: SEE QUALIFIED_NAME STATEMENT_END;
