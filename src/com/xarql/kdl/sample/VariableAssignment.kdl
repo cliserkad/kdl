@@ -1,0 +1,13 @@
+class VariableAssignment {
+  run {
+    int a = 0;
+    a = 1;
+    boolean b = false;
+    b = true;
+    string msg = "";
+    msg = "hello from VariableAssignment";
+    println(a);
+    println(b);
+    println(s);
+  }
+}

@@ -15,19 +15,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public class ClassCreator implements Opcodes {
-	public static final int CONST = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
+	public static final int  CONST       = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
+	public static final File DEFAULT_LOC = new File(System.getProperty("user.home") + "/Documents/kdl/");
 
-	public static final File                DEFAULT_LOC = new File(System.getProperty("user.home") + "/Documents/kdl/");
 	// set in constructor
-	private final       File                input;
-	private final       ClassWriter         cw;
-	private final       BestList<Constant>  constants;
-	private final       BestList<Import>    imports;
-	private final       BestList<MethodDef> methods;
-	public              Scope               currentScope;
-	private             SourceListener      sl;
-	private             String              className;
-	private             boolean             nameSet;
+	private final File                input;
+	private final ClassWriter         cw;
+	private final BestList<Constant>  constants;
+	private final BestList<Import>    imports;
+	private final BestList<MethodDef> methods;
+	public        Scope               currentScope;
+	private       SourceListener      sl;
+	private       String              className;
+	private       boolean             nameSet;
 
 	public ClassCreator(final File input) {
 		this.input = input;
