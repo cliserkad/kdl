@@ -32,4 +32,6 @@ public interface CommonNames {
 
 	InternalName INT_IN     = InternalName.INT_IN;
 	InternalName BOOLEAN_IN = InternalName.BOOLEAN_IN;
+
+	String SWITCH_BASETYPE = "switch on BaseType";
 }

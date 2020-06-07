@@ -8,6 +8,6 @@ class VariableAssignment {
     msg = "hello from VariableAssignment";
     println(a);
     println(b);
-    println(s);
+    println(msg);
   }
 }

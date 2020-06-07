@@ -2,30 +2,32 @@ package com.xarql.kdl.names;
 
 import com.xarql.kdl.StringOutput;
 
+import static com.xarql.kdl.names.InternalName.internalName;
+
 public class InternalObjectName implements StringOutput {
 	public static final String OBJECT_SUFFIX            = ";";
 	public static final String OBJECT_PREFIX            = "L";
 	public static final String ARRAY_PREFIX             = "[";
 	public static final int    DEFAULT_ARRAY_DIMENSIONS = 0;
 
-	public final InternalName internalName;
+	public final InternalName inName;
 	public final int          arrayDimensions;
 
-	public InternalObjectName(InternalName internalName, int arrayDimensions) {
-		this.internalName = internalName;
+	public InternalObjectName(InternalName inName, int arrayDimensions) {
+		this.inName = inName;
 		this.arrayDimensions = arrayDimensions;
 	}
 
 	public InternalObjectName(Class<?> clazz, int arrayDimensions) {
-		this(new InternalName(clazz), arrayDimensions);
+		this(internalName(clazz), arrayDimensions);
 	}
 
-	public InternalObjectName(InternalName internalName) {
-		this(internalName, DEFAULT_ARRAY_DIMENSIONS);
+	public InternalObjectName(InternalName inName) {
+		this(inName, DEFAULT_ARRAY_DIMENSIONS);
 	}
 
 	public InternalObjectName(Class<?> clazz) {
-		this(new InternalName(clazz));
+		this(internalName(clazz));
 	}
 
 	public static InternalObjectName checkNonNull(InternalObjectName name) {
@@ -35,21 +37,19 @@ public class InternalObjectName implements StringOutput {
 	}
 
 	private String objectInstance() {
-		return OBJECT_PREFIX + internalName.stringOutput() + OBJECT_SUFFIX;
+		return OBJECT_PREFIX + inName.stringOutput() + OBJECT_SUFFIX;
 	}
 
 	@Override
 	public String stringOutput() {
-		if(internalName.isBaseType())
-			return internalName.stringOutput();
-		else if(arrayDimensions == 0)
-			return objectInstance();
-		else {
-			String dims = "";
-			for(int i = 0; i < arrayDimensions; i++)
-				dims += ARRAY_PREFIX;
+		String dims = "";
+		for(int i = 0; i < arrayDimensions; i++)
+			dims += ARRAY_PREFIX;
+
+		if(inName.isBaseType())
+			return dims + inName.stringOutput();
+		else
 			return dims + objectInstance();
-		}
 	}
 
 	@Override
@@ -67,10 +67,10 @@ public class InternalObjectName implements StringOutput {
 	}
 
 	public boolean isBaseType() {
-		return internalName.isBaseType();
+		return inName.isBaseType();
 	}
 
 	public BaseType toBaseType() {
-		return internalName.base;
+		return inName.base;
 	}
 }

@@ -3,7 +3,8 @@ package com.xarql.kdl;
 import com.xarql.kdl.antlr4.kdlLexer;
 import com.xarql.kdl.antlr4.kdlParser;
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.NameFormats;
+import com.xarql.kdl.names.CustomClass;
+import com.xarql.kdl.names.InternalObjectName;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -14,9 +15,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import static com.xarql.kdl.names.InternalName.internalName;
+
 public class ClassCreator implements Opcodes {
 	public static final int  CONST       = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
-	public static final File DEFAULT_LOC = new File(System.getProperty("user.home") + "/Documents/kdl/");
+	public static final File DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/sample");
 
 	// set in constructor
 	private final File                input;
@@ -26,7 +29,7 @@ public class ClassCreator implements Opcodes {
 	private final BestList<MethodDef> methods;
 	public        Scope               currentScope;
 	private       SourceListener      sl;
-	private       String              className;
+	private       CustomClass         clazz;
 	private       boolean             nameSet;
 
 	public ClassCreator(final File input) {
@@ -89,7 +92,7 @@ public class ClassCreator implements Opcodes {
 	public void write() {
 		try {
 			cw.visitEnd();
-			Files.write(input.toPath().resolveSibling(className + ".class"), cw.toByteArray());
+			Files.write(input.toPath().resolveSibling(clazz.name + ".class"), cw.toByteArray());
 		} catch(final Exception e) {
 			e.printStackTrace();
 		}
@@ -97,17 +100,17 @@ public class ClassCreator implements Opcodes {
 
 	/**
 	 * Sets the name of this class to the given className.
-	 * @param className name of class, Ex. Test
+	 * @param name name of class, Ex. Test
 	 * @return success of operation
 	 */
-	public boolean setClassName(final String className) {
+	public boolean setClassName(final String pkg, final String name) {
 		if(!nameSet) {
-			this.className = className;
+			this.clazz = new CustomClass(pkg, name);
 			nameSet = true;
 
 			// give name to ClassWriter
-			cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, internalName(), null, NameFormats.internalName(Object.class), null);
-			cw.visitSource(className + ".kdl", null);
+			cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
+			cw.visitSource(clazz + ".kdl", null);
 
 			return true;
 		}
@@ -115,17 +118,13 @@ public class ClassCreator implements Opcodes {
 			return false;
 	}
 
-	public String internalObjectName() {
-		return "L" + className + ";";
-	}
-
-	public String internalName() {
-		return className;
+	public CustomClass getClazz() {
+		return clazz;
 	}
 
 	public LinedMethodVisitor defineMethod(MethodDef md, int line) {
 		if(methods.contains(md)) {
-			currentScope = new Scope("Method " + md.methodName + " of class " + className, new Label());
+			currentScope = new Scope("Method " + md.methodName + " of class " + clazz, new Label());
 			final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);
 			mv.visitCode();
 			return new LinedMethodVisitor(mv, line);
@@ -150,7 +149,7 @@ public class ClassCreator implements Opcodes {
 			return false;
 		FieldVisitor fv;
 		if(c.value instanceof String)
-			fv = cw.visitField(CONST, c.name, NameFormats.internalObjectName(String.class), null, c.value.toString());
+			fv = cw.visitField(CONST, c.name, new InternalObjectName(String.class).toString(), null, c.value.toString());
 		else if(c.value instanceof Boolean)
 			fv = cw.visitField(CONST, c.name, BaseType.BOOLEAN.stringOutput(), null, c.value);
 		else if(c.value instanceof Integer)
@@ -172,7 +171,7 @@ public class ClassCreator implements Opcodes {
 		mv.visitInsn(Opcodes.RETURN);
 		final Label l1 = new Label();
 		mv.visitLabel(l1);
-		mv.visitLocalVariable("this", internalObjectName(), null, l0, l1, 0);
+		mv.visitLocalVariable("this", clazz.internalObjectNameString(), null, l0, l1, 0);
 		mv.visitMaxs(0, 0);
 		mv.visitEnd();
 	}

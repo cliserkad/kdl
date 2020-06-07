@@ -17,6 +17,7 @@ TRUE: 'true';
 FALSE: 'false';
 RETURN: 'return';
 SEE: 'see';
+PKG: 'pkg';
 
 // base types
 INT: 'int';
@@ -54,6 +55,7 @@ CLASSNAME : UPLETTER (LETTER)+;
 VARNAME   : DNLETTER (LETTER | DIGIT)*;
 
 QUALIFIED_NAME: (DNTEXT '.')+ CLASSNAME;
+PKG_NAME: DNTEXT ('.' DNTEXT)*;
 
 ESCAPED_QUOTE : '\\"';
 
@@ -69,8 +71,8 @@ mathExpression: valueExpression operator valueExpression;
 valueExpression: methodCall | literal | VARNAME | CONSTNAME;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 
-variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN literal)? STATEMENT_END;
-variableAssignment: VARNAME ASSIGN literal STATEMENT_END;
+variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN (literal | CONSTNAME | VARNAME))? STATEMENT_END;
+variableAssignment: VARNAME ASSIGN (literal | CONSTNAME | VARNAME) STATEMENT_END;
 typedVariable: type VARNAME;
 arrayAccess: VARNAME BRACE_OPEN number BRACE_CLOSE;
 
@@ -90,7 +92,8 @@ returnStatement: RETURN (VARNAME | literal) ';';
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;
 
-source: see* clazz;
+source: pkg? see* clazz;
+pkg: PKG PKG_NAME STATEMENT_END;
 see: SEE QUALIFIED_NAME STATEMENT_END;
 clazz: CLASS CLASSNAME BODY_OPEN (constant | run | variableDeclaration | methodDefinition)* BODY_CLOSE;
 constant: CONST CONSTNAME ASSIGN literal STATEMENT_END;

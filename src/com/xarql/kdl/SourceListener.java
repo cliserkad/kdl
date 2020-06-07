@@ -8,9 +8,14 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.BestList.list;
+import static com.xarql.kdl.Text.nonNull;
+import static com.xarql.kdl.names.InternalName.internalName;
+import static java.lang.System.exit;
 
 public class SourceListener extends kdlBaseListener implements Opcodes, CommonNames {
 	private final ClassCreator owner;
+
+	private String pkgName;
 
 	// pass 0 does nothing
 	// pass 1 collects imports, classname, and constants, methodNames
@@ -20,6 +25,25 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	public SourceListener(final ClassCreator owner) {
 		this.owner = owner;
 		pass = 0;
+	}
+
+	public static void standardHandle(Exception e) {
+		System.err.println(e.getMessage());
+		e.printStackTrace();
+		if(e instanceof Exception)
+			exit(1);
+		else if(e instanceof NullPointerException)
+			exit(2);
+		else if(e instanceof IllegalArgumentException)
+			exit(3);
+		else if(e instanceof IllegalStateException)
+			exit(4);
+		else if(e instanceof TokenNotFoundException)
+			exit(5);
+		else if(e instanceof IncompatibleTypeException)
+			exit(6);
+		else if(e instanceof UnimplementedException)
+			exit(7);
 	}
 
 	public static String crush(final String s) {
@@ -57,13 +81,16 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			return false;
 	}
 
-	private static int parseNumber(kdlParser.NumberContext number) throws TokenNotFoundException {
+	private static int parseNumber(kdlParser.NumberContext number) {
 		try {
 			return Integer.valueOf(number.getText());
 		} catch(NullPointerException npe) {
-			throw new TokenNotFoundException("The expected NumberContext wasn't provided");
+			TokenNotFoundException notFound = new TokenNotFoundException("The expected NumberContext wasn't provided");
+			System.err.println();
+			notFound.printStackTrace();
+			exit(1);
+			return 0;
 		} catch(final NumberFormatException nfe) {
-			// do nothing
 			return 0;
 		}
 	}
@@ -122,6 +149,117 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		lmv.visitMethodInsn(INVOKESTATIC, STRING_IN_S, stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
+	/**
+	 * Stores any literal at the given localIndex
+	 * @param lit
+	 * @param localIndex
+	 * @param lmv
+	 * @throws TokenNotFoundException
+	 * @throws UnimplementedException
+	 */
+	private static void storeLiteral(kdlParser.LiteralContext lit, int localIndex, LinedMethodVisitor lmv) {
+		try {
+			if(lit.bool() != null) {
+				lmv.visitLdcInsn(parseBool(lit.bool()));
+				lmv.visitVarInsn(ISTORE, localIndex);
+			}
+			else if(lit.number() != null) {
+				lmv.visitLdcInsn(parseNumber(lit.number()));
+				lmv.visitVarInsn(ISTORE, localIndex);
+			}
+			else if(lit.STRING_LIT() != null) {
+				lmv.visitLdcInsn(parseStringLit(lit));
+				lmv.visitVarInsn(ASTORE, localIndex);
+			}
+			else
+				throw new UnimplementedException("Loading a Literal type");
+		} catch(UnimplementedException ue) {
+			System.err.println(ue);
+			ue.printStackTrace();
+			exit(1);
+			return;
+		}
+	}
+
+	private static void storeConstant(Constant<?> c, int localIndex, LinedMethodVisitor lmv) {
+		try {
+			if(c.isBaseType()) {
+				lmv.visitLdcInsn(c.value);
+				switch(c.toBaseType()) {
+					case INT:
+					case BOOLEAN:
+						lmv.visitVarInsn(ISTORE, localIndex);
+						break;
+					case STRING:
+						lmv.visitVarInsn(ASTORE, localIndex);
+						break;
+				}
+			}
+			else {
+				throw new UnimplementedException("Reference types for const have not been implemented");
+			}
+		} catch(UnimplementedException ue) {
+			System.err.println(ue.getMessage());
+			ue.printStackTrace();
+			exit(1);
+			return;
+		}
+	}
+
+	private static void storeVariable(LocalVariable source, LocalVariable target, LinedMethodVisitor lmv) {
+		if(!source.type.equals(target.type))
+			standardHandle(new IncompatibleTypeException("Type " + source.type + " is incompatible with type " + target.type));
+		if(source.type.isBaseType()) {
+			switch(source.type.toBaseType()) {
+				case INT:
+				case BOOLEAN:
+					lmv.visitVarInsn(ILOAD, source.localIndex);
+					lmv.visitVarInsn(ISTORE, target.localIndex);
+					break;
+				case STRING:
+					lmv.visitVarInsn(ALOAD, source.localIndex);
+					lmv.visitVarInsn(ASTORE, target.localIndex);
+					break;
+				default:
+					standardHandle(new UnimplementedException(SWITCH_BASETYPE));
+			}
+		}
+		else {
+			lmv.visitVarInsn(ALOAD, source.localIndex);
+			lmv.visitVarInsn(ASTORE, target.localIndex);
+		}
+	}
+
+	private static void loadVariable(LocalVariable lv, LinedMethodVisitor lmv) throws UnimplementedException {
+		if(lv.type.isBaseType()) {
+			switch(lv.type.toBaseType()) {
+				case INT:
+				case BOOLEAN:
+					lmv.visitVarInsn(ILOAD, lv.localIndex);
+					break;
+				case STRING:
+					lmv.visitVarInsn(ALOAD, lv.localIndex);
+					break;
+				default:
+					throw new UnimplementedException(SWITCH_BASETYPE);
+			}
+		}
+		else
+			lmv.visitVarInsn(ALOAD, lv.localIndex);
+	}
+
+	@Override
+	public void enterPkg(kdlParser.PkgContext ctx) {
+		pkgName = ctx.PKG_NAME().getText();
+	}
+
+	private void push(Constant<?> c, LinedMethodVisitor lmv) {
+		if(c.isBaseType())
+			lmv.visitLdcInsn(c.value);
+		else
+			lmv.visitFieldInsn(GETSTATIC, owner.getClazz().internalNameString(), c.name, internalName(c.value.getClass()).stringOutput());
+	}
+
 	public int getPass() {
 		return pass;
 	}
@@ -138,35 +276,49 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 	@Override
 	public void enterClazz(final kdlParser.ClazzContext clazzCtx) {
-		if(pass == 1)
-			owner.setClassName(clazzCtx.CLASSNAME().toString());
+		if(pass == 1) {
+			pkgName = nonNull(pkgName);
+			owner.setClassName(pkgName, clazzCtx.CLASSNAME().toString());
+		}
 	}
 
 	@Override
 	public void enterConstant(final kdlParser.ConstantContext ctx) {
 		if(pass == 1) {
-			try {
-				Constant c = null;
-				final String name = ctx.CONSTNAME().toString();
+			Constant c = null;
+			final String name = ctx.CONSTNAME().toString();
 
-				switch(parseLiteralType(ctx.literal())) {
-					case BOOLEAN:
-						c = new Constant<>(name, parseBool(ctx.literal().bool()));
-						break;
-					case INT:
-						c = new Constant<>(name, parseNumber(ctx.literal().number()));
-						break;
-					case STRING:
-						c = new Constant<>(name, parseStringLit(ctx.literal()));
-						break;
-				}
-
-				if(!owner.addConstant(c))
-					throw new IllegalArgumentException("The const name " + c.name + " was taken by another const with value " + owner.resolveConstant(c.name).value);
-			} catch(TokenNotFoundException tnfe) {
-				System.err.println(tnfe.getMessage());
-				tnfe.printStackTrace();
+			switch(parseLiteralType(ctx.literal())) {
+				case BOOLEAN:
+					c = new Constant<>(name, parseBool(ctx.literal().bool()));
+					break;
+				case INT:
+					c = new Constant<>(name, parseNumber(ctx.literal().number()));
+					break;
+				case STRING:
+					c = new Constant<>(name, parseStringLit(ctx.literal()));
+					break;
 			}
+
+			if(!owner.addConstant(c))
+				throw new IllegalArgumentException("The const name " + c.name + " was taken by another const with value " + owner.resolveConstant(c.name).value);
+		}
+	}
+
+	private void parseVariableDeclaration(kdlParser.VariableDeclarationContext ctx, LinedMethodVisitor lmv) throws TokenNotFoundException, UnimplementedException, IncompatibleTypeException {
+		final kdlParser.TypedVariableContext typedVar = ctx.typedVariable();
+		NameAndType varNAT = parseTypedVariable(typedVar);
+		LocalVariable var = new LocalVariable(owner.currentScope, varNAT.name, new InternalObjectName(varNAT.type));
+		if(ctx.literal() != null) {
+			storeLiteral(ctx.literal(), var.localIndex, lmv);
+		}
+		else if(ctx.CONSTNAME() != null) {
+			Constant c = owner.resolveConstant(ctx.CONSTNAME().toString());
+			storeConstant(c, var.localIndex, lmv);
+		}
+		else if(ctx.VARNAME() != null) {
+			LocalVariable otherVar = owner.currentScope.getVariable(ctx.VARNAME().toString());
+			storeVariable(otherVar, var, lmv);
 		}
 	}
 
@@ -183,44 +335,24 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 				for(kdlParser.StatementContext statement : ctx.statement()) {
 					if(statement.variableDeclaration() != null) {
-						final kdlParser.VariableDeclarationContext varDec = statement.variableDeclaration();
-						final kdlParser.TypedVariableContext typedVar = varDec.typedVariable();
-						NameAndType varNAT = parseTypedVariable(typedVar);
-						push(varDec.literal(), lmv);
-						LocalVariable var = new LocalVariable(owner.currentScope, varNAT.name, new InternalObjectName(varNAT.type));
-						switch(var.type.toBaseType()) {
-							case INT:
-							case BOOLEAN:
-								lmv.visitVarInsn(ISTORE, var.localIndex);
-								break;
-							case STRING:
-								lmv.visitVarInsn(ASTORE, var.localIndex);
+						try {
+							parseVariableDeclaration(statement.variableDeclaration(), lmv);
+						} catch(UnimplementedException | IncompatibleTypeException e) {
+							System.err.println(e.getMessage());
+							e.printStackTrace();
+							exit(1);
+							return;
 						}
 					}
 					else if(statement.variableAssignment() != null) {
 						final kdlParser.VariableAssignmentContext varAssign = statement.variableAssignment();
-						LocalVariable target = owner.getLocalVariable(varAssign.VARNAME().toString());
-						push(varAssign.literal(), lmv);
-						if(target.type.isBaseType()) {
-							switch(target.type.toBaseType()) {
-								case INT:
-									lmv.visitLdcInsn(parseNumber(varAssign.literal().number()));
-									lmv.visitVarInsn(ISTORE, target.localIndex);
-									break;
-								case BOOLEAN:
-									lmv.visitLdcInsn(parseBool(varAssign.literal().bool()));
-									lmv.visitVarInsn(ISTORE, target.localIndex);
-									break;
-								case STRING:
-									lmv.visitLdcInsn(parseStringLit(varAssign.literal()));
-									lmv.visitVarInsn(ASTORE, target.localIndex);
-									break;
-								default:
-									throw new TokenNotFoundException("A switch for BaseType fell through");
-							}
-						}
+						LocalVariable target = owner.getLocalVariable(varAssign.VARNAME(0).toString());
+						if(varAssign.literal() != null)
+							storeLiteral(varAssign.literal(), target.localIndex, lmv);
+						else if(varAssign.CONSTNAME() != null)
+							storeConstant(owner.resolveConstant(varAssign.CONSTNAME().toString()), target.localIndex, lmv);
 						else
-							lmv.visitVarInsn(ASTORE, target.localIndex);
+							storeVariable(owner.currentScope.getVariable(varAssign.VARNAME(1).toString()), target, lmv);
 					}
 					else if(statement.methodCall() != null) {
 						final kdlParser.MethodCallContext methodCall = statement.methodCall();
