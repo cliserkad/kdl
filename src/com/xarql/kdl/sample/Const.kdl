@@ -1,0 +1,7 @@
+class Const {
+    const MSG = "hello from Const";
+
+    run {
+        println(MSG);
+    }
+}

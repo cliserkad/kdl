@@ -41,7 +41,7 @@ DIVIDE: '/';
 MULTIPLY: '*';
 MODULUS: '%';
 
-fragment DIGIT      : [0-9];
+DIGIT               : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 fragment UPLETTER   : [A-Z];
 fragment DNLETTER   : [a-z];
 fragment LETTER     : UPLETTER | DNLETTER;
@@ -58,10 +58,10 @@ QUALIFIED_NAME: (DNTEXT '.')+ CLASSNAME;
 ESCAPED_QUOTE : '\\"';
 
 // literals
-STRING_LIT : '"' (ESCAPED_QUOTE | ~'"')* '"';
 bool: TRUE | FALSE;
+number: DIGIT+;
+STRING_LIT: '"' (ESCAPED_QUOTE | ~'"')* '"';
 literal: bool | STRING_LIT | number;
-number: ('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')*;
 
 statement: methodCall | variableDeclaration | variableAssignment;
 
@@ -70,9 +70,8 @@ valueExpression: methodCall | literal | VARNAME | CONSTNAME;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 
 variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN literal)? STATEMENT_END;
-variableAssignment: variable (SEPARATOR VARNAME)* ASSIGN valueExpression STATEMENT_END;
+variableAssignment: VARNAME ASSIGN literal STATEMENT_END;
 typedVariable: type VARNAME;
-variable: VARNAME | arrayAccess;
 arrayAccess: VARNAME BRACE_OPEN number BRACE_CLOSE;
 
 // method calls

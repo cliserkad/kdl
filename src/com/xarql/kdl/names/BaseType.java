@@ -20,6 +20,10 @@ public enum BaseType implements StringOutput {
 		this("" + rep, defaultValue);
 	}
 
+	public InternalName toInternalName() {
+		return InternalName.match(this);
+	}
+
 	public Constant<?> getDefaultValue() {
 		return defaultValue;
 	}

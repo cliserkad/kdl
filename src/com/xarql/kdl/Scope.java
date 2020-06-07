@@ -33,7 +33,8 @@ public class Scope {
 	}
 
 	public LocalVariable addLocalVariable(LocalVariable lv) {
-		variables.add(lv);
+		if(!variables.contains(lv))
+			variables.add(lv);
 		return lv;
 	}
 
@@ -53,5 +54,10 @@ public class Scope {
 		for(LocalVariable lv : variables)
 			out.add(lv);
 		return out;
+	}
+
+	@Override
+	public String toString() {
+		return "Scope: " + name;
 	}
 }

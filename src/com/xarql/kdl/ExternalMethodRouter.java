@@ -11,7 +11,14 @@ import static com.xarql.kdl.names.NameFormats.internalName;
 import static com.xarql.kdl.names.NameFormats.internalObjectName;
 
 public class ExternalMethodRouter implements Opcodes, CommonNames {
-	public static final MethodDef PRINTLN_MTD = new MethodDef(MethodDef.Type.MTD, PRINTLN, list(STRING_ION), VOID_RETURN, ACC_PUBLIC + ACC_STATIC);
+	public static final MethodDef PRINTLN_MTD = new MethodDef(MethodDef.Type.MTD, PRINTLN, list(STRING_ION), VOID, ACC_PUBLIC + ACC_STATIC);
+
+	public static MethodDef resolveMethod(String name) {
+		if(name.equals(PRINTLN))
+			return PRINTLN_MTD;
+		else
+			return null;
+	}
 
 	public static Label writeMethod(String methodName, LinedMethodVisitor lmv, Object... parameters) {
 		if(methodName.equals(PRINTLN)) {

@@ -2,7 +2,7 @@ package com.xarql.kdl.test;
 
 public class Test {
 	public static void main(String[] args) {
-		String s = "testing";
-		System.out.println(s);
+		int a = 100;
+		System.out.println(String.valueOf(a));
 	}
 }

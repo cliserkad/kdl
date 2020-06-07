@@ -1,7 +1,0 @@
-class ConstHello {
-    const HELLO_WORLD = "Hi to all of the beautiful people out there!";
-
-    run {
-        println(HELLO_WORLD);
-    }
-}

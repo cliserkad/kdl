@@ -15,6 +15,16 @@ public class LocalVariable {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof LocalVariable) {
+			LocalVariable other = (LocalVariable) obj;
+			return other.name.equals(name);
+		}
+		else
+			return false;
+	}
+
+	@Override
 	public String toString() {
 		return "LocalVariable: " + name + " --> " + type + " @ " + localIndex;
 	}

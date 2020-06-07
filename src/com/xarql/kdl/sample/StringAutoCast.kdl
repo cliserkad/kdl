@@ -1,0 +1,10 @@
+class StringAutoCast {
+  run {
+    int a = 10;
+    boolean b = true;
+    string s = "hello from StringAutoCast";
+    println(a);
+    println(b);
+    println(s);
+  }
+}

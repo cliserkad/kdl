@@ -31,7 +31,7 @@ public class ClassCreator implements Opcodes {
 
 	public ClassCreator(final File input) {
 		this.input = input;
-		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		constants = new BestList<>();
 		imports = new BestList<>();
 		methods = new BestList<>();

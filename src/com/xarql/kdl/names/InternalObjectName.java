@@ -8,8 +8,8 @@ public class InternalObjectName implements StringOutput {
 	public static final String ARRAY_PREFIX             = "[";
 	public static final int    DEFAULT_ARRAY_DIMENSIONS = 0;
 
-	final InternalName internalName;
-	final int          arrayDimensions;
+	public final InternalName internalName;
+	public final int          arrayDimensions;
 
 	public InternalObjectName(InternalName internalName, int arrayDimensions) {
 		this.internalName = internalName;
@@ -55,5 +55,22 @@ public class InternalObjectName implements StringOutput {
 	@Override
 	public String toString() {
 		return stringOutput();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof StringOutput) {
+			StringOutput so = (StringOutput) o;
+			return so.stringOutput().equals(stringOutput());
+		}
+		return false;
+	}
+
+	public boolean isBaseType() {
+		return internalName.isBaseType();
+	}
+
+	public BaseType toBaseType() {
+		return internalName.base;
 	}
 }

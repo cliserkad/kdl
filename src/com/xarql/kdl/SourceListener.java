@@ -2,13 +2,12 @@ package com.xarql.kdl;
 
 import com.xarql.kdl.antlr4.kdlBaseListener;
 import com.xarql.kdl.antlr4.kdlParser;
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.CommonNames;
-import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
+import com.xarql.kdl.names.*;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+
+import static com.xarql.kdl.BestList.list;
 
 public class SourceListener extends kdlBaseListener implements Opcodes, CommonNames {
 	private final ClassCreator owner;
@@ -27,20 +26,16 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return s.substring(1, s.length() - 1);
 	}
 
-	public static void push(String str, MethodVisitor mv) {
-		mv.visitLdcInsn(str);
-	}
-
-	public static void push(int val, MethodVisitor mv) {
-		mv.visitLdcInsn(val);
-	}
-
 	public static void push(LocalVariable lv, MethodVisitor mv) {
-		if(lv.type.equals(INT.object())) {
-			mv.visitVarInsn(ILOAD, lv.localIndex);
-		}
-		else if(lv.type.equals(BOOLEAN.object())) {
-			mv.visitVarInsn(ILOAD, lv.localIndex);
+		if(lv.type.isBaseType() && lv.type.toBaseType() != STRING) {
+			if(lv.type.toBaseType() == INT) {
+				mv.visitVarInsn(ILOAD, lv.localIndex);
+			}
+			else if(lv.type.toBaseType() == BOOLEAN) {
+				mv.visitVarInsn(ILOAD, lv.localIndex);
+			}
+			else
+				throw new IllegalArgumentException("Somethiing went wrong in push(LocalVariable, MethodVisitor)");
 		}
 		else {
 			mv.visitVarInsn(ALOAD, lv.localIndex);
@@ -89,10 +84,10 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 		InternalName type;
 		if(ctx.type().basetype().BOOLEAN() != null) {
-			type = BOOLEAN;
+			type = BOOLEAN_IN;
 		}
 		else if(ctx.type().basetype().INT() != null) {
-			type = INT;
+			type = INT_IN;
 		}
 		else if(ctx.type().basetype().STRING() != null) {
 			type = STRING_IN;
@@ -101,6 +96,26 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			throw new IllegalArgumentException("Couldn't resolve type of variable");
 
 		return new NameAndType(name, type);
+	}
+
+	public static void push(kdlParser.LiteralContext literal, LinedMethodVisitor lmv) {
+		BaseType type = parseLiteralType(literal);
+		switch(type) {
+			case BOOLEAN:
+				lmv.visitLdcInsn(parseBool(literal.bool()));
+				break;
+			case INT:
+				lmv.visitLdcInsn(parseNumber(literal.number()));
+				break;
+			case STRING:
+				lmv.visitLdcInsn(parseStringLit(literal));
+				break;
+		}
+	}
+
+	private static void convertToString(BaseType base, LinedMethodVisitor lmv) {
+		final MethodDef stringValueOf = new MethodDef(MethodDef.Type.MTD, "valueOf", list(base.toInternalName().object()), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
+		lmv.visitMethodInsn(INVOKESTATIC, STRING_IN_S, stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
 	public int getPass() {
@@ -132,10 +147,13 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			switch(parseLiteralType(ctx.literal())) {
 				case BOOLEAN:
 					c = new Constant<>(name, parseBool(ctx.literal().bool()));
+					break;
 				case INT:
 					c = new Constant<>(name, parseNumber(ctx.literal().number()));
+					break;
 				case STRING:
 					c = new Constant<>(name, parseStringLit(ctx.literal()));
+					break;
 			}
 
 			if(!owner.addConstant(c))
@@ -158,29 +176,46 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 					final kdlParser.VariableDeclarationContext varDec = statement.variableDeclaration();
 					final kdlParser.TypedVariableContext typedVar = varDec.typedVariable();
 					NameAndType varNAT = parseTypedVariable(typedVar);
-					if(varNAT.type.equals(BOOLEAN))
-						lmv.visitLdcInsn(parseBool(varDec.literal().bool()));
-					else if(varNAT.type.equals(INT))
-						lmv.visitLdcInsn(parseNumber(varDec.literal().number()));
-					else if(varNAT.type.equals(STRING_IN))
-						lmv.visitLdcInsn(parseStringLit(varDec.literal()));
-					else
-						throw new IllegalArgumentException("Variable declaration with type string had right side argument of " + varDec.literal().getText());
+					push(varDec.literal(), lmv);
 					LocalVariable var = new LocalVariable(owner.currentScope, varNAT.name, new InternalObjectName(varNAT.type));
-					lmv.visitVarInsn(ASTORE, var.localIndex);
+					switch(var.type.toBaseType()) {
+						case INT:
+						case BOOLEAN:
+							lmv.visitVarInsn(ISTORE, var.localIndex);
+							break;
+						case STRING:
+							lmv.visitVarInsn(ASTORE, var.localIndex);
+					}
+				}
+				else if(statement.variableAssignment() != null) {
+					final kdlParser.VariableAssignmentContext varAssign = statement.variableAssignment();
+					LocalVariable target = owner.getLocalVariable(varAssign.VARNAME().toString());
+					push(varAssign.literal(), lmv);
+					lmv.visitVarInsn(ASTORE, target.localIndex);
 				}
 				else if(statement.methodCall() != null) {
 					final kdlParser.MethodCallContext methodCall = statement.methodCall();
 					final kdlParser.ParameterSetContext paramSet = methodCall.parameterSet();
+					final String methodName = methodCall.VARNAME().toString();
 					for(kdlParser.ParameterContext param : paramSet.parameter()) {
 						if(param.CONSTNAME() != null || param.literal() != null) {
-							push(paramToText(param), lmv);
+							lmv.visitLdcInsn(paramToText(param));
 						}
 						else {
-							push(owner.getLocalVariable(param.VARNAME().toString()), lmv);
+							InternalObjectName paramType = ExternalMethodRouter.resolveMethod(methodName).paramTypes.get(0);
+							LocalVariable operand = owner.getLocalVariable(param.VARNAME().toString());
+							push(operand, lmv);
+							if(!operand.type.equals(paramType)) {
+								if(operand.type.isBaseType())
+									convertToString(operand.type.toBaseType(), lmv);
+								else
+									throw new IllegalArgumentException("The type " + operand.type + " is incompatible with param type " + paramType);
+							}
+							else
+								lmv.visitVarInsn(ALOAD, operand.localIndex);
 						}
 					}
-					ExternalMethodRouter.writeMethod(methodCall.VARNAME().toString(), lmv);
+					ExternalMethodRouter.writeMethod(methodName, lmv);
 				}
 			}
 
