@@ -9,6 +9,10 @@ public interface CommonNames {
 	String KEYWORD_INT     = "int";
 	String KEYWORD_STRING  = "string";
 
+	int     DEFAULT_INT     = 0;
+	String  DEFAULT_STRING  = "";
+	boolean DEFAULT_BOOLEAN = false;
+
 	// string related
 	InternalName                 STRING_IN    = InternalName.STRING_IN;
 	String                       STRING_IN_S  = STRING_IN.toString();
@@ -34,4 +38,6 @@ public interface CommonNames {
 	InternalName BOOLEAN_IN = InternalName.BOOLEAN_IN;
 
 	String SWITCH_BASETYPE = "switch on BaseType";
+	String INCOMPATIBLE    = " has a type which is incompatible with the type of ";
+	String BASETYPE_MISS   = "A BaseType was not accounted for";
 }

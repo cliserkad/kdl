@@ -43,12 +43,14 @@ public class ClassCreator implements Opcodes {
 	public static void main(String[] args) {
 		for(File f : DEFAULT_LOC.listFiles()) {
 			if(f.getName().endsWith(".kdl")) {
+				System.out.println("Compiling " + f.getName());
 				ClassCreator cc = new ClassCreator(f);
 				if(!cc.build())
 					System.err.println("Failed to read IO");
 				cc.write();
 			}
 		}
+		System.out.println("Done!");
 	}
 
 	public LocalVariable getLocalVariable(String name) {
@@ -83,15 +85,16 @@ public class ClassCreator implements Opcodes {
 			ParseTreeWalker.DEFAULT.walk(sl, tree);
 			sl.newPass();
 			ParseTreeWalker.DEFAULT.walk(sl, tree);
+			cw.visitEnd();
 			return true;
 		} catch(final IOException ioe) {
+			System.out.println(ioe);
 			return false;
 		}
 	}
 
 	public void write() {
 		try {
-			cw.visitEnd();
 			Files.write(input.toPath().resolveSibling(clazz.name + ".class"), cw.toByteArray());
 		} catch(final Exception e) {
 			e.printStackTrace();

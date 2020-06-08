@@ -19,7 +19,7 @@ public enum BaseType implements StringOutput {
 	}
 
 	public static boolean isBaseType(Class<?> base) {
-		return matchWrapper(base) == null;
+		return matchWrapper(base) != null;
 	}
 
 	public static BaseType matchWrapper(Class<?> wrapper) {

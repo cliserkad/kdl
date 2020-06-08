@@ -1,9 +1,8 @@
 package com.xarql.kdl.names;
 
+import com.xarql.kdl.SourceListener;
 import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.UnimplementedException;
-
-import static java.lang.System.exit;
 
 public class InternalName implements StringOutput, CommonNames {
 	public static final InternalName INT_IN     = new InternalName(BaseType.INT);
@@ -40,9 +39,7 @@ public class InternalName implements StringOutput, CommonNames {
 			else
 				return new InternalName(c);
 		} catch(UnimplementedException ue) {
-			System.err.println(ue.getMessage());
-			ue.printStackTrace();
-			exit(1);
+			SourceListener.standardHandle(ue);
 			return null;
 		}
 	}

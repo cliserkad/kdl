@@ -1,6 +1,8 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.InternalObjectName;
 
 import static com.xarql.kdl.BestList.list;
 
@@ -28,6 +30,14 @@ public class Constant<Type> {
 		return value;
 	}
 
+	public InternalName internalName() {
+		return InternalName.internalName(value.getClass());
+	}
+
+	public InternalObjectName internalObjectName() {
+		return internalName().object();
+	}
+
 	public boolean isBaseType() {
 		return BaseType.isBaseType(value.getClass());
 	}
@@ -38,7 +48,7 @@ public class Constant<Type> {
 
 	@Override
 	public String toString() {
-		return name + " : " + value;
+		return "Constant: " + name + " --> " + value;
 	}
 
 	public boolean isEmpty() {

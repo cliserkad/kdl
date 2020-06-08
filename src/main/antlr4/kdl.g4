@@ -51,7 +51,7 @@ fragment UNDERSCORE : '_';
 fragment DNTEXT     : DNLETTER+;
 
 CONSTNAME : UPLETTER (UPLETTER | DIGIT | UNDERSCORE)+;
-CLASSNAME : UPLETTER (LETTER)+;
+CLASSNAME : UPLETTER DNLETTER (LETTER | DIGIT)+;
 VARNAME   : DNLETTER (LETTER | DIGIT)*;
 
 QUALIFIED_NAME: (DNTEXT '.')+ CLASSNAME;
@@ -61,33 +61,32 @@ ESCAPED_QUOTE : '\\"';
 
 // literals
 bool: TRUE | FALSE;
-number: DIGIT+;
+number: MINUS? DIGIT+ ('B' | 'H')?;
 STRING_LIT: '"' (ESCAPED_QUOTE | ~'"')* '"';
 literal: bool | STRING_LIT | number;
 
-statement: methodCall | variableDeclaration | variableAssignment;
+statement: methodCall | variableDeclaration | variableAssignment | returnStatement;
 
 mathExpression: valueExpression operator valueExpression;
-valueExpression: methodCall | literal | VARNAME | CONSTNAME;
+valueExpression: literal | VARNAME | CONSTNAME | arrayAccess;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 
-variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN (literal | CONSTNAME | VARNAME))? STATEMENT_END;
-variableAssignment: VARNAME ASSIGN (literal | CONSTNAME | VARNAME) STATEMENT_END;
+variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN valueExpression)? STATEMENT_END;
+variableAssignment: VARNAME ASSIGN (valueExpression) STATEMENT_END;
 typedVariable: type VARNAME;
-arrayAccess: VARNAME BRACE_OPEN number BRACE_CLOSE;
+arrayAccess: VARNAME BRACE_OPEN valueExpression BRACE_CLOSE;
 
 // method calls
 methodCall: VARNAME parameterSet STATEMENT_END;
-parameterSet: PARAM_OPEN parameter? (SEPARATOR parameter)* PARAM_CLOSE;
-parameter: DIGIT+ | literal | CONSTNAME | methodCall | VARNAME;
+parameterSet: PARAM_OPEN valueExpression? (SEPARATOR valueExpression)* PARAM_CLOSE;
 
 // method definitions
-methodDefinition: methodType type VARNAME parameterDefinition '{' methodBody '}';
-methodType: METHOD | FUNCTION;
+methodDefinition: methodType type VARNAME parameterDefinition methodBody;
+methodType: (METHOD | FUNCTION)?;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
+methodBody: BODY_OPEN statement* BODY_CLOSE;
 
-methodBody: methodCall* returnStatement;
-returnStatement: RETURN (VARNAME | literal) ';';
+returnStatement: RETURN valueExpression STATEMENT_END;
 
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;
@@ -97,4 +96,4 @@ pkg: PKG PKG_NAME STATEMENT_END;
 see: SEE QUALIFIED_NAME STATEMENT_END;
 clazz: CLASS CLASSNAME BODY_OPEN (constant | run | variableDeclaration | methodDefinition)* BODY_CLOSE;
 constant: CONST CONSTNAME ASSIGN literal STATEMENT_END;
-run: RUN BODY_OPEN statement* BODY_CLOSE;
+run: RUN methodBody;

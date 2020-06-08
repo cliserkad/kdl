@@ -73,4 +73,8 @@ public class InternalObjectName implements StringOutput {
 	public BaseType toBaseType() {
 		return inName.base;
 	}
+
+	public boolean isArray() {
+		return arrayDimensions > 0;
+	}
 }
