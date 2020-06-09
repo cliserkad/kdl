@@ -15,6 +15,8 @@ import static java.lang.System.exit;
 public class SourceListener extends kdlBaseListener implements Opcodes, CommonNames {
 	public final ClassCreator owner;
 
+	private final ExpressionHandler xprHandler;
+
 	private String pkgName;
 
 	// pass 0 does nothing
@@ -25,6 +27,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	public SourceListener(final ClassCreator owner) {
 		this.owner = owner;
 		pass = 0;
+		xprHandler = new ExpressionHandler(this);
 	}
 
 	public static void standardHandle(Exception e) {
@@ -476,47 +479,28 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
-	private Expression pushExpression(kdlParser.ExpressionContext xpr, LinedMethodVisitor lmv) {
+	private BaseType pushExpression(kdlParser.ExpressionContext xpr, LinedMethodVisitor lmv) {
 		Value val1 = pushValue(xpr.value(0), lmv);
 		Value val2 = pushValue(xpr.value(1), lmv);
-
-		if(!val1.isBaseType() && val2.isBaseType()) {
-			standardHandle(new UnimplementedException("Custom expressions are not implemented"));
-			return null;
-		}
-		else {
-			if(val1.toBaseType() == INT) {
-				int other = 0;
-				if(val2.toBaseType() == STRING)
-					standardHandle(new IncompatibleTypeException("strings can not be modifiers to ints"));
-				else if(val2.toBaseType() == BOOLEAN)
-					standardHandle(new IncompatibleTypeException("booleans can not be modifiers to booleans"));
-				else if(val2.toBaseType() == INT) {
-					switch(Operator.match(xpr.operator().getText())) {
-						case PLUS:
-							lmv.visitInsn(IADD);
-							return new Expression(internalName(int.class), internalName(int.class), PLUS);
-						case MINUS:
-							lmv.visitInsn(ISUB);
-							return new Expression(internalName(int.class), internalName(int.class), MINUS);
-						default:
-							standardHandle(new UnimplementedException("switch missing Operator"));
-							return null;
-					}
-				}
-			}
-			else
-				standardHandle(new UnimplementedException("just a placeholder"));
-			return null;
-		}
+		Operator opr = Operator.match(xpr.operator().getText());
+		ExpressionHandler.compute(val1, val2, opr, lmv);
+		return INT;
 	}
 
 	private void storeExpression(kdlParser.ExpressionContext xpr, LocalVariable var, LinedMethodVisitor lmv) {
-		Expression result = pushExpression(xpr, lmv);
-		if(result.partA.toBaseType() == INT)
-			lmv.visitVarInsn(ISTORE, var.localIndex);
+		BaseType result = pushExpression(xpr, lmv);
+		if(var.isBaseType() && var.toBaseType() == result) {
+			switch(result) {
+				case INT:
+				case BOOLEAN:
+					lmv.visitVarInsn(ISTORE, var.localIndex);
+					break;
+				case STRING:
+					lmv.visitVarInsn(ASTORE, var.localIndex);
+			}
+		}
 		else
-			standardHandle(new UnimplementedException("placeholder 2"));
+			standardHandle(new IncompatibleTypeException("The expression type of " + result + " did not match " + var));
 	}
 
 	private void parseVariableDeclaration(kdlParser.VariableDeclarationContext ctx, LinedMethodVisitor lmv) {

@@ -1,0 +1,14 @@
+class Math {
+  run {
+    int a = 1;
+    println(a);
+    a = a * 4;
+    println(a);
+    a = a - 2;
+    println(a);
+    a = a * 2;
+    println(a);
+    a = a / 2;
+    println(a);
+  }
+}

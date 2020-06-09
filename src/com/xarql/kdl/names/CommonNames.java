@@ -39,13 +39,17 @@ public interface CommonNames {
 	InternalName INT_IN     = InternalName.INT_IN;
 	InternalName BOOLEAN_IN = InternalName.BOOLEAN_IN;
 
+	String SWITCH_OPERAOTR = "switch on Operator";
 	String SWITCH_BASETYPE = "switch on BaseType";
 	String INCOMPATIBLE    = " has a type which is incompatible with the type of ";
 	String BASETYPE_MISS   = "A BaseType was not accounted for";
 
 	// operators
-	Operator PLUS  = Operator.PLUS;
-	Operator MINUS = Operator.MINUS;
+	Operator PLUS     = Operator.PLUS;
+	Operator MINUS    = Operator.MINUS;
+	Operator MULTIPLY = Operator.MULTIPLY;
+	Operator DIVIDE   = Operator.DIVIDE;
+	Operator MODULUS  = Operator.MODULUS;
 
 	// ValueType
 	ValueType LITERAL  = ValueType.LITERAL;

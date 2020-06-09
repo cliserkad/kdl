@@ -1,7 +1,7 @@
 package com.xarql.kdl;
 
 public enum Operator {
-	PLUS('+'), MINUS('-');
+	PLUS('+'), MINUS('-'), MULTIPLY('*'), DIVIDE('/'), MODULUS('%');
 
 	char rep;
 
