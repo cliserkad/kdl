@@ -351,9 +351,9 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			final Variable array = arrayAccess.var;
 			lmv.visitVarInsn(ALOAD, array.localIndex);
 
-			Value pushed = pushValue(arrayAccess.index, lmv);
+			BaseType type = pushExpression(arrayAccess.index, lmv);
 			// cause error if value within [ ] isn't an int
-			if(pushed.toBaseType() != INT) {
+			if(type != INT) {
 				standardHandle(new IncompatibleTypeException("The input for an array access must be an integer"));
 			}
 
@@ -378,7 +378,13 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return null;
 	}
 
-	private void storeExpression(Expression xpr, Variable var, LinedMethodVisitor lmv) {
+	private static BaseType pushExpression(Expression xpr, LinedMethodVisitor lmv) {
+		pushValue(xpr.partA, lmv);
+		pushValue(xpr.partB, lmv);
+		return ExpressionHandler.compute(xpr, lmv);
+	}
+
+	private static void storeExpression(Expression xpr, Variable var, LinedMethodVisitor lmv) {
 		BaseType result = pushExpression(xpr, lmv);
 		if(var.isBaseType() && var.toBaseType() == result) {
 			switch(result) {
@@ -401,12 +407,12 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	}
 
 	public Value parseValue(kdlParser.ValueContext val) {
-		if(val.literal() != null) {
+		if(val == null)
+			return null;
+		else if(val.literal() != null)
 			return new Value(LITERAL, parseLiteral(val.literal()));
-		}
-		else if(val.CONSTNAME() != null) {
+		else if(val.CONSTNAME() != null)
 			return new Value(CONSTANT, owner.getConstant(val.CONSTNAME().getText()));
-		}
 		else if(val.VARNAME() != null) {
 			Variable var = owner.getLocalVariable(val.VARNAME().toString());
 			return new Value(VARIABLE, var);
@@ -438,6 +444,8 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			case LIMBO:
 				pushLiteral(new Literal(out.value), lmv);
 				break;
+			default:
+				standardHandle(new UnimplementedException(SWITCH_VALUETYPE));
 		}
 		return out;
 	}
@@ -558,17 +566,17 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
-	private BaseType pushExpression(Expression xpr, LinedMethodVisitor lmv) {
-		pushValue(xpr.partA, lmv);
-		pushValue(xpr.partB, lmv);
-		return ExpressionHandler.compute(xpr, lmv);
-	}
-
 	private BaseType pushExpression(kdlParser.ExpressionContext xpr, LinedMethodVisitor lmv) {
 		Value val1 = parseValue(xpr.value(0));
 		Value val2 = parseValue(xpr.value(1));
-		Operator opr = parseOperator(xpr.operator());
-		return ExpressionHandler.compute(new Expression(val1, val2, opr), lmv);
+		if(xpr.operator() != null) {
+			Operator opr = parseOperator(xpr.operator());
+			return ExpressionHandler.compute(new Expression(val1, val2, opr), lmv);
+		}
+		else {
+			pushValue(val1, lmv);
+			return val1.toBaseType();
+		}
 	}
 
 	private void storeExpression(kdlParser.ExpressionContext ctx, Variable var, LinedMethodVisitor lmv) {
@@ -636,19 +644,32 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		String methodName = ctx.VARNAME().toString();
 		if(ExternalMethodRouter.resolveMethod(methodName) != null) {
 			MethodDef targetMethod = ExternalMethodRouter.resolveMethod(methodName);
-			BestList<kdlParser.ValueContext> params = new BestList<>(ctx.parameterSet().expression(0).value());
+			BestList<kdlParser.ExpressionContext> params = new BestList<>(ctx.parameterSet().expression());
 			for(int i = 0; i < params.size(); i++) {
-				if(parseType(params.get(i)).equals(targetMethod.paramTypes.get(i)))
-					pushValue(params.get(i), lmv);
-				else if(params.get(i).arrayAccess() != null && parseArrayType(params.get(i)).equals(targetMethod.paramTypes.get(i))) {
-					pushValue(params.get(i), lmv);
+				if(parseType(params.get(i).value(0)).equals(targetMethod.paramTypes.get(i)))
+					pushExpression(params.get(i), lmv);
+				else if(params.get(i).value(0).arrayAccess() != null && parseArrayType(params.get(i).value(0)).equals(targetMethod.paramTypes.get(i))) {
+					if(isSimple(params.get(i))) {
+						Variable array = pushVariable(owner.getLocalVariable(params.get(i).value(0).arrayAccess().VARNAME().getText()), lmv);
+						BaseType index = pushExpression(params.get(i).value(0).arrayAccess().expression(), lmv);
+						lmv.visitInsn(AALOAD);
+					}
+					else {
+						System.err.println("AAAAAA");
+					}
 				}
-				else if(parseType(params.get(i)).isBaseType()) {
-					pushValue(params.get(i), lmv);
-					convertToString(parseType(params.get(i)), lmv);
+				else if(targetMethod.paramTypes.get(i).equals(STRING_ION)) {
+					if(isSimple(params.get(i))) {
+						pushValue(parseValue(params.get(i).value(0)), lmv);
+						convertToString(parseType(params.get(i).value(0)), lmv);
+					}
+					else {
+						BaseType type = pushExpression(params.get(i), lmv);
+						convertToString(type.toInternalName().object(), lmv);
+					}
 				}
 				else
-					standardHandle(new IncompatibleTypeException("Parameter " + i + INCOMPATIBLE + parseType(params.get(i))));
+					standardHandle(new IncompatibleTypeException("Parameter " + i + INCOMPATIBLE + parseType(params.get(i).value(0))));
 			}
 			ExternalMethodRouter.writeMethod(methodName, lmv, params);
 		}
