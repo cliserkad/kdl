@@ -3,10 +3,11 @@ package com.xarql.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
+import com.xarql.kdl.names.ToBaseType;
 
 import static com.xarql.kdl.BestList.list;
 
-public class Constant<Type> {
+public class Constant<Type> implements ToBaseType {
 	public static final BestList<Class<?>> ACCEPTABLE_TYPES = list(String.class, Integer.class, Boolean.class);
 
 	public final String name;
@@ -38,12 +39,14 @@ public class Constant<Type> {
 		return internalName().object();
 	}
 
+	@Override
 	public boolean isBaseType() {
-		return BaseType.isBaseType(value.getClass());
+		return BaseType.isBaseType(value);
 	}
 
+	@Override
 	public BaseType toBaseType() {
-		return BaseType.matchWrapper(value.getClass());
+		return BaseType.matchValue(value);
 	}
 
 	@Override

@@ -1,8 +1,10 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalObjectName;
+import com.xarql.kdl.names.ToBaseType;
 
-public class LocalVariable {
+public class LocalVariable implements ToBaseType {
 	public final String             name;
 	public final InternalObjectName type;
 	public final int                localIndex;
@@ -27,6 +29,16 @@ public class LocalVariable {
 	@Override
 	public String toString() {
 		return "LocalVariable: " + name + " --> " + type + " @ " + localIndex;
+	}
+
+	@Override
+	public boolean isBaseType() {
+		return type.isBaseType();
+	}
+
+	@Override
+	public BaseType toBaseType() {
+		return type.toBaseType();
 	}
 
 }

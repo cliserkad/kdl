@@ -4,7 +4,7 @@ import com.xarql.kdl.SourceListener;
 import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.UnimplementedException;
 
-public class InternalName implements StringOutput, CommonNames {
+public class InternalName implements StringOutput, ToBaseType, CommonNames {
 	public static final InternalName INT_IN     = new InternalName(BaseType.INT);
 	public static final InternalName BOOLEAN_IN = new InternalName(BaseType.BOOLEAN);
 	public static final InternalName STRING_IN  = new InternalName(BaseType.STRING);
@@ -24,8 +24,8 @@ public class InternalName implements StringOutput, CommonNames {
 
 	public static InternalName internalName(Class<?> c) {
 		try {
-			if(BaseType.matchWrapper(c) != null) {
-				switch(BaseType.matchWrapper(c)) {
+			if(BaseType.matchClass(c) != null) {
+				switch(BaseType.matchClass(c)) {
 					case INT:
 						return INT_IN;
 					case BOOLEAN:
@@ -65,8 +65,14 @@ public class InternalName implements StringOutput, CommonNames {
 		return clazz != null;
 	}
 
+	@Override
 	public boolean isBaseType() {
 		return base != null;
+	}
+
+	@Override
+	public BaseType toBaseType() {
+		return base;
 	}
 
 	@Override

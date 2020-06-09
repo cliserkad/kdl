@@ -18,16 +18,31 @@ public enum BaseType implements StringOutput {
 		this("" + rep, defaultValue);
 	}
 
-	public static boolean isBaseType(Class<?> base) {
-		return matchWrapper(base) != null;
+	public static boolean isClassBaseType(Class<?> clazz) {
+		return matchClass(clazz) != null;
 	}
 
-	public static BaseType matchWrapper(Class<?> wrapper) {
-		if(wrapper == Integer.class)
+	public static boolean isBaseType(Object value) {
+		return matchValue(value) != null;
+	}
+
+	public static BaseType matchClass(Class<?> clazz) {
+		if(clazz.equals(int.class) || clazz.equals(Integer.class))
 			return INT;
-		else if(wrapper == Boolean.class)
+		else if(clazz.equals(boolean.class) || clazz.equals(Boolean.class))
 			return BOOLEAN;
-		else if(wrapper == String.class)
+		else if(clazz.equals(String.class))
+			return STRING;
+		else
+			return null;
+	}
+
+	public static BaseType matchValue(Object value) {
+		if(value instanceof Integer)
+			return INT;
+		else if(value instanceof Boolean)
+			return BOOLEAN;
+		else if(value instanceof String)
 			return STRING;
 		else
 			return null;

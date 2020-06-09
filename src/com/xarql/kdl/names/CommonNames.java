@@ -2,6 +2,8 @@ package com.xarql.kdl.names;
 
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.MethodDef;
+import com.xarql.kdl.Operator;
+import com.xarql.kdl.ValueType;
 
 public interface CommonNames {
 	// keywords
@@ -40,4 +42,16 @@ public interface CommonNames {
 	String SWITCH_BASETYPE = "switch on BaseType";
 	String INCOMPATIBLE    = " has a type which is incompatible with the type of ";
 	String BASETYPE_MISS   = "A BaseType was not accounted for";
+
+	// operators
+	Operator PLUS  = Operator.PLUS;
+	Operator MINUS = Operator.MINUS;
+
+	// ValueType
+	ValueType LITERAL  = ValueType.LITERAL;
+	ValueType CONSTANT = ValueType.CONSTANT;
+	ValueType VARIABLE = ValueType.VARIABLE;
+	ValueType LIMBO    = ValueType.LIMBO;
+	ValueType POINTER  = ValueType.POINTER;
+
 }

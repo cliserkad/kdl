@@ -67,18 +67,18 @@ literal: bool | STRING_LIT | number;
 
 statement: methodCall | variableDeclaration | variableAssignment | returnStatement;
 
-mathExpression: valueExpression operator valueExpression;
-valueExpression: literal | VARNAME | CONSTNAME | arrayAccess;
+expression: value (operator value)?;
+value: literal | VARNAME | CONSTNAME | arrayAccess;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 
-variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN valueExpression)? STATEMENT_END;
-variableAssignment: VARNAME ASSIGN (valueExpression) STATEMENT_END;
+variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
+variableAssignment: VARNAME ASSIGN (expression) STATEMENT_END;
 typedVariable: type VARNAME;
-arrayAccess: VARNAME BRACE_OPEN valueExpression BRACE_CLOSE;
+arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 
 // method calls
 methodCall: VARNAME parameterSet STATEMENT_END;
-parameterSet: PARAM_OPEN valueExpression? (SEPARATOR valueExpression)* PARAM_CLOSE;
+parameterSet: PARAM_OPEN expression? (SEPARATOR expression)* PARAM_CLOSE;
 
 // method definitions
 methodDefinition: methodType type VARNAME parameterDefinition methodBody;
@@ -86,7 +86,7 @@ methodType: (METHOD | FUNCTION)?;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 methodBody: BODY_OPEN statement* BODY_CLOSE;
 
-returnStatement: RETURN valueExpression STATEMENT_END;
+returnStatement: RETURN expression STATEMENT_END;
 
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;

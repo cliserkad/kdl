@@ -1,10 +1,11 @@
 package com.xarql.kdl.names;
 
+import com.xarql.kdl.Array;
 import com.xarql.kdl.StringOutput;
 
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public class InternalObjectName implements StringOutput {
+public class InternalObjectName implements StringOutput, ToBaseType {
 	public static final String OBJECT_SUFFIX            = ";";
 	public static final String OBJECT_PREFIX            = "L";
 	public static final String ARRAY_PREFIX             = "[";
@@ -66,15 +67,21 @@ public class InternalObjectName implements StringOutput {
 		return false;
 	}
 
+	@Override
 	public boolean isBaseType() {
 		return inName.isBaseType();
 	}
 
+	@Override
 	public BaseType toBaseType() {
 		return inName.base;
 	}
 
 	public boolean isArray() {
-		return arrayDimensions > 0;
+		return arrayDimensions >= Array.MIN_DIMENSIONS;
+	}
+
+	public Array toArray() {
+		return new Array(inName, arrayDimensions);
 	}
 }
