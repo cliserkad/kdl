@@ -4,6 +4,10 @@ grammar kdl;
 package com.xarql.kdl.antlr4;
 }
 
+// skip over comments in lexer
+COMMENT: '//' .*? '\n' -> skip;
+BLOCK_COMMENT: '/*' .*? '*/' -> skip;
+
 // skip over whitespace
 WS : [ \t\r\n]+ -> skip;
 
