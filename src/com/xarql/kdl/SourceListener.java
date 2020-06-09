@@ -16,12 +16,13 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	public final ClassCreator owner;
 
 	private final ExpressionHandler xprHandler;
+	private final BestList<String>  constantNames = new BestList<>();
 
 	private String pkgName;
 
-	// pass 0 does nothing
-	// pass 1 collects imports, classname, and constants, methodNames
-	// pass 2 defines methods
+	// pass 1 collects imports, classname, and constant names, methodNames
+	// pass 2 assigns values to constants
+	// pass 3 defines methods
 	private int pass;
 
 	public SourceListener(final ClassCreator owner) {
@@ -156,7 +157,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
-	private static BaseType parseLiteralType(kdlParser.LiteralContext lit) {
+	public static BaseType parseLiteralType(kdlParser.LiteralContext lit) {
 		if(lit.bool() != null)
 			return BaseType.BOOLEAN;
 		else if(lit.number() != null) {
@@ -321,8 +322,26 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return xpr.value().size() == 1;
 	}
 
+	public static Literal<?> parseLiteral(kdlParser.LiteralContext ctx) {
+		switch(parseLiteralType(ctx)) {
+			case INT:
+				return new Literal<>(parseNumber(ctx));
+			case BOOLEAN:
+				return new Literal<>(parseBool(ctx));
+			case STRING:
+				return new Literal<>(parseStringLit(ctx));
+			default:
+				standardHandle(new UnimplementedException(SWITCH_BASETYPE));
+				return null;
+		}
+	}
+
+	private static boolean isSimple(kdlParser.CompileTimeExpressionContext ctx) {
+		return ctx.literal(0) != null && ctx.CONSTNAME().size() == 0;
+	}
+
 	public Constant<?> pushConstant(String cname, LinedMethodVisitor lmv) {
-		Constant c = owner.resolveConstant(cname);
+		Constant c = owner.getConstant(cname);
 		return pushConstant(c, lmv);
 	}
 
@@ -404,24 +423,29 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 	@Override
 	public void enterConstant(final kdlParser.ConstantContext ctx) {
+		// collect names
 		if(pass == 1) {
-			Constant c = null;
 			final String name = ctx.CONSTNAME().toString();
-
-			switch(parseLiteralType(ctx.literal())) {
-				case BOOLEAN:
-					c = new Constant<>(name, parseBool(ctx.literal()));
-					break;
-				case INT:
-					c = new Constant<>(name, parseNumber(ctx.literal()));
-					break;
-				case STRING:
-					c = new Constant<>(name, parseStringLit(ctx.literal()));
-					break;
+			if(!constantNames.contains(name))
+				constantNames.add(name);
+			else
+				standardHandle(new IllegalArgumentException("The const named " + name + " was taken by another const with value " + owner.getConstant(name).value));
+		}
+		else if(pass == 2) {
+			String name = constantNames.get(0);
+			if(isSimple(ctx.compileTimeExpression())) {
+				if(ctx.compileTimeExpression().literal().size() > 1) {
+					final Literal<?> value = ExpressionHandler.evaluateLiterals(ctx.compileTimeExpression());
+					owner.addConstant(new Constant<>(name, value.value));
+					constantNames.remove(0);
+				}
+				else {
+					// add constant with the value of the first literal
+					Constant c = new Constant(name, parseLiteral(ctx.compileTimeExpression().literal(0)).value);
+					owner.addConstant(c);
+					constantNames.remove(0);
+				}
 			}
-
-			if(!owner.addConstant(c))
-				standardHandle(new IllegalArgumentException("The const name " + c.name + " was taken by another const with value " + owner.resolveConstant(c.name).value));
 		}
 	}
 
@@ -434,7 +458,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 					throw new IncompatibleTypeException("Literal " + val.literal().getText() + INCOMPATIBLE + target);
 			}
 			else if(val.CONSTNAME() != null) {
-				Constant c = owner.resolveConstant(val.CONSTNAME().toString());
+				Constant c = owner.getConstant(val.CONSTNAME().toString());
 				if(target.type.equals(c.internalObjectName()))
 					storeConstant(c, target.localIndex, lmv);
 				else
@@ -530,7 +554,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		if(ctx.literal() != null)
 			return InternalName.match(parseLiteralType(ctx.literal())).object();
 		else if(ctx.CONSTNAME() != null)
-			return owner.resolveConstant(ctx.CONSTNAME().toString()).internalObjectName();
+			return owner.getConstant(ctx.CONSTNAME().toString()).internalObjectName();
 		else if(ctx.VARNAME() != null)
 			return owner.getLocalVariable(ctx.VARNAME().toString()).type;
 		else if(ctx.arrayAccess() != null)
@@ -575,10 +599,10 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 	@Override
 	public void enterRun(final kdlParser.RunContext ctx) {
-		if(pass == 1) {
+		if(pass == 2) {
 			owner.addMethodDef(MethodDef.MAIN);
 		}
-		else if(pass == 2) {
+		else if(pass == 3) {
 			final LinedMethodVisitor lmv = owner.defineMethod(MethodDef.MAIN, ctx.start.getLine() + 1);
 			new LocalVariable(owner.currentScope, "args", new InternalObjectName(String.class, 1));
 			Label methodStart = new Label();

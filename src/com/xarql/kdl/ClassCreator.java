@@ -18,19 +18,18 @@ import java.nio.file.Files;
 import static com.xarql.kdl.names.InternalName.internalName;
 
 public class ClassCreator implements Opcodes {
-	public static final int  CONST       = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
-	public static final File DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/sample");
-
+	public static final int                 CONST       = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
+	public static final File                DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/sample");
+	public final        BestList<Constant>  constants;
 	// set in constructor
-	private final File                input;
-	private final ClassWriter         cw;
-	private final BestList<Constant>  constants;
-	private final BestList<Import>    imports;
-	private final BestList<MethodDef> methods;
-	public        Scope               currentScope;
-	private       SourceListener      sl;
-	private       CustomClass         clazz;
-	private       boolean             nameSet;
+	private final       File                input;
+	private final       ClassWriter         cw;
+	private final       BestList<Import>    imports;
+	private final       BestList<MethodDef> methods;
+	public              Scope               currentScope;
+	private             SourceListener      sl;
+	private             CustomClass         clazz;
+	private             boolean             nameSet;
 
 	public ClassCreator(final File input) {
 		this.input = input;
@@ -62,15 +61,22 @@ public class ClassCreator implements Opcodes {
 	}
 
 	public boolean hasConstant(final String name) {
-		return resolveConstant(name) != null;
+		return getConstant(name) != null;
 	}
 
-	public Constant resolveConstant(final String name) {
+	public Constant getConstant(final String name) {
 		for(Constant c : constants) {
 			if(c.name.equals(name))
 				return c;
 		}
 		throw new IllegalArgumentException("Constant " + name + " does not exist");
+	}
+
+	public boolean isConstantsSet() {
+		for(Constant c : constants)
+			if(!c.isEvaluated())
+				return false;
+		return true;
 	}
 
 	public boolean build() {
@@ -81,6 +87,8 @@ public class ClassCreator implements Opcodes {
 			final kdlParser parser = new kdlParser(tokens);
 			final ParseTree tree = parser.source();
 			sl = new SourceListener(this);
+			sl.newPass();
+			ParseTreeWalker.DEFAULT.walk(sl, tree);
 			sl.newPass();
 			ParseTreeWalker.DEFAULT.walk(sl, tree);
 			sl.newPass();

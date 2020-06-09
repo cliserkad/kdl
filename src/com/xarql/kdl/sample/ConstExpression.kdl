@@ -1,0 +1,26 @@
+class ConstExpression {
+  const PLUS = 2 + 3;
+  const MINUS = 2 - 3;
+  const MUL = 2 * 3;
+  const DIV = 6 / 3;
+  const MOD = 2 % 3;
+
+  const MSG1 = "hello world!" * 10;
+  const MSG2 = "a really really really long piece of text" / 2;
+  const MSG3 = "Wow look at all of those books" - "o";
+  const MSG4 = "And we call this magic" + " concatenation. But I don't know why";
+
+
+  run {
+      println(PLUS);
+      println(MINUS);
+      println(MUL);
+      println(DIV);
+      println(MOD);
+
+      println(MSG1);
+      println(MSG2);
+      println(MSG3);
+      println(MSG4);
+  }
+}

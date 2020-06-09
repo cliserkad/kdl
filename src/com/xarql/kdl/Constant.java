@@ -13,6 +13,7 @@ public class Constant<Type> implements ToBaseType {
 	public final String name;
 	public final Type   value;
 
+	private boolean evaluated;
 
 	public Constant(final String name, final Type value) {
 		if(name == null || name.isEmpty())
@@ -65,5 +66,23 @@ public class Constant<Type> implements ToBaseType {
 			return other.name.equals(name);
 		}
 		return false;
+	}
+
+	/**
+	 * Changes the evaluated field of this constant to true
+	 * @return true if a change was made
+	 */
+	public boolean markAsEvaluated() {
+		final boolean out = !evaluated;
+		evaluated = true;
+		return out;
+	}
+
+	/**
+	 * Provides read access to the evaluated field
+	 * @return evaluated
+	 */
+	public boolean isEvaluated() {
+		return evaluated;
 	}
 }

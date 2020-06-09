@@ -67,6 +67,7 @@ literal: bool | STRING_LIT | number;
 
 statement: methodCall | variableDeclaration | variableAssignment | returnStatement;
 
+compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
 value: literal | VARNAME | CONSTNAME | arrayAccess;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
@@ -95,5 +96,5 @@ source: pkg? see* clazz;
 pkg: PKG PKG_NAME STATEMENT_END;
 see: SEE QUALIFIED_NAME STATEMENT_END;
 clazz: CLASS CLASSNAME BODY_OPEN (constant | run | variableDeclaration | methodDefinition)* BODY_CLOSE;
-constant: CONST CONSTNAME ASSIGN literal STATEMENT_END;
+constant: CONST CONSTNAME ASSIGN compileTimeExpression STATEMENT_END;
 run: RUN methodBody;
