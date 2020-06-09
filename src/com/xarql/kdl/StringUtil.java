@@ -4,8 +4,6 @@ import com.xarql.kdl.antlr4.kdlParser;
 import com.xarql.kdl.names.CommonNames;
 import com.xarql.kdl.names.InternalObjectName;
 
-import static com.xarql.kdl.Operator.PLUS;
-
 public abstract class StringUtil implements CommonNames {
 
 	public static Object handleExpression(kdlParser.ExpressionContext xpr, SourceListener caller) {

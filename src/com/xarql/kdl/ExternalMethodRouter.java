@@ -11,14 +11,14 @@ import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.InternalName.internalName;
 
 public class ExternalMethodRouter implements Opcodes, CommonNames {
-	public static final MethodDef PRINTLN_MTD = new MethodDef(MethodDef.Type.MTD, PRINTLN, list(STRING_ION), VOID, ACC_PUBLIC + ACC_STATIC);
-	public static final MethodDef PRINT_MTD   = new MethodDef(MethodDef.Type.MTD, PRINT, list(STRING_ION), VOID, ACC_PUBLIC + ACC_STATIC);
+	public static final JavaMethodDef PRINTLN_MTD = new JavaMethodDef(internalName(PrintStream.class), PRINTLN, list(STRING_ION), VOID, ACC_PUBLIC + ACC_STATIC);
+	public static final JavaMethodDef PRINT_MTD   = new JavaMethodDef(internalName(PrintStream.class), PRINT, list(STRING_ION), VOID, ACC_PUBLIC + ACC_STATIC);
 
 	public static boolean isMethodExternal(String name) {
 		return resolveMethod(name) != null;
 	}
 
-	public static MethodDef resolveMethod(String name) {
+	public static JavaMethodDef resolveMethod(String name) {
 		switch(name) {
 			case PRINT:
 				return PRINT_MTD;
@@ -36,7 +36,7 @@ public class ExternalMethodRouter implements Opcodes, CommonNames {
 			lmv.visitLineNumber(lmv.getLine(), print);
 			lmv.visitFieldInsn(GETSTATIC, internalName(System.class).toString(), "out", new InternalObjectName(PrintStream.class).toString());
 			lmv.visitInsn(SWAP);
-			lmv.visitMethodInsn(INVOKEVIRTUAL, internalName(PrintStream.class).toString(), PRINTLN, PRINTLN_MTD.descriptor(), false);
+			lmv.visitMethodInsn(INVOKEVIRTUAL, PRINTLN_MTD.owner(), PRINTLN, PRINTLN_MTD.descriptor(), false);
 			return print;
 		}
 		else if(methodName.equals(PRINT)) {
@@ -45,7 +45,7 @@ public class ExternalMethodRouter implements Opcodes, CommonNames {
 			lmv.visitLineNumber(lmv.getLine(), print);
 			lmv.visitFieldInsn(GETSTATIC, internalName(System.class).toString(), "out", new InternalObjectName(PrintStream.class).toString());
 			lmv.visitInsn(SWAP);
-			lmv.visitMethodInsn(INVOKEVIRTUAL, internalName(PrintStream.class).toString(), PRINT, PRINT_MTD.descriptor(), false);
+			lmv.visitMethodInsn(INVOKEVIRTUAL, PRINT_MTD.owner(), PRINT, PRINT_MTD.descriptor(), false);
 			return print;
 		}
 		else {

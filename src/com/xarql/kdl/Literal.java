@@ -37,4 +37,9 @@ public class Literal<Type> implements ToBaseType, StringOutput, CommonNames {
 				return null;
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "Literal: " + toBaseType().name() + " --> " + value;
+	}
 }

@@ -1,86 +1,42 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ReturnValue;
-import jdk.internal.org.objectweb.asm.Opcodes;
 
 import java.util.List;
 
-public class MethodDef implements StringOutput, Opcodes {
-	public static final MethodDef MAIN = new MethodDef(Type.MTD, "main", new BestList<>(new InternalObjectName(String.class, 1)), null, ACC_PUBLIC + ACC_STATIC);
+public class MethodDef extends JavaMethodDef implements CommonNames {
+	public static final Type DEFAULT_TYPE   = Type.MTD;
+	public static final int  DEFAULT_ACCESS = ACC_PUBLIC;
 
-	public static final String INIT           = "<init>";
-	public static final int    DEFAULT_ACCESS = ACC_STATIC;
+	public final Type type;
 
-	public final Type                     type;
-	public final String                   methodName;
-	public final ReturnValue              returnValue;
-	public final List<InternalObjectName> paramTypes;
-	public final int                      access;
-
-	public MethodDef(Type type, String methodName, List<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {
+	/**
+	 * Creates a .kdl MethodDef
+	 * @param type        compiletime restrictions
+	 * @param methodName  name of method
+	 * @param paramTypes  the type of every parameter
+	 * @param returnValue the type that is returned
+	 * @param access      access modifiers
+	 */
+	public MethodDef(InternalName owner, Type type, String methodName, List<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {
+		super(owner, methodName, paramTypes, returnValue, access);
 		this.type = type;
-		this.methodName = Text.checkNotEmpty(methodName);
-		this.paramTypes = Util.nonNullList(paramTypes);
-		this.returnValue = ReturnValue.nonNull(returnValue);
-		this.access = access;
-		if(type == Type.FNC && returnValue.isVoid()) {
-			throw new IllegalArgumentException("Pure function (fnc) must return a value");
-		}
 	}
 
-	public MethodDef(String methodName, boolean isStatic) {
-		this(Type.MTD, methodName, null, ReturnValue.VOID_RETURN, DEFAULT_ACCESS + staticAccess(isStatic));
+	/**
+	 * Creates a method with methodName that is public, void, and has no parameters
+	 * @param methodName
+	 */
+	public MethodDef(InternalName owner, String methodName) {
+		this(owner, DEFAULT_TYPE, methodName, null, VOID, DEFAULT_ACCESS);
 	}
 
-	public MethodDef(Type type, String methodName, ReturnValue returnValue) {
-		this(type, methodName, null, returnValue, DEFAULT_ACCESS);
-	}
-
-	public static void main(String[] args) {
-		System.out.println(MAIN);
-	}
-
-	public static int staticAccess(boolean isStatic) {
-		if(isStatic)
-			return ACC_STATIC;
-		else
-			return 0;
-	}
-
-	public String descriptor() {
-		String out = "";
-		out += "(";
-		for(InternalObjectName ion : paramTypes)
-			out += ion.stringOutput();
-		out += ")";
-		out += returnValue.stringOutput();
-		return out;
-	}
-
-	@Override
-	public String stringOutput() {
-		return descriptor();
-	}
-
-	@Override
-	public String toString() {
-		return stringOutput();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if(obj instanceof MethodDef) {
-			MethodDef md = (MethodDef) obj;
-			if(obj == this)
-				return true;
-			else
-				return type == md.type && methodName.equals(md.methodName) && returnValue.equals(md.returnValue) && paramTypes.equals(md.paramTypes);
-		}
-		else
-			return false;
-	}
-
+	/**
+	 * Used to track compiletime restrictions of .kdl methods
+	 */
 	public enum Type {
 		FNC("function"), MTD("method");
 

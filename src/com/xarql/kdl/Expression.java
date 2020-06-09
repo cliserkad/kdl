@@ -12,4 +12,9 @@ public class Expression {
 		this.partA = partA;
 		this.partB = partB;
 	}
+
+	@Override
+	public String toString() {
+		return "(" + partA.value + ") " + operator + " (" + partB.value + ")";
+	}
 }

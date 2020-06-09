@@ -1,5 +1,6 @@
 package com.xarql.kdl.names;
 
+import com.xarql.kdl.ClassCreator;
 import com.xarql.kdl.SourceListener;
 import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.UnimplementedException;
@@ -11,15 +12,24 @@ public class InternalName implements StringOutput, ToBaseType, CommonNames {
 
 	public final Class<?> clazz;
 	public final BaseType base;
+	public final String   qualifiedName;
 
 	private InternalName(Class<?> c) {
 		this.clazz = c;
 		base = null;
+		qualifiedName = null;
 	}
 
 	private InternalName(BaseType base) {
 		this.base = base;
 		clazz = null;
+		qualifiedName = null;
+	}
+
+	public InternalName(ClassCreator cc) {
+		this.qualifiedName = cc.getClazz().internalNameString();
+		clazz = null;
+		base = null;
 	}
 
 	public static InternalName internalName(Class<?> c) {
@@ -57,6 +67,10 @@ public class InternalName implements StringOutput, ToBaseType, CommonNames {
 		}
 	}
 
+	public boolean isCustom() {
+		return qualifiedName != null;
+	}
+
 	public InternalObjectName object() {
 		return new InternalObjectName(this);
 	}
@@ -81,6 +95,9 @@ public class InternalName implements StringOutput, ToBaseType, CommonNames {
 			return clazz.getName().replace('.', '/');
 		else if(isBaseType())
 			return base.stringOutput();
+		else if(isCustom()) {
+			return qualifiedName;
+		}
 		else
 			throw new IllegalStateException("Both clazz and base can not be null in an instance of InternalName");
 	}

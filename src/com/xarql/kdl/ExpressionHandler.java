@@ -5,8 +5,10 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
 import org.objectweb.asm.Opcodes;
 
+import static com.xarql.kdl.JavaMethodDef.TO_STRING;
 import static com.xarql.kdl.SourceListener.parseLiteral;
 import static com.xarql.kdl.SourceListener.standardHandle;
+import static com.xarql.kdl.names.InternalName.internalName;
 
 public class ExpressionHandler implements CommonNames, Opcodes {
 	private final SourceListener parent;
@@ -15,7 +17,7 @@ public class ExpressionHandler implements CommonNames, Opcodes {
 		this.parent = parent;
 	}
 
-	public static BaseType compute(final Expression xpr, final LinedMethodVisitor lmv) {
+	public BaseType compute(final Expression xpr, final LinedMethodVisitor lmv) {
 		final Value val1 = xpr.partA;
 		final Value val2 = xpr.partB;
 		final Operator opr = xpr.operator;
@@ -27,12 +29,16 @@ public class ExpressionHandler implements CommonNames, Opcodes {
 		else {
 			switch(val1.toBaseType()) {
 				case INT:
-				case BOOLEAN:
+				case BOOLEAN: {
+					parent.pushValue(val1, lmv);
+					parent.pushValue(val2, lmv);
 					computeInt(val2, opr, lmv);
 					return INT;
-				case STRING:
-					computeString(val2, opr, lmv);
+				}
+				case STRING: {
+					computeString(val1, val2, opr, lmv);
 					return STRING;
+				}
 				default:
 					standardHandle(new UnimplementedException(SWITCH_BASETYPE));
 					return null;
@@ -40,8 +46,47 @@ public class ExpressionHandler implements CommonNames, Opcodes {
 		}
 	}
 
-	private static void computeString(Value val2, Operator opr, LinedMethodVisitor lmv) {
+	/**
+	 * Puts two new StringBuilders on the stack
+	 * @param lmv
+	 */
+	private static void stringBuilderInit(LinedMethodVisitor lmv) {
+		lmv.visitTypeInsn(NEW, internalName(StringBuilder.class).stringOutput());
+		lmv.visitInsn(DUP);
+		lmv.visitMethodInsn(INVOKESPECIAL, internalName(StringBuilder.class).stringOutput(), INIT, NO_PARAM_VOID, false);
+	}
 
+	private void computeString(Value val1, Value val2, Operator opr, LinedMethodVisitor lmv) {
+		switch(opr) {
+			case PLUS: {
+				switch(val2.toBaseType()) {
+					case INT: {
+						stringBuilderInit(lmv);
+						parent.pushValue(val1, lmv);
+						lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
+						parent.pushValue(val2, lmv);
+						parent.convertToString(val2.toBaseType().toInternalObjectName(), lmv);
+						lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
+						lmv.visitMethodInsn(INVOKEVIRTUAL, STRING_BUILDER_IN_S, TO_STRING.methodName, TO_STRING.descriptor(), false);
+						break;
+					}
+					case STRING: {
+						stringBuilderInit(lmv);
+						parent.pushValue(val1, lmv);
+						lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
+						parent.pushValue(val2, lmv);
+						lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
+						lmv.visitMethodInsn(INVOKEVIRTUAL, STRING_BUILDER_IN_S, TO_STRING.methodName, TO_STRING.descriptor(), false);
+						break;
+					}
+				}
+				break;
+			}
+			default: {
+				System.err.println(lmv.getLine());
+				SourceListener.standardHandle(new UnimplementedException("Only + has been implemented for strings"));
+			}
+		}
 	}
 
 	private static void computeInt(Value val2, Operator opr, LinedMethodVisitor lmv) {

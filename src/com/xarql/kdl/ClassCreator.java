@@ -18,18 +18,18 @@ import java.nio.file.Files;
 import static com.xarql.kdl.names.InternalName.internalName;
 
 public class ClassCreator implements Opcodes {
-	public static final int                 CONST       = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
-	public static final File                DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/sample");
-	public final        BestList<Constant>  constants;
+	public static final int                     CONST       = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
+	public static final File                    DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/sample");
+	public final        BestList<Constant>      constants;
 	// set in constructor
-	private final       File                input;
-	private final       ClassWriter         cw;
-	private final       BestList<Import>    imports;
-	private final       BestList<MethodDef> methods;
-	public              Scope               currentScope;
-	private             SourceListener      sl;
-	private             CustomClass         clazz;
-	private             boolean             nameSet;
+	private final       File                    input;
+	private final       ClassWriter             cw;
+	private final       BestList<Import>        imports;
+	private final       BestList<JavaMethodDef> methods;
+	public              Scope                   currentScope;
+	private             SourceListener          sl;
+	private             CustomClass             clazz;
+	private             boolean                 nameSet;
 
 	public ClassCreator(final File input) {
 		this.input = input;
@@ -56,7 +56,7 @@ public class ClassCreator implements Opcodes {
 		return currentScope.getVariable(name);
 	}
 
-	public void addMethodDef(MethodDef md) {
+	public void addMethodDef(JavaMethodDef md) {
 		methods.add(md);
 	}
 
@@ -133,7 +133,7 @@ public class ClassCreator implements Opcodes {
 		return clazz;
 	}
 
-	public LinedMethodVisitor defineMethod(MethodDef md, int line) {
+	public LinedMethodVisitor defineMethod(JavaMethodDef md, int line) {
 		if(methods.contains(md)) {
 			currentScope = new Scope("Method " + md.methodName + " of class " + clazz, new Label());
 			final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);

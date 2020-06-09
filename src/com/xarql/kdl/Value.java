@@ -25,4 +25,9 @@ public class Value implements ToBaseType {
 	public BaseType toBaseType() {
 		return value.toBaseType();
 	}
+
+	@Override
+	public String toString() {
+		return "Value: " + valueType + " --> " + value;
+	}
 }

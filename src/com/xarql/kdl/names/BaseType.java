@@ -52,6 +52,10 @@ public enum BaseType implements StringOutput {
 		return InternalName.match(this);
 	}
 
+	public InternalObjectName toInternalObjectName() {
+		return toInternalName().object();
+	}
+
 	public Constant<?> getDefaultValue() {
 		return defaultValue;
 	}

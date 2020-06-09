@@ -15,7 +15,7 @@ import static java.lang.System.exit;
 public class SourceListener extends kdlBaseListener implements Opcodes, CommonNames {
 	public final ClassCreator owner;
 
-	private final ExpressionHandler xprHandler;
+	private final ExpressionHandler handler;
 	private final BestList<String>  constantNames = new BestList<>();
 
 	private String pkgName;
@@ -28,11 +28,10 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	public SourceListener(final ClassCreator owner) {
 		this.owner = owner;
 		pass = 0;
-		xprHandler = new ExpressionHandler(this);
+		handler = new ExpressionHandler(this);
 	}
 
 	public static void standardHandle(Exception e) {
-		System.err.println(e.getMessage());
 		e.printStackTrace();
 		if(e instanceof Exception)
 			exit(1);
@@ -184,13 +183,18 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return new NameAndType(name, type);
 	}
 
-	private static void convertToString(InternalObjectName name, LinedMethodVisitor lmv) {
-		MethodDef stringValueOf;
+	/**
+	 * Converts the top item of the stack in to a string
+	 * @param name
+	 * @param lmv
+	 */
+	public static void convertToString(InternalObjectName name, LinedMethodVisitor lmv) {
+		JavaMethodDef stringValueOf;
 		if(name.isBaseType())
-			stringValueOf = new MethodDef(MethodDef.Type.MTD, "valueOf", list(name), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
+			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(name), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
 		else
-			stringValueOf = new MethodDef(MethodDef.Type.MTD, "valueOf", list(internalName(Object.class).object()), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
-		lmv.visitMethodInsn(INVOKESTATIC, STRING_IN_S, stringValueOf.methodName, stringValueOf.descriptor(), false);
+			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(internalName(Object.class).object()), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
+		lmv.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
 	/**
@@ -339,7 +343,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return Operator.match(ctx.getText());
 	}
 
-	public static Value pushValue(Value val, LinedMethodVisitor lmv) {
+	public Value pushValue(Value val, LinedMethodVisitor lmv) {
 		if(val.valueType == LITERAL)
 			return new Value(LITERAL, pushLiteral((Literal) val.value, lmv));
 		else if(val.valueType == CONSTANT)
@@ -378,13 +382,11 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return null;
 	}
 
-	private static BaseType pushExpression(Expression xpr, LinedMethodVisitor lmv) {
-		pushValue(xpr.partA, lmv);
-		pushValue(xpr.partB, lmv);
-		return ExpressionHandler.compute(xpr, lmv);
+	private BaseType pushExpression(Expression xpr, LinedMethodVisitor lmv) {
+		return handler.compute(xpr, lmv);
 	}
 
-	private static void storeExpression(Expression xpr, Variable var, LinedMethodVisitor lmv) {
+	private void storeExpression(Expression xpr, Variable var, LinedMethodVisitor lmv) {
 		BaseType result = pushExpression(xpr, lmv);
 		if(var.isBaseType() && var.toBaseType() == result) {
 			switch(result) {
@@ -571,7 +573,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		Value val2 = parseValue(xpr.value(1));
 		if(xpr.operator() != null) {
 			Operator opr = parseOperator(xpr.operator());
-			return ExpressionHandler.compute(new Expression(val1, val2, opr), lmv);
+			return handler.compute(new Expression(val1, val2, opr), lmv);
 		}
 		else {
 			pushValue(val1, lmv);
@@ -643,7 +645,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	private void parseMethodCall(kdlParser.MethodCallContext ctx, LinedMethodVisitor lmv) {
 		String methodName = ctx.VARNAME().toString();
 		if(ExternalMethodRouter.resolveMethod(methodName) != null) {
-			MethodDef targetMethod = ExternalMethodRouter.resolveMethod(methodName);
+			JavaMethodDef targetMethod = ExternalMethodRouter.resolveMethod(methodName);
 			BestList<kdlParser.ExpressionContext> params = new BestList<>(ctx.parameterSet().expression());
 			for(int i = 0; i < params.size(); i++) {
 				if(parseType(params.get(i).value(0)).equals(targetMethod.paramTypes.get(i)))
@@ -680,10 +682,10 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	@Override
 	public void enterRun(final kdlParser.RunContext ctx) {
 		if(pass == 2) {
-			owner.addMethodDef(MethodDef.MAIN);
+			owner.addMethodDef(JavaMethodDef.MAIN.withOwner(owner));
 		}
 		else if(pass == 3) {
-			final LinedMethodVisitor lmv = owner.defineMethod(MethodDef.MAIN, ctx.start.getLine() + 1);
+			final LinedMethodVisitor lmv = owner.defineMethod(JavaMethodDef.MAIN, ctx.start.getLine() + 1);
 			new Variable(owner.currentScope, "args", new InternalObjectName(String.class, 1));
 			Label methodStart = new Label();
 
