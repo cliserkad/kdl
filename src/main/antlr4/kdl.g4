@@ -75,9 +75,11 @@ compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
 value: literal | VARNAME | CONSTNAME | arrayAccess;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
+operatorAssign: operator ASSIGN value;
 
 variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
-variableAssignment: VARNAME ASSIGN (expression) STATEMENT_END;
+variableAssignment: VARNAME assignment STATEMENT_END;
+assignment: (ASSIGN expression) | operatorAssign;
 typedVariable: type VARNAME;
 arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 

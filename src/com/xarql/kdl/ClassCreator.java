@@ -52,7 +52,7 @@ public class ClassCreator implements Opcodes {
 		System.out.println("Done!");
 	}
 
-	public LocalVariable getLocalVariable(String name) {
+	public Variable getLocalVariable(String name) {
 		return currentScope.getVariable(name);
 	}
 

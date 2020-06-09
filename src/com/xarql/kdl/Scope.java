@@ -3,8 +3,8 @@ package com.xarql.kdl;
 import org.objectweb.asm.Label;
 
 public class Scope {
-	public final  String                  name;
-	private final BestList<LocalVariable> variables;
+	public final  String             name;
+	private final BestList<Variable> variables;
 
 	private Label start;
 	private Label end;
@@ -32,14 +32,14 @@ public class Scope {
 			this.start = start;
 	}
 
-	public LocalVariable addLocalVariable(LocalVariable lv) {
+	public Variable addLocalVariable(Variable lv) {
 		if(!variables.contains(lv))
 			variables.add(lv);
 		return lv;
 	}
 
-	public LocalVariable getVariable(String name) {
-		for(LocalVariable lv : variables)
+	public Variable getVariable(String name) {
+		for(Variable lv : variables)
 			if(lv.name.equals(name))
 				return lv;
 		throw new IllegalArgumentException("The variable with name " + name + " does not exist in current scope");
@@ -49,9 +49,9 @@ public class Scope {
 		return variables.size();
 	}
 
-	public BestList<LocalVariable> getVariables() {
-		BestList<LocalVariable> out = new BestList<>();
-		for(LocalVariable lv : variables)
+	public BestList<Variable> getVariables() {
+		BestList<Variable> out = new BestList<>();
+		for(Variable lv : variables)
 			out.add(lv);
 		return out;
 	}

@@ -1,0 +1,37 @@
+class AssignmentOperators {
+  run {
+    // set a to 0
+    int a;
+
+    // add, same as a = a + 3
+    a += 3;
+    print("a += 3 --> ");
+    println(a);
+
+    // multiply, same as a = a * 2
+    a *= 2;
+    print("a *= 2 --> ");
+    println(a);
+
+    // subtract, same as a = a - 2
+    a -= 2;
+    print("a -= 2 --> ");
+    println(a);
+
+    // a is first set to a higher number for this demo
+    a = 20;
+    println("a was set to 20");
+    // divide, same as a = a / 2
+    a /= 4;
+    print("a /= 4 --> ");
+    println(a);
+
+    // set a to 20 again
+    a = 20;
+    // set a to remainder of a / 3
+    a %= 3;
+    print("a %= 3");
+    println(a);
+
+  }
+}

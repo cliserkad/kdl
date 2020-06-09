@@ -1,7 +1,7 @@
 package com.xarql.kdl;
 
 public enum ValueType {
-	LITERAL(Literal.class), CONSTANT(Constant.class), VARIABLE(LocalVariable.class), LIMBO(Limbo.class), POINTER(Pointer.class);
+	LITERAL(Literal.class), CONSTANT(Constant.class), VARIABLE(Variable.class), LIMBO(Limbo.class), POINTER(Pointer.class), ARRAY_ACCESS(ArrayAccess.class);
 
 	Class rep;
 

@@ -1,6 +1,7 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.antlr4.kdlParser;
+import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
 import org.objectweb.asm.Opcodes;
 
@@ -14,21 +15,27 @@ public class ExpressionHandler implements CommonNames, Opcodes {
 		this.parent = parent;
 	}
 
-	public static void compute(Value val1, Value val2, Operator opr, LinedMethodVisitor lmv) {
+	public static BaseType compute(final Expression xpr, final LinedMethodVisitor lmv) {
+		final Value val1 = xpr.partA;
+		final Value val2 = xpr.partB;
+		final Operator opr = xpr.operator;
+
 		if(!val1.isBaseType() || !val2.isBaseType()) {
 			standardHandle(new UnimplementedException("Custom expressions are not implemented"));
+			return null;
 		}
 		else {
 			switch(val1.toBaseType()) {
 				case INT:
 				case BOOLEAN:
 					computeInt(val2, opr, lmv);
-					break;
+					return INT;
 				case STRING:
 					computeString(val2, opr, lmv);
-					break;
+					return STRING;
 				default:
 					standardHandle(new UnimplementedException(SWITCH_BASETYPE));
+					return null;
 			}
 		}
 	}

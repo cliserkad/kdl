@@ -52,10 +52,11 @@ public interface CommonNames {
 	Operator MODULUS  = Operator.MODULUS;
 
 	// ValueType
-	ValueType LITERAL  = ValueType.LITERAL;
-	ValueType CONSTANT = ValueType.CONSTANT;
-	ValueType VARIABLE = ValueType.VARIABLE;
-	ValueType LIMBO    = ValueType.LIMBO;
-	ValueType POINTER  = ValueType.POINTER;
+	ValueType LITERAL      = ValueType.LITERAL;
+	ValueType CONSTANT     = ValueType.CONSTANT;
+	ValueType VARIABLE     = ValueType.VARIABLE;
+	ValueType LIMBO        = ValueType.LIMBO;
+	ValueType POINTER      = ValueType.POINTER;
+	ValueType ARRAY_ACCESS = ValueType.ARRAY_ACCESS;
 
 }

@@ -54,32 +54,27 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return s.substring(1, s.length() - 1);
 	}
 
-	public static Literal<?> pushLiteral(kdlParser.LiteralContext literal, LinedMethodVisitor lmv) {
-		try {
-			if(literal.bool() != null) {
-				final boolean out = parseBool(literal);
-				lmv.visitLdcInsn(out);
-				return new Literal<>(out);
-			}
-			else if(literal.number() != null) {
-				final int out = parseNumber(literal);
-				lmv.visitLdcInsn(out);
-				return new Literal<>(out);
-			}
-			else if(literal.STRING_LIT() != null) {
-				final String out = parseStringLit(literal);
-				lmv.visitLdcInsn(out);
-				return new Literal<>(out);
-			}
-			else
-				throw new UnimplementedException(BASETYPE_MISS);
-		} catch(UnimplementedException ue) {
-			standardHandle(ue);
+	public static Literal<?> pushLiteral(final kdlParser.LiteralContext literal, LinedMethodVisitor lmv) {
+		if(literal.bool() != null)
+			return pushLiteral(new Literal<>(parseBool(literal)), lmv);
+		else if(literal.number() != null) {
+			return pushLiteral(new Literal<>(parseNumber(literal)), lmv);
+		}
+		else if(literal.STRING_LIT() != null) {
+			return pushLiteral(new Literal<>(parseStringLit(literal)), lmv);
+		}
+		else {
+			standardHandle(new UnimplementedException(SWITCH_BASETYPE));
 			return null;
 		}
 	}
 
-	public static LocalVariable pushVariable(LocalVariable lv, MethodVisitor mv) {
+	public static Literal<?> pushLiteral(final Literal literal, LinedMethodVisitor lmv) {
+		lmv.visitLdcInsn(literal.value);
+		return literal;
+	}
+
+	public static Variable pushVariable(Variable lv, MethodVisitor mv) {
 		try {
 			if(lv.type.isBaseType() && lv.type.toBaseType() != STRING) {
 				if(lv.type.toBaseType() == INT) {
@@ -223,7 +218,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			standardHandle(new UnimplementedException(BASETYPE_MISS));
 	}
 
-	private static void storeVariable(LocalVariable source, LocalVariable target, LinedMethodVisitor lmv) {
+	private static void storeVariable(Variable source, Variable target, LinedMethodVisitor lmv) {
 		if(!source.type.equals(target.type))
 			standardHandle(new IncompatibleTypeException("Type " + source.type + " is incompatible with type " + target.type));
 		if(source.type.isBaseType()) {
@@ -247,7 +242,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
-	private static void loadVariable(LocalVariable lv, LinedMethodVisitor lmv) {
+	private static void loadVariable(Variable lv, LinedMethodVisitor lmv) {
 		try {
 			if(lv.type.isBaseType()) {
 				switch(lv.type.toBaseType()) {
@@ -269,7 +264,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
-	private static void storeDefault(LocalVariable lv, LinedMethodVisitor lmv) {
+	private static void storeDefault(Variable lv, LinedMethodVisitor lmv) {
 		if(lv.type.isBaseType()) {
 			switch(lv.type.toBaseType()) {
 				case INT:
@@ -340,27 +335,23 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return ctx.literal(0) != null && ctx.CONSTNAME().size() == 0;
 	}
 
-	public Constant<?> pushConstant(String cname, LinedMethodVisitor lmv) {
-		Constant c = owner.getConstant(cname);
-		return pushConstant(c, lmv);
+	private static Operator parseOperator(kdlParser.OperatorContext ctx) {
+		return Operator.match(ctx.getText());
 	}
 
-	public Value pushValue(kdlParser.ValueContext val, LinedMethodVisitor lmv) {
-		if(val.literal() != null) {
-			return new Value(LITERAL, pushLiteral(val.literal(), lmv));
-		}
-		else if(val.CONSTNAME() != null) {
-			return new Value(CONSTANT, pushConstant(val.CONSTNAME().toString(), lmv));
-		}
-		else if(val.VARNAME() != null) {
-			LocalVariable lv = owner.getLocalVariable(val.VARNAME().toString());
-			return new Value(VARIABLE, pushVariable(lv, lmv));
-		}
-		else if(val.arrayAccess() != null) {
-			LocalVariable array = owner.getLocalVariable(val.arrayAccess().VARNAME().toString());
+	public static Value pushValue(Value val, LinedMethodVisitor lmv) {
+		if(val.valueType == LITERAL)
+			return new Value(LITERAL, pushLiteral((Literal) val.value, lmv));
+		else if(val.valueType == CONSTANT)
+			return new Value(CONSTANT, pushConstant((Constant) val.value, lmv));
+		else if(val.valueType == VARIABLE)
+			return new Value(VARIABLE, pushVariable((Variable) val.value, lmv));
+		else if(val.valueType == ARRAY_ACCESS) {
+			final ArrayAccess arrayAccess = (ArrayAccess) val.value;
+			final Variable array = arrayAccess.var;
 			lmv.visitVarInsn(ALOAD, array.localIndex);
 
-			Value pushed = pushValue(val.arrayAccess().expression().value(0), lmv);
+			Value pushed = pushValue(arrayAccess.index, lmv);
 			// cause error if value within [ ] isn't an int
 			if(pushed.toBaseType() != INT) {
 				standardHandle(new IncompatibleTypeException("The input for an array access must be an integer"));
@@ -385,6 +376,70 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		else
 			standardHandle(new UnimplementedException("ValueExpression kind missed"));
 		return null;
+	}
+
+	private void storeExpression(Expression xpr, Variable var, LinedMethodVisitor lmv) {
+		BaseType result = pushExpression(xpr, lmv);
+		if(var.isBaseType() && var.toBaseType() == result) {
+			switch(result) {
+				case INT:
+				case BOOLEAN:
+					lmv.visitVarInsn(ISTORE, var.localIndex);
+					return;
+				case STRING:
+					lmv.visitVarInsn(ASTORE, var.localIndex);
+					return;
+			}
+		}
+		else
+			standardHandle(new IncompatibleTypeException("The expression type of " + result + " did not match " + var));
+	}
+
+	public Constant<?> pushConstant(String cname, LinedMethodVisitor lmv) {
+		Constant c = owner.getConstant(cname);
+		return pushConstant(c, lmv);
+	}
+
+	public Value parseValue(kdlParser.ValueContext val) {
+		if(val.literal() != null) {
+			return new Value(LITERAL, parseLiteral(val.literal()));
+		}
+		else if(val.CONSTNAME() != null) {
+			return new Value(CONSTANT, owner.getConstant(val.CONSTNAME().getText()));
+		}
+		else if(val.VARNAME() != null) {
+			Variable var = owner.getLocalVariable(val.VARNAME().toString());
+			return new Value(VARIABLE, var);
+		}
+		else if(val.arrayAccess() != null) {
+			Variable array = owner.getLocalVariable(val.arrayAccess().VARNAME().toString());
+			return new Value(VARIABLE, array);
+		}
+		else
+			standardHandle(new UnimplementedException("ValueExpression kind missed"));
+		return null;
+	}
+
+	public Value pushValue(kdlParser.ValueContext val, LinedMethodVisitor lmv) {
+		final Value out = parseValue(val);
+		switch(parseValue(val).valueType) {
+			case LITERAL:
+				pushLiteral((Literal) out.value, lmv);
+				break;
+			case CONSTANT:
+				Constant c = (Constant) out.value;
+				pushConstant(c.name, lmv);
+				break;
+			case VARIABLE:
+			case POINTER:
+				Variable var = (Variable) out.value;
+				pushVariable(var, lmv);
+				break;
+			case LIMBO:
+				pushLiteral(new Literal(out.value), lmv);
+				break;
+		}
+		return out;
 	}
 
 	@Override
@@ -449,7 +504,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
-	private void storeValue(kdlParser.ValueContext val, LocalVariable target, LinedMethodVisitor lmv) {
+	private void storeValue(kdlParser.ValueContext val, Variable target, LinedMethodVisitor lmv) {
 		try {
 			if(val.literal() != null) {
 				if(target.type.equals(parseLiteralType(val.literal())))
@@ -465,7 +520,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 					throw new IncompatibleTypeException(c + INCOMPATIBLE + target);
 			}
 			else if(val.VARNAME() != null) {
-				LocalVariable lv = owner.getLocalVariable(val.VARNAME().toString());
+				Variable lv = owner.getLocalVariable(val.VARNAME().toString());
 				if(lv.type.equals(target.type))
 					storeVariable(lv, target, lmv);
 				else
@@ -473,7 +528,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			}
 			else if(val.arrayAccess() != null) {
 				if(target.type.isArray()) {
-					LocalVariable array = owner.getLocalVariable(val.arrayAccess().VARNAME().toString());
+					Variable array = owner.getLocalVariable(val.arrayAccess().VARNAME().toString());
 					lmv.visitVarInsn(ALOAD, array.localIndex);
 					pushValue(val.arrayAccess().expression().value(0), lmv);
 					if(array.type.isBaseType()) {
@@ -503,34 +558,28 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
-	private BaseType pushExpression(kdlParser.ExpressionContext xpr, LinedMethodVisitor lmv) {
-		Value val1 = pushValue(xpr.value(0), lmv);
-		Value val2 = pushValue(xpr.value(1), lmv);
-		Operator opr = Operator.match(xpr.operator().getText());
-		ExpressionHandler.compute(val1, val2, opr, lmv);
-		return INT;
+	private BaseType pushExpression(Expression xpr, LinedMethodVisitor lmv) {
+		pushValue(xpr.partA, lmv);
+		pushValue(xpr.partB, lmv);
+		return ExpressionHandler.compute(xpr, lmv);
 	}
 
-	private void storeExpression(kdlParser.ExpressionContext xpr, LocalVariable var, LinedMethodVisitor lmv) {
-		BaseType result = pushExpression(xpr, lmv);
-		if(var.isBaseType() && var.toBaseType() == result) {
-			switch(result) {
-				case INT:
-				case BOOLEAN:
-					lmv.visitVarInsn(ISTORE, var.localIndex);
-					break;
-				case STRING:
-					lmv.visitVarInsn(ASTORE, var.localIndex);
-			}
-		}
-		else
-			standardHandle(new IncompatibleTypeException("The expression type of " + result + " did not match " + var));
+	private BaseType pushExpression(kdlParser.ExpressionContext xpr, LinedMethodVisitor lmv) {
+		Value val1 = parseValue(xpr.value(0));
+		Value val2 = parseValue(xpr.value(1));
+		Operator opr = parseOperator(xpr.operator());
+		return ExpressionHandler.compute(new Expression(val1, val2, opr), lmv);
+	}
+
+	private void storeExpression(kdlParser.ExpressionContext ctx, Variable var, LinedMethodVisitor lmv) {
+		Expression xpr = new Expression(parseValue(ctx.value(0)), parseValue(ctx.value(1)), parseOperator(ctx.operator()));
+		storeExpression(xpr, var, lmv);
 	}
 
 	private void parseVariableDeclaration(kdlParser.VariableDeclarationContext ctx, LinedMethodVisitor lmv) {
 		final kdlParser.TypedVariableContext typedVar = ctx.typedVariable();
 		NameAndType varNAT = parseTypedVariable(typedVar);
-		LocalVariable var = new LocalVariable(owner.currentScope, varNAT.name, new InternalObjectName(varNAT.type));
+		Variable var = new Variable(owner.currentScope, varNAT.name, new InternalObjectName(varNAT.type));
 		if(ctx.expression() != null) {
 			if(isSimple(ctx.expression()))
 				storeValue(ctx.expression().value(0), var, lmv);
@@ -565,12 +614,22 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
+	public Expression parseOperatorAssign(Variable target, kdlParser.OperatorAssignContext ctx) {
+		Operator opr = Operator.match(ctx.operator().getText());
+		Value val = parseValue(ctx.value());
+		return new Expression(new Value(VARIABLE, target), val, opr);
+	}
+
 	private void parseVariableAssignment(kdlParser.VariableAssignmentContext ctx, LinedMethodVisitor lmv) {
-		LocalVariable var = owner.getLocalVariable(ctx.VARNAME().toString());
-		if(isSimple(ctx.expression()))
-			storeValue(ctx.expression().value(0), var, lmv);
+		Variable var = owner.getLocalVariable(ctx.VARNAME().toString());
+		if(ctx.assignment().operatorAssign() != null) {
+			Expression xpr = parseOperatorAssign(var, ctx.assignment().operatorAssign());
+			storeExpression(xpr, var, lmv);
+		}
+		else if(isSimple(ctx.assignment().expression()))
+			storeValue(ctx.assignment().expression().value(0), var, lmv);
 		else
-			storeExpression(ctx.expression(), var, lmv);
+			storeExpression(ctx.assignment().expression(), var, lmv);
 	}
 
 	private void parseMethodCall(kdlParser.MethodCallContext ctx, LinedMethodVisitor lmv) {
@@ -604,7 +663,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 		else if(pass == 3) {
 			final LinedMethodVisitor lmv = owner.defineMethod(MethodDef.MAIN, ctx.start.getLine() + 1);
-			new LocalVariable(owner.currentScope, "args", new InternalObjectName(String.class, 1));
+			new Variable(owner.currentScope, "args", new InternalObjectName(String.class, 1));
 			Label methodStart = new Label();
 
 			for(kdlParser.StatementContext statement : ctx.methodBody().statement()) {
@@ -626,7 +685,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 			final Label methodEnd = new Label();
 			lmv.visitLabel(methodEnd);
-			for(LocalVariable lv : owner.currentScope.getVariables())
+			for(Variable lv : owner.currentScope.getVariables())
 				lmv.visitLocalVariable(lv.name, lv.type.toString(), null, methodStart, methodEnd, lv.localIndex);
 			lmv.visitMaxs(0, 0);
 			lmv.visitEnd();

@@ -4,12 +4,12 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ToBaseType;
 
-public class LocalVariable implements ToBaseType {
+public class Variable implements ToBaseType {
 	public final String             name;
 	public final InternalObjectName type;
 	public final int                localIndex;
 
-	public LocalVariable(final Scope owner, final String name, final InternalObjectName type) {
+	public Variable(final Scope owner, final String name, final InternalObjectName type) {
 		this.name = Text.nonNull(name);
 		this.type = InternalObjectName.checkNonNull(type);
 		this.localIndex = owner.nextIndex();
@@ -18,8 +18,8 @@ public class LocalVariable implements ToBaseType {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof LocalVariable) {
-			LocalVariable other = (LocalVariable) obj;
+		if(obj instanceof Variable) {
+			Variable other = (Variable) obj;
 			return other.name.equals(name);
 		}
 		else
