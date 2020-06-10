@@ -19,7 +19,7 @@ import static com.xarql.kdl.names.InternalName.internalName;
 
 public class ClassCreator implements Opcodes {
 	public static final int                     CONST       = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
-	public static final File                    DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/sample");
+	public static final File                    DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/test");
 	public final        BestList<Constant>      constants;
 	// set in constructor
 	private final       File                    input;
@@ -40,16 +40,24 @@ public class ClassCreator implements Opcodes {
 	}
 
 	public static void main(String[] args) {
-		for(File f : DEFAULT_LOC.listFiles()) {
-			if(f.getName().endsWith(".kdl")) {
-				System.out.println("Compiling " + f.getName());
-				ClassCreator cc = new ClassCreator(f);
-				if(!cc.build())
-					System.err.println("Failed to read IO");
-				cc.write();
+		compile(DEFAULT_LOC);
+		System.out.println("Done!");
+	}
+
+	public static void compile(File f) {
+		if(f.isDirectory()) {
+			for(File sub : f.listFiles()) {
+				compile(sub);
 			}
 		}
-		System.out.println("Done!");
+		else if(f.getName().endsWith(".kdl")) {
+			ClassCreator cc = new ClassCreator(f);
+			if(!cc.build())
+				System.err.println("Failed to read IO");
+			cc.write();
+		}
+		else
+			System.out.println("Skipping file " + f.getName());
 	}
 
 	public Variable getLocalVariable(String name) {

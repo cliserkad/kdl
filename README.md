@@ -4,7 +4,7 @@ cliserkad's Language. An alternative language for the JVM based on simplicity an
 This repository holds the code required to compile `.kdl` source files to `.class` files. The compiled files can be run in the JVM and used in
 Java without any modification to the runtime environment.
 
-The language is still very much in its alpha stage. Please look in [com.xarql.kdl.sample](https://github.com/cliserkad/kdl/tree/master/src/com/xarql/kdl/sample)
+The language is still very much in its alpha stage. Please look in [com.xarql.kdl.test](https://github.com/cliserkad/kdl/tree/master/src/com/xarql/kdl/sample)
 to see what has been implemented.
 
 ### Use
@@ -15,4 +15,4 @@ by Antlr. Link the generated sources to the build path for `SourceListener` in y
 ### Changing Source Directory
 Edit the `DEFAULT_LOC` variable in `ClassCreator` to specify the directory in which your `.kdl` files are present. This location is pre-set to 
 `C:/Users`/_your username_`/Documents/kdl` on Windows and `usr/`_your username_`/home/documents/kdl` on Linux. For testing, you can copy the files found 
-in `com.xarql.kdl.sample`
+in `com.xarql.kdl.test`
