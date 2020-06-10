@@ -84,7 +84,7 @@ public class ExpressionHandler implements CommonNames, Opcodes {
 			}
 			default: {
 				System.err.println(lmv.getLine());
-				SourceListener.standardHandle(new UnimplementedException("Only + has been implemented for strings"));
+				SourceListener.standardHandle(new UnimplementedException("Only + has been implemented for strings, but operator was " + opr));
 			}
 		}
 	}

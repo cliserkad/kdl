@@ -38,7 +38,8 @@ BRACE_CLOSE: ']';
 DOT: '.';
 SEPARATOR: ',';
 STATEMENT_END: ';';
-ASSIGN: '=';
+EQUALS: '=';
+ASSIGN: ':';
 COMPARE: '?';
 PLUS: '+';
 MINUS: '-';
@@ -71,6 +72,7 @@ literal: bool | STRING_LIT | number;
 
 statement: methodCall | variableDeclaration | variableAssignment | returnStatement;
 
+comparison: expression EQUALS expression;
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
 value: literal | VARNAME | CONSTNAME | arrayAccess;

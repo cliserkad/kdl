@@ -1,0 +1,7 @@
+// author: Bryan Johnson
+class HelloUser {
+  run {
+    print("hello");
+    println(args[0]);
+  }
+}

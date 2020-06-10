@@ -1,7 +1,7 @@
 class StringOperators {
   run {
-    string msg = "hello from ";
-    msg += "StringOperators";
+    string msg : "hello from ";
+    msg +: "StringOperators";
     println(msg);
   }
 }
