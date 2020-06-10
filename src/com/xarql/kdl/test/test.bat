@@ -1,6 +1,7 @@
-cd %HOMEPATH%\IdeaProjects\kdl\src\com\xarql\kdl\sample
-
+cd %HOMEPATH%\IdeaProjects\kdl\src\com\xarql\kdl\test
 java HelloWorld
+
+cd basics
 java Comment
 java Const
 java Args hi

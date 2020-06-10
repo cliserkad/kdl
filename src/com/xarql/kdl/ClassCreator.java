@@ -40,24 +40,26 @@ public class ClassCreator implements Opcodes {
 	}
 
 	public static void main(String[] args) {
-		compile(DEFAULT_LOC);
+		compile(DEFAULT_LOC, false);
 		System.out.println("Done!");
 	}
 
-	public static void compile(File f) {
+	public static void compile(File f, boolean verbose) {
 		if(f.isDirectory()) {
 			for(File sub : f.listFiles()) {
-				compile(sub);
+				compile(sub, verbose);
 			}
 		}
 		else if(f.getName().endsWith(".kdl")) {
+			System.out.println("Compiling " + f.getName());
 			ClassCreator cc = new ClassCreator(f);
 			if(!cc.build())
 				System.err.println("Failed to read IO");
 			cc.write();
 		}
-		else
+		else if(verbose) {
 			System.out.println("Skipping file " + f.getName());
+		}
 	}
 
 	public Variable getLocalVariable(String name) {
