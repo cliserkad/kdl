@@ -15,3 +15,7 @@ java StringOperators
 java Variable
 java VariableAssignment
 java AssignmentOperators
+
+cd ..
+cd flow
+java IfTest

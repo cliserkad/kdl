@@ -679,6 +679,37 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			standardHandle(new UnimplementedException("Calls to custom methods have not been implemented"));
 	}
 
+	private void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) {
+		for(kdlParser.StatementContext statement : ctx.statement()) {
+			if(statement.variableDeclaration() != null) {
+				parseVariableDeclaration(statement.variableDeclaration(), lmv);
+			}
+			else if(statement.variableAssignment() != null) {
+				parseVariableAssignment(statement.variableAssignment(), lmv);
+			}
+			else if(statement.methodCall() != null) {
+				parseMethodCall(statement.methodCall(), lmv);
+			}
+			else if(statement.conditional() != null) {
+				kdlParser.ConditionalContext conditional = statement.conditional();
+				if(conditional.r_if() != null) {
+					BaseType result = pushExpression(conditional.r_if().expression(), lmv);
+					Label trueLabel = new Label();
+					Label endLabel = new Label();
+					if(result == BOOLEAN)
+						lmv.visitJumpInsn(IFGT, trueLabel);
+
+					lmv.visitJumpInsn(GOTO, endLabel);
+					lmv.visitLabel(trueLabel);
+					consumeBlock(conditional.block(), lmv);
+					lmv.visitLabel(endLabel);
+				}
+			}
+			else
+				standardHandle(new UnimplementedException("A type of statement couldn't be interpreted " + statement.getText()));
+		}
+	}
+
 	@Override
 	public void enterRun(final kdlParser.RunContext ctx) {
 		if(pass == 2) {
@@ -688,18 +719,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			final LinedMethodVisitor lmv = owner.defineMethod(JavaMethodDef.MAIN, ctx.start.getLine() + 1);
 			new Variable(owner.currentScope, "args", new InternalObjectName(String.class, 1));
 			Label methodStart = new Label();
-
-			for(kdlParser.StatementContext statement : ctx.methodBody().statement()) {
-				if(statement.variableDeclaration() != null) {
-					parseVariableDeclaration(statement.variableDeclaration(), lmv);
-				}
-				else if(statement.variableAssignment() != null) {
-					parseVariableAssignment(statement.variableAssignment(), lmv);
-				}
-				else if(statement.methodCall() != null) {
-					parseMethodCall(statement.methodCall(), lmv);
-				}
-			}
+			consumeBlock(ctx.block(), lmv);
 
 			final Label ret = new Label();
 			lmv.visitLabel(ret);
