@@ -1,0 +1,22 @@
+// author: Bryan Johnson
+class IfElse {
+  const GOOD : "hello from IfElse";
+  const FAIL : "This message should not have appeared";
+
+
+  run {
+    if(true) {
+      println(GOOD);
+    }
+    else {
+      println(FAIL);
+    }
+
+    if(false) {
+      println(FAIL);
+    }
+    else {
+      println(GOOD);
+    }
+  }
+}

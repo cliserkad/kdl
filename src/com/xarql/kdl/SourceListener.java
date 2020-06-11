@@ -679,35 +679,57 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			standardHandle(new UnimplementedException("Calls to custom methods have not been implemented"));
 	}
 
-	private void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) {
-		for(kdlParser.StatementContext statement : ctx.statement()) {
-			if(statement.variableDeclaration() != null) {
-				parseVariableDeclaration(statement.variableDeclaration(), lmv);
-			}
-			else if(statement.variableAssignment() != null) {
-				parseVariableAssignment(statement.variableAssignment(), lmv);
-			}
-			else if(statement.methodCall() != null) {
-				parseMethodCall(statement.methodCall(), lmv);
-			}
-			else if(statement.conditional() != null) {
-				kdlParser.ConditionalContext conditional = statement.conditional();
-				if(conditional.r_if() != null) {
-					BaseType result = pushExpression(conditional.r_if().expression(), lmv);
-					Label trueLabel = new Label();
-					Label endLabel = new Label();
-					if(result == BOOLEAN)
-						lmv.visitJumpInsn(IFGT, trueLabel);
+	private void consumeStatementSet(final kdlParser.StatementSetContext ctx, LinedMethodVisitor lmv) {
+		if(ctx.statement() != null)
+			consumeStatement(ctx.statement(), lmv);
+		else
+			consumeBlock(ctx.block(), lmv);
+	}
 
-					lmv.visitJumpInsn(GOTO, endLabel);
-					lmv.visitLabel(trueLabel);
-					consumeBlock(conditional.block(), lmv);
-					lmv.visitLabel(endLabel);
-				}
-			}
-			else
-				standardHandle(new UnimplementedException("A type of statement couldn't be interpreted " + statement.getText()));
+	private void consumeStatement(final kdlParser.StatementContext ctx, LinedMethodVisitor lmv) {
+		if(ctx.variableDeclaration() != null) {
+			parseVariableDeclaration(ctx.variableDeclaration(), lmv);
 		}
+		else if(ctx.variableAssignment() != null) {
+			parseVariableAssignment(ctx.variableAssignment(), lmv);
+		}
+		else if(ctx.methodCall() != null) {
+			parseMethodCall(ctx.methodCall(), lmv);
+		}
+		else if(ctx.conditional() != null) {
+			kdlParser.ConditionalContext conditional = ctx.conditional();
+
+			if(conditional.r_if() != null) {
+				BaseType result = pushExpression(conditional.r_if().expression(), lmv);
+
+				Label trueLabel = new Label();
+				Label endLabel = new Label();
+
+				switch(result) {
+					case INT:
+					case BOOLEAN:
+						lmv.visitJumpInsn(IFGT, trueLabel);
+						break;
+					default:
+						standardHandle(new IncompatibleTypeException("The expression in a conditional must be a boolean or int"));
+				}
+
+				if(conditional.r_if().r_else() != null)
+					consumeStatementSet(conditional.r_if().r_else().statementSet(), lmv);
+				lmv.visitJumpInsn(GOTO, endLabel);
+
+				lmv.visitLabel(trueLabel);
+				consumeStatementSet(conditional.r_if().statementSet(), lmv);
+				lmv.visitLabel(endLabel);
+			}
+		}
+		else
+			standardHandle(new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText()));
+	}
+
+	private void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) {
+		for(kdlParser.StatementContext statement : ctx.statement())
+			consumeStatement(statement, lmv);
 	}
 
 	@Override

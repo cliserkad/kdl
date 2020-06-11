@@ -23,6 +23,7 @@ RETURN: 'return';
 SEE: 'see';
 PKG: 'pkg';
 R_IF: 'if';
+R_ELSE: 'else';
 
 // base types
 INT: 'int';
@@ -71,12 +72,16 @@ number: MINUS? DIGIT+ ('B' | 'H')?;
 STRING_LIT: '"' (ESCAPED_QUOTE | ~'"')* '"';
 literal: bool | STRING_LIT | number;
 
-block: BODY_OPEN statement* BODY_CLOSE | statement;
+
 statement: methodCall | variableDeclaration | variableAssignment | returnStatement | conditional;
+block: BODY_OPEN statement* BODY_CLOSE | statement;
+statementSet: block | statement;
 
 // conditionals
-conditional: r_if block;
-r_if: R_IF PARAM_OPEN expression PARAM_CLOSE;
+conditional: r_if;
+r_if: R_IF PARAM_OPEN expression PARAM_CLOSE statementSet r_else?;
+r_else: R_ELSE statementSet;
+
 
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
