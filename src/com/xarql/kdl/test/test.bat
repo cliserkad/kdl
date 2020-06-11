@@ -20,3 +20,4 @@ cd ..
 cd flow
 java IfTest
 java IfElse
+java SingleStatement
