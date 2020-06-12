@@ -24,6 +24,7 @@ SEE: 'see';
 PKG: 'pkg';
 R_IF: 'if';
 R_ELSE: 'else';
+R_NULL: 'null';
 
 // base types
 INT: 'int';
@@ -40,9 +41,19 @@ BRACE_CLOSE: ']';
 DOT: '.';
 SEPARATOR: ',';
 STATEMENT_END: ';';
-EQUALS: '=';
 ASSIGN: ':';
-COMPARE: '?';
+
+// comparator
+NOT_EQUAL: '!=';
+EQUAL: '=';
+REF_NOT_EQUAL: '!?';
+REF_EQUAL: '?';
+LESS_THAN: '<';
+MORE_THAN: '>';
+LESS_OR_EQUAL: '<=';
+MORE_OR_EQUAL: '>=';
+
+// operators
 PLUS: '+';
 MINUS: '-';
 DIVIDE: '/';
@@ -79,15 +90,17 @@ statementSet: block | statement;
 
 // conditionals
 conditional: r_if;
-r_if: R_IF PARAM_OPEN expression PARAM_CLOSE statementSet r_else?;
+r_if: R_IF PARAM_OPEN comparison PARAM_CLOSE statementSet r_else?;
 r_else: R_ELSE statementSet;
-
 
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
 value: literal | VARNAME | CONSTNAME | arrayAccess;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS | EQUALS;
 operatorAssign: operator ASSIGN value;
+
+comparison: bool (comparator bool)?;
+comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 
 variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
 variableAssignment: VARNAME assignment STATEMENT_END;

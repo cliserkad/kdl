@@ -11,10 +11,10 @@ import static com.xarql.kdl.SourceListener.standardHandle;
 import static com.xarql.kdl.names.InternalName.internalName;
 
 public class ExpressionHandler implements CommonNames, Opcodes {
-	private final SourceListener parent;
+	private final SourceListener owner;
 
-	public ExpressionHandler(SourceListener parent) {
-		this.parent = parent;
+	public ExpressionHandler(SourceListener owner) {
+		this.owner = owner;
 	}
 
 	public BaseType compute(final Expression xpr, final LinedMethodVisitor lmv) {
@@ -30,14 +30,13 @@ public class ExpressionHandler implements CommonNames, Opcodes {
 			switch(val1.toBaseType()) {
 				case INT:
 				case BOOLEAN: {
-					parent.pushValue(val1, lmv);
-					parent.pushValue(val2, lmv);
+					owner.pushValue(val1, lmv);
+					owner.pushValue(val2, lmv);
 					computeInt(val2, opr, lmv);
 					return INT;
 				}
 				case STRING: {
-					computeString(val1, val2, opr, lmv);
-					return STRING;
+					return computeString(val1, val2, opr, lmv);
 				}
 				default:
 					standardHandle(new UnimplementedException(SWITCH_BASETYPE));
@@ -56,35 +55,35 @@ public class ExpressionHandler implements CommonNames, Opcodes {
 		lmv.visitMethodInsn(INVOKESPECIAL, internalName(StringBuilder.class).stringOutput(), INIT, NO_PARAM_VOID, false);
 	}
 
-	private void computeString(Value val1, Value val2, Operator opr, LinedMethodVisitor lmv) {
+	private BaseType computeString(Value val1, Value val2, Operator opr, LinedMethodVisitor lmv) {
 		switch(opr) {
 			case PLUS: {
 				switch(val2.toBaseType()) {
 					case INT: {
 						stringBuilderInit(lmv);
-						parent.pushValue(val1, lmv);
+						owner.pushValue(val1, lmv);
 						lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-						parent.pushValue(val2, lmv);
-						parent.convertToString(val2.toBaseType().toInternalObjectName(), lmv);
+						owner.pushValue(val2, lmv);
+						owner.convertToString(val2.toBaseType().toInternalObjectName(), lmv);
 						lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
 						lmv.visitMethodInsn(INVOKEVIRTUAL, STRING_BUILDER_IN_S, TO_STRING.methodName, TO_STRING.descriptor(), false);
-						break;
+						return STRING;
 					}
 					case STRING: {
 						stringBuilderInit(lmv);
-						parent.pushValue(val1, lmv);
+						owner.pushValue(val1, lmv);
 						lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-						parent.pushValue(val2, lmv);
+						owner.pushValue(val2, lmv);
 						lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
 						lmv.visitMethodInsn(INVOKEVIRTUAL, STRING_BUILDER_IN_S, TO_STRING.methodName, TO_STRING.descriptor(), false);
-						break;
+						return STRING;
 					}
 				}
-				break;
 			}
 			default: {
 				System.err.println(lmv.getLine());
 				SourceListener.standardHandle(new UnimplementedException("Only + has been implemented for strings, but operator was " + opr));
+				return null;
 			}
 		}
 	}

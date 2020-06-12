@@ -13,6 +13,14 @@ public class Expression {
 		this.partB = partB;
 	}
 
+	public Expression(Value partA) {
+		this(partA, null, null);
+	}
+
+	public boolean isValueOnly() {
+		return partA != null && partB == null && operator == null;
+	}
+
 	@Override
 	public String toString() {
 		return "(" + partA.value + ") " + operator + " (" + partB.value + ")";

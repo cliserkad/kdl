@@ -1,0 +1,32 @@
+// author: Bryan Johnson
+class BooleanCompare {
+  const GOOD : "hello from BooleanCompare";
+  const FAIL : "This message was shown in error";
+
+  // compare two boolean literals with = and !=
+  run {
+    if(true)
+      println(GOOD);
+
+    if(false)
+      println(FAIL);
+
+    if(true = true)
+      println(GOOD);
+
+    if(true = false)
+      println(FAIL);
+
+    if(true != false)
+      println(GOOD);
+
+    if(true != true)
+      println(FAIL);
+
+    if(false = false)
+      println(GOOD);
+
+    if(false != false)
+      println(FAIL);
+  }
+}
