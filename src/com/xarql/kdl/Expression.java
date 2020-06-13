@@ -23,6 +23,6 @@ public class Expression {
 
 	@Override
 	public String toString() {
-		return "(" + partA.value + ") " + operator + " (" + partB.value + ")";
+		return "(" + partA.content + ") " + operator + " (" + partB.content + ")";
 	}
 }

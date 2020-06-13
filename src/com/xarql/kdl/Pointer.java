@@ -1,9 +1,20 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.ToBaseType;
+import com.xarql.kdl.names.*;
 
-public class Pointer implements ToBaseType {
+/**
+ * Signifies that a reference value is on the stack
+ */
+public class Pointer implements ToName {
+	public final InternalName internalName;
+
+	public Pointer(InternalName internalName) {
+		this.internalName = internalName;
+	}
+
+	public Pointer(InternalObjectName internalObjectName) {
+		this.internalName = internalObjectName.inName;
+	}
 
 	@Override
 	public boolean isBaseType() {
@@ -13,5 +24,15 @@ public class Pointer implements ToBaseType {
 	@Override
 	public BaseType toBaseType() {
 		return null;
+	}
+
+	@Override
+	public InternalName toInternalName() {
+		return internalName;
+	}
+
+	@Override
+	public InternalObjectName toInternalObjectName() {
+		return internalName.toInternalObjectName();
 	}
 }

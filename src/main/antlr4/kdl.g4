@@ -90,7 +90,7 @@ statementSet: block | statement;
 
 // conditionals
 conditional: r_if;
-r_if: R_IF PARAM_OPEN comparison PARAM_CLOSE statementSet r_else?;
+r_if: R_IF PARAM_OPEN condition PARAM_CLOSE statementSet r_else?;
 r_else: R_ELSE statementSet;
 
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
@@ -99,7 +99,7 @@ value: literal | VARNAME | CONSTNAME | arrayAccess;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS | EQUALS;
 operatorAssign: operator ASSIGN value;
 
-comparison: bool (comparator bool)?;
+condition: value (comparator value)?;
 comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 
 variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;

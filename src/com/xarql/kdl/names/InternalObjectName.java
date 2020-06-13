@@ -5,7 +5,7 @@ import com.xarql.kdl.StringOutput;
 
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public class InternalObjectName implements StringOutput, ToBaseType {
+public class InternalObjectName implements StringOutput, ToName {
 	public static final String OBJECT_SUFFIX            = ";";
 	public static final String OBJECT_PREFIX            = "L";
 	public static final String ARRAY_PREFIX             = "[";
@@ -83,5 +83,15 @@ public class InternalObjectName implements StringOutput, ToBaseType {
 
 	public Array toArray() {
 		return new Array(inName, arrayDimensions);
+	}
+
+	@Override
+	public InternalName toInternalName() {
+		return inName;
+	}
+
+	@Override
+	public InternalObjectName toInternalObjectName() {
+		return this;
 	}
 }

@@ -15,7 +15,7 @@ import static java.lang.System.exit;
 public class SourceListener extends kdlBaseListener implements Opcodes, CommonNames {
 	public final ClassCreator owner;
 
-	private final ComparisonHandler cmpHandler;
+	private final ConditionalHandler cmpHandler;
 	private final ExpressionHandler xprHandler;
 	private final BestList<String>  constantNames = new BestList<>();
 
@@ -30,7 +30,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		this.owner = owner;
 		pass = 0;
 		xprHandler = new ExpressionHandler(this);
-		cmpHandler = new ComparisonHandler(this);
+		cmpHandler = new ConditionalHandler(this);
 	}
 
 	public static void standardHandle(Exception e) {
@@ -122,7 +122,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		}
 	}
 
-	private static boolean parseBool(kdlParser.BoolContext bool) {
+	public static boolean parseBool(kdlParser.BoolContext bool) {
 		if(bool.TRUE() != null)
 			return true;
 		else
@@ -195,7 +195,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		if(name.isBaseType())
 			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(name), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
 		else
-			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(internalName(Object.class).object()), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
+			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(new InternalObjectName(Object.class)), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
 		lmv.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
@@ -344,13 +344,13 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 	public Value pushValue(Value val, LinedMethodVisitor lmv) {
 		if(val.valueType == LITERAL)
-			return new Value(LITERAL, pushLiteral((Literal) val.value, lmv));
+			return new Value(LITERAL, pushLiteral((Literal) val.content, lmv));
 		else if(val.valueType == CONSTANT)
-			return new Value(CONSTANT, pushConstant((Constant) val.value, lmv));
+			return new Value(CONSTANT, pushConstant((Constant) val.content, lmv));
 		else if(val.valueType == VARIABLE)
-			return new Value(VARIABLE, pushVariable((Variable) val.value, lmv));
+			return new Value(VARIABLE, pushVariable((Variable) val.content, lmv));
 		else if(val.valueType == ARRAY_ACCESS) {
-			final ArrayAccess arrayAccess = (ArrayAccess) val.value;
+			final ArrayAccess arrayAccess = (ArrayAccess) val.content;
 			final Variable array = arrayAccess.var;
 			lmv.visitVarInsn(ALOAD, array.localIndex);
 
@@ -365,29 +365,20 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 					case INT:
 					case BOOLEAN:
 						lmv.visitInsn(IALOAD);
-						return new Value(LIMBO, new Limbo(array.type.toBaseType()));
+						return new Value(STACK, new StackValue(array.type.toBaseType()));
 					case STRING:
 						lmv.visitInsn(AALOAD);
-						return new Value(POINTER, new Pointer());
+						return new Value(POINTER, STRING_IN);
 				}
 			}
 			else {
 				lmv.visitInsn(AALOAD);
-				return new Value(POINTER, new Pointer());
+				return new Value(POINTER, new Pointer(array.type));
 			}
 		}
 		else
 			standardHandle(new UnimplementedException("ValueExpression kind missed"));
 		return null;
-	}
-
-	private static void consumeComparison(kdlParser.ComparisonContext ctx, LinedMethodVisitor lmv) {
-		pushLiteral(new Literal(parseBool(ctx.bool(0))), lmv);
-		if(ctx.bool().size() == 2) {
-			pushLiteral(new Literal(parseBool(ctx.bool(1))), lmv);
-			final Comparator cmp = Comparator.match(ctx.comparator().getText());
-			ComparisonHandler.handle(cmp, lmv);
-		}
 	}
 
 	private Expression parseExpression(kdlParser.ExpressionContext xpr) {
@@ -468,21 +459,21 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 	public Value pushValue(kdlParser.ValueContext val, LinedMethodVisitor lmv) {
 		final Value out = parseValue(val);
-		switch(parseValue(val).valueType) {
+		switch(out.valueType) {
 			case LITERAL:
-				pushLiteral((Literal) out.value, lmv);
+				pushLiteral((Literal) out.content, lmv);
 				break;
 			case CONSTANT:
-				Constant c = (Constant) out.value;
+				Constant c = (Constant) out.content;
 				pushConstant(c.name, lmv);
 				break;
 			case VARIABLE:
 			case POINTER:
-				Variable var = (Variable) out.value;
+				Variable var = (Variable) out.content;
 				pushVariable(var, lmv);
 				break;
-			case LIMBO:
-				pushLiteral(new Literal(out.value), lmv);
+			case STACK:
+				pushLiteral(new Literal(out.content), lmv);
 				break;
 			default:
 				standardHandle(new UnimplementedException(SWITCH_VALUETYPE));
@@ -555,7 +546,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			}
 			else if(val.CONSTNAME() != null) {
 				Constant c = owner.getConstant(val.CONSTNAME().toString());
-				if(target.type.equals(c.internalObjectName()))
+				if(target.type.equals(c.toInternalObjectName()))
 					storeConstant(c, target.localIndex, lmv);
 				else
 					throw new IncompatibleTypeException(c + INCOMPATIBLE + target);
@@ -625,15 +616,15 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 	public InternalObjectName parseType(kdlParser.ValueContext ctx) {
 		if(ctx.literal() != null)
-			return InternalName.match(parseLiteralType(ctx.literal())).object();
+			return InternalName.match(parseLiteralType(ctx.literal())).toInternalObjectName();
 		else if(ctx.CONSTNAME() != null)
-			return owner.getConstant(ctx.CONSTNAME().toString()).internalObjectName();
+			return owner.getConstant(ctx.CONSTNAME().toString()).toInternalObjectName();
 		else if(ctx.VARNAME() != null)
 			return owner.getLocalVariable(ctx.VARNAME().toString()).type;
 		else if(ctx.arrayAccess() != null)
 			return owner.getLocalVariable(ctx.arrayAccess().VARNAME().toString()).type;
 		else {
-			standardHandle(new UnimplementedException("Unhandled kind of ValueExpression"));
+			standardHandle(new UnimplementedException("Unhandled kind of ValueContext"));
 			return null;
 		}
 	}
@@ -681,7 +672,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 					}
 					else {
 						BaseType type = pushExpression(params.get(i), lmv);
-						convertToString(type.toInternalName().object(), lmv);
+						convertToString(type.toInternalObjectName(), lmv);
 					}
 				}
 				else
@@ -693,7 +684,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			standardHandle(new UnimplementedException("Calls to custom methods have not been implemented"));
 	}
 
-	private void consumeStatementSet(final kdlParser.StatementSetContext ctx, LinedMethodVisitor lmv) {
+	public void consumeStatementSet(final kdlParser.StatementSetContext ctx, LinedMethodVisitor lmv) {
 		if(ctx.statement() != null)
 			consumeStatement(ctx.statement(), lmv);
 		else
@@ -711,44 +702,8 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			consumeMethodCall(ctx.methodCall(), lmv);
 		}
 		else if(ctx.conditional() != null) {
-			kdlParser.ConditionalContext conditional = ctx.conditional();
-			if(conditional.r_if() != null) {
-
-				Label trueLabel = new Label();
-				Label endLabel = new Label();
-
-				final kdlParser.ComparisonContext comp = ctx.conditional().r_if().comparison();
-
-				// assuming both are literal booleans
-				pushLiteral(new Literal(parseBool(comp.bool(0))), lmv);
-				if(comp.bool(1) != null) {
-					pushLiteral(new Literal(parseBool(comp.bool(1))), lmv);
-					final Comparator comparator = Comparator.match(comp.comparator().getText());
-
-					switch(comparator) {
-						case EQUAL:
-							lmv.visitJumpInsn(IF_ICMPEQ, trueLabel);
-							lmv.visitJumpInsn(GOTO, endLabel);
-							break;
-						case NOT_EQUAL:
-							lmv.visitJumpInsn(IF_ICMPNE, trueLabel);
-							lmv.visitJumpInsn(GOTO, endLabel);
-							break;
-					}
-				}
-				else {
-					lmv.visitJumpInsn(IFGT, trueLabel);
-					lmv.visitJumpInsn(GOTO, endLabel);
-				}
-
-				if(conditional.r_if().r_else() != null)
-					consumeStatementSet(conditional.r_if().r_else().statementSet(), lmv);
-				lmv.visitJumpInsn(GOTO, endLabel);
-
-				lmv.visitLabel(trueLabel);
-				consumeStatementSet(conditional.r_if().statementSet(), lmv);
-				lmv.visitLabel(endLabel);
-			}
+			// forward to the handler to partition code
+			cmpHandler.handle(ctx.conditional(), lmv);
 		}
 		else
 			standardHandle(new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText()));

@@ -31,7 +31,7 @@ public interface CommonNames {
 	// StringBuilder
 	InternalName       STRING_BUILDER_IN    = internalName(StringBuilder.class);
 	String             STRING_BUILDER_IN_S  = STRING_BUILDER_IN.stringOutput();
-	InternalObjectName STRING_BUILDER_ION   = STRING_BUILDER_IN.object();
+	InternalObjectName STRING_BUILDER_ION   = STRING_BUILDER_IN.toInternalObjectName();
 	String             STRING_BUILDER_ION_S = STRING_BUILDER_ION.stringOutput();
 	ReturnValue        STRING_BUILDER_RV    = new ReturnValue(StringBuilder.class);
 	JavaMethodDef      SB_APPEND            = new JavaMethodDef(STRING_BUILDER_IN, "append", list(STRING_ION), STRING_BUILDER_RV, ACC_PUBLIC);
@@ -71,7 +71,7 @@ public interface CommonNames {
 	ValueType LITERAL      = ValueType.LITERAL;
 	ValueType CONSTANT     = ValueType.CONSTANT;
 	ValueType VARIABLE     = ValueType.VARIABLE;
-	ValueType LIMBO        = ValueType.LIMBO;
+	ValueType STACK        = ValueType.STACK;
 	ValueType POINTER      = ValueType.POINTER;
 	ValueType ARRAY_ACCESS = ValueType.ARRAY_ACCESS;
 

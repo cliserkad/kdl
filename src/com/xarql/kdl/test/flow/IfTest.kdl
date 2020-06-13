@@ -10,7 +10,7 @@ class IfTest {
     }
 
     boolean b : true;
-    if(true) {
+    if(b) {
       println("boolean b was true");
     }
   }

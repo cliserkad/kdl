@@ -1,10 +1,8 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.CommonNames;
-import com.xarql.kdl.names.ToBaseType;
+import com.xarql.kdl.names.*;
 
-public class Literal<Type> implements ToBaseType, StringOutput, CommonNames {
+public class Literal<Type> implements ToName, StringOutput, CommonNames {
 	Type value;
 
 	public Literal(Type value) {
@@ -41,5 +39,15 @@ public class Literal<Type> implements ToBaseType, StringOutput, CommonNames {
 	@Override
 	public String toString() {
 		return "Literal: " + toBaseType().name() + " --> " + value;
+	}
+
+	@Override
+	public InternalName toInternalName() {
+		return toBaseType().toInternalName();
+	}
+
+	@Override
+	public InternalObjectName toInternalObjectName() {
+		return toInternalName().toInternalObjectName();
 	}
 }

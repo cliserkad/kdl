@@ -1,13 +1,10 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
-import com.xarql.kdl.names.ToBaseType;
+import com.xarql.kdl.names.*;
 
 import static com.xarql.kdl.BestList.list;
 
-public class Constant<Type> implements ToBaseType {
+public class Constant<Type> implements ToName {
 	public static final BestList<Class<?>> ACCEPTABLE_TYPES = list(String.class, Integer.class, Boolean.class);
 
 	public final String name;
@@ -30,14 +27,6 @@ public class Constant<Type> implements ToBaseType {
 		if(!ACCEPTABLE_TYPES.contains(value.getClass()))
 			throw new IllegalStateException("Constant may not have the Type of " + value.getClass() + ". Acceptable types are " + ACCEPTABLE_TYPES);
 		return value;
-	}
-
-	public InternalName internalName() {
-		return InternalName.internalName(value.getClass());
-	}
-
-	public InternalObjectName internalObjectName() {
-		return internalName().object();
 	}
 
 	@Override
@@ -84,5 +73,15 @@ public class Constant<Type> implements ToBaseType {
 	 */
 	public boolean isEvaluated() {
 		return evaluated;
+	}
+
+	@Override
+	public InternalName toInternalName() {
+		return InternalName.internalName(value.getClass());
+	}
+
+	@Override
+	public InternalObjectName toInternalObjectName() {
+		return toInternalName().toInternalObjectName();
 	}
 }
