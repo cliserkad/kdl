@@ -1,0 +1,20 @@
+// author: Bryan Johnson
+class IfStringNotEmpty {
+  const GOOD : "hello from IfStringNotEmpty";
+  const FAIL : "This message was shown in error";
+
+  run {
+    // set string to ""
+    string s;
+    // if s is not empty
+    if(s)
+      println(FAIL);
+
+    s : "testing";
+    // if s is not empty
+    // should yield true as s is "testing"
+    if(s)
+      println(GOOD);
+
+  }
+}

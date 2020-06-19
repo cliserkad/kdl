@@ -89,8 +89,12 @@ public class InternalName implements StringOutput, ToName, CommonNames {
 	public String stringOutput() {
 		if(clazz != null)
 			return clazz.getName().replace('.', '/');
-		else if(isBaseType())
-			return base.stringOutput();
+		else if(isBaseType()) {
+			if(toBaseType() == STRING)
+				return String.class.getName().replace('.', '/');
+			else
+				return toBaseType().rep;
+		}
 		else if(isCustom()) {
 			return qualifiedName;
 		}

@@ -36,7 +36,7 @@ public class ExternalMethodRouter implements Opcodes, CommonNames {
 			lmv.visitLineNumber(lmv.getLine(), print);
 			lmv.visitFieldInsn(GETSTATIC, internalName(System.class).toString(), "out", new InternalObjectName(PrintStream.class).toString());
 			lmv.visitInsn(SWAP);
-			lmv.visitMethodInsn(INVOKEVIRTUAL, PRINTLN_MTD.owner(), PRINTLN, PRINTLN_MTD.descriptor(), false);
+			PRINTLN_MTD.invokeVirtual(lmv);
 			return print;
 		}
 		else if(methodName.equals(PRINT)) {
@@ -45,7 +45,7 @@ public class ExternalMethodRouter implements Opcodes, CommonNames {
 			lmv.visitLineNumber(lmv.getLine(), print);
 			lmv.visitFieldInsn(GETSTATIC, internalName(System.class).toString(), "out", new InternalObjectName(PrintStream.class).toString());
 			lmv.visitInsn(SWAP);
-			lmv.visitMethodInsn(INVOKEVIRTUAL, PRINT_MTD.owner(), PRINT, PRINT_MTD.descriptor(), false);
+			PRINT_MTD.invokeVirtual(lmv);
 			return print;
 		}
 		else {

@@ -33,7 +33,7 @@ public class ClassCreator implements Opcodes {
 
 	public ClassCreator(final File input) {
 		this.input = input;
-		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
+		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 		constants = new BestList<>();
 		imports = new BestList<>();
 		methods = new BestList<>();
@@ -130,7 +130,7 @@ public class ClassCreator implements Opcodes {
 			nameSet = true;
 
 			// give name to ClassWriter
-			cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
+			cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
 			cw.visitSource(clazz + ".kdl", null);
 
 			return true;

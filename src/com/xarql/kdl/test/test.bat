@@ -22,3 +22,4 @@ java IfTest
 java IfElse
 java SingleStatement
 java BooleanCompare
+java IfStringNotEmpty

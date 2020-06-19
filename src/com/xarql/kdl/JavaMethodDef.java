@@ -88,5 +88,18 @@ public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
 			return false;
 	}
 
+	private JavaMethodDef invoke(final int type, final LinedMethodVisitor lmv) {
+		lmv.visitMethodInsn(type, owner.stringOutput(), methodName, descriptor(), false);
+		return this;
+	}
+
+	public JavaMethodDef invokeStatic(LinedMethodVisitor lmv) {
+		return invoke(INVOKESTATIC, lmv);
+	}
+
+	public JavaMethodDef invokeVirtual(LinedMethodVisitor lmv) {
+		return invoke(INVOKEVIRTUAL, lmv);
+	}
+
 
 }

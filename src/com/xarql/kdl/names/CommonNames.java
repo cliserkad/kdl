@@ -38,11 +38,14 @@ public interface CommonNames {
 	JavaMethodDef      SB_TO_STRING         = new JavaMethodDef(STRING_BUILDER_IN, "toString", null, STRING_RV, ACC_PUBLIC);
 
 	// handled by ExternalMethodRouter
-	String      PRINT         = "print";
-	String      PRINTLN       = "println";
+	String PRINT   = "print";
+	String PRINTLN = "println";
+
+	// method parts
 	String      NO_PARAM_VOID = "()V";
 	ReturnValue VOID          = ReturnValue.VOID_RETURN;
 	String      VOID_S        = VOID.stringOutput();
+	ReturnValue BOOLEAN_RV    = ReturnValue.BOOLEAN_RETURN;
 	String      INIT          = JavaMethodDef.INIT;
 	String      DEFAULT       = "default";
 

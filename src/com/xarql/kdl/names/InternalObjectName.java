@@ -47,7 +47,7 @@ public class InternalObjectName implements StringOutput, ToName {
 		for(int i = 0; i < arrayDimensions; i++)
 			dims += ARRAY_PREFIX;
 
-		if(inName.isBaseType())
+		if(inName.isBaseType() && inName.toBaseType() != BaseType.STRING)
 			return dims + inName.stringOutput();
 		else
 			return dims + objectInstance();

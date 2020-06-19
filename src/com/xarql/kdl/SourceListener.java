@@ -16,8 +16,8 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	public final ClassCreator owner;
 
 	private final ConditionalHandler cmpHandler;
-	private final ExpressionHandler xprHandler;
-	private final BestList<String>  constantNames = new BestList<>();
+	private final ExpressionHandler  xprHandler;
+	private final BestList<String>   constantNames = new BestList<>();
 
 	private String pkgName;
 
@@ -539,7 +539,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 	private void storeValue(kdlParser.ValueContext val, Variable target, LinedMethodVisitor lmv) {
 		try {
 			if(val.literal() != null) {
-				if(target.type.equals(parseLiteralType(val.literal())))
+				if(target.type.equals(parseLiteralType(val.literal()).toInternalObjectName()))
 					storeLiteral(val.literal(), target.localIndex, lmv);
 				else
 					throw new IncompatibleTypeException("Literal " + val.literal().getText() + INCOMPATIBLE + target);
