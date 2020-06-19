@@ -27,6 +27,7 @@ public interface CommonNames {
 	String                       STRING_ION_S = STRING_ION.toString();
 	BestList<InternalObjectName> STRING_PARAM = new BestList<>(STRING_ION);
 	ReturnValue                  STRING_RV    = new ReturnValue(STRING_ION);
+	String                       EMPTY_STRING = "";
 
 	// StringBuilder
 	InternalName       STRING_BUILDER_IN    = internalName(StringBuilder.class);

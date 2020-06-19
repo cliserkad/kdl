@@ -95,7 +95,7 @@ r_else: R_ELSE statementSet;
 
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
-value: literal | VARNAME | CONSTNAME | arrayAccess;
+value: literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS | EQUALS;
 operatorAssign: operator ASSIGN value;
 

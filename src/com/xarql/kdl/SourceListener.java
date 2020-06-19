@@ -538,7 +538,11 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 
 	private void storeValue(kdlParser.ValueContext val, Variable target, LinedMethodVisitor lmv) {
 		try {
-			if(val.literal() != null) {
+			if(val.R_NULL() != null) {
+				lmv.visitInsn(ACONST_NULL);
+				lmv.visitVarInsn(ASTORE, target.localIndex);
+			}
+			else if(val.literal() != null) {
 				if(target.type.equals(parseLiteralType(val.literal()).toInternalObjectName()))
 					storeLiteral(val.literal(), target.localIndex, lmv);
 				else

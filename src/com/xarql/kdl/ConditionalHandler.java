@@ -68,21 +68,21 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 	}
 
 	/**
-	 * Writes the instructions needed to determine that the String on the stack is not null and not empty
+	 * Writes the instructions needed to determine that the String on the stack is not null and not empty.
+	 * Expects that a String is at the top of the stack.
 	 * @param lmv Visitor to write with
 	 * @param tl  Label for true clause
 	 * @param fl  Label for false clause
 	 */
 	private static void testStringUsability(LinedMethodVisitor lmv, Label tl, Label fl) {
-		// Label skip = new Label();
-		// lmv.visitInsn(DUP);
-		// lmv.visitJumpInsn(IFNULL, skip);
-		// only check if string is empty. Null test is broken
-		// FIXME: fix null test on strings
+		Label compare = new Label();
+		lmv.visitInsn(DUP);
+		lmv.visitJumpInsn(IFNONNULL, compare);
+		lmv.visitInsn(POP);
+		lmv.visitLdcInsn(EMPTY_STRING);
+		lmv.visitLabel(compare);
 		new JavaMethodDef(STRING_IN, "isEmpty", null, BOOLEAN_RV, ACC_PUBLIC + ACC_STATIC).invokeVirtual(lmv);
 		lmv.visitJumpInsn(IFEQ, tl);
-		// lmv.visitLabel(skip);
-		// lmv.visitInsn(POP);
 		lmv.visitJumpInsn(GOTO, fl);
 	}
 
