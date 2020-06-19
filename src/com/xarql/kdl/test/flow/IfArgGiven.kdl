@@ -1,0 +1,10 @@
+// author: Bryan Johnson
+class IfArgGiven {
+  run {
+    string arg : args[0];
+    if(arg)
+      println(arg);
+    else
+      println("No argument given");
+  }
+}

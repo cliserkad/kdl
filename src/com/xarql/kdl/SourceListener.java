@@ -563,27 +563,20 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 					throw new IncompatibleTypeException(lv + INCOMPATIBLE + target);
 			}
 			else if(val.arrayAccess() != null) {
-				if(target.type.isArray()) {
-					Variable array = owner.getLocalVariable(val.arrayAccess().VARNAME().toString());
-					lmv.visitVarInsn(ALOAD, array.localIndex);
-					pushValue(val.arrayAccess().expression().value(0), lmv);
-					if(array.type.isBaseType()) {
-						switch(array.type.toBaseType()) {
-							case INT:
-							case BOOLEAN:
-								lmv.visitInsn(IALOAD);
-								lmv.visitVarInsn(ISTORE, target.localIndex);
-								break;
-							case STRING:
-								lmv.visitInsn(AALOAD);
-								lmv.visitVarInsn(ASTORE, target.localIndex);
-								break;
-						}
-					}
-					else {
-						lmv.visitInsn(AALOAD);
-						lmv.visitVarInsn(ASTORE, target.localIndex);
-						return;
+				Variable array = owner.getLocalVariable(val.arrayAccess().VARNAME().toString());
+				lmv.visitVarInsn(ALOAD, array.localIndex);
+				Value v = pushValue(val.arrayAccess().expression().value(0), lmv);
+				if(array.type.isBaseType()) {
+					switch(array.type.toBaseType()) {
+						case INT:
+						case BOOLEAN:
+							lmv.visitInsn(IALOAD);
+							lmv.visitVarInsn(ISTORE, target.localIndex);
+							break;
+						case STRING:
+							lmv.visitInsn(AALOAD);
+							lmv.visitVarInsn(ASTORE, target.localIndex);
+							break;
 					}
 				}
 			}
