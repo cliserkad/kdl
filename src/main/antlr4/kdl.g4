@@ -26,6 +26,7 @@ R_IF: 'if';
 R_ELSE: 'else';
 R_NULL: 'null';
 SIZE: 'size';
+ASSERT: 'assert';
 
 // base types
 INT: 'int';
@@ -91,9 +92,10 @@ block: BODY_OPEN statement* BODY_CLOSE | statement;
 statementSet: block | statement;
 
 // conditionals
-conditional: r_if;
+conditional: r_if | assertion;
 r_if: R_IF PARAM_OPEN condition PARAM_CLOSE statementSet r_else?;
 r_else: R_ELSE statementSet;
+assertion: ASSERT condition STATEMENT_END;
 
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
@@ -121,10 +123,6 @@ methodType: (METHOD | FUNCTION)?;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 
 returnStatement: RETURN expression STATEMENT_END;
-
-
-
-
 
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;

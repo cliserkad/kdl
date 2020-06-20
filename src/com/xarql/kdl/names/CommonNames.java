@@ -41,6 +41,7 @@ public interface CommonNames {
 	// handled by ExternalMethodRouter
 	String PRINT   = "print";
 	String PRINTLN = "println";
+	String ERROR   = "error";
 
 	// method parts
 	String      NO_PARAM_VOID = "()V";

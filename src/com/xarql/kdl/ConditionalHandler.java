@@ -14,53 +14,61 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 
 
 	public void handle(kdlParser.ConditionalContext ctx, LinedMethodVisitor lmv) {
+		Label trueLabel = new Label();
+		Label falseLabel = new Label();
+		Label endLabel = new Label();
+
+		kdlParser.ConditionContext cnd;
+		if(ctx.r_if() != null)
+			cnd = ctx.r_if().condition();
+		else if(ctx.assertion() != null)
+			cnd = ctx.assertion().condition();
+		else {
+			SourceListener.standardHandle(new UnimplementedException("A type of conditional"));
+			return;
+		}
+
+		final Value a = owner.pushValue(cnd.value(0), lmv);
+		// if the condition has two values
+		if(cnd.value(1) != null) {
+			final Comparator cmp = Comparator.match(cnd.comparator().getText());
+			final Value b = owner.pushValue(cnd.value(1), lmv);
+
+			if(a.valueType == ARRAY_LENGTH) {
+				if(b.content.isBaseType() && b.content.toBaseType() == INT)
+					testIntegers(lmv, trueLabel, cmp);
+				else
+					SourceListener.standardHandle(new IncompatibleTypeException("The length of an array can only be compared to an int."));
+			}
+			else {
+				// check type compatibility
+				if(!a.toInternalName().equals(b.toInternalName()))
+					SourceListener.standardHandle(new IncompatibleTypeException("The type " + a.toInternalName() + " is not compatible with " + b.toInternalName()));
+
+				if(a.toBaseType() == BOOLEAN)
+					testBooleans(lmv, trueLabel, cmp);
+				else if(a.toBaseType() == INT)
+					testIntegers(lmv, trueLabel, cmp);
+				else
+					SourceListener.standardHandle(new UnimplementedException("Conditions are not complete"));
+			}
+		}
+		else if(a.isBaseType()) {
+			switch(a.toBaseType()) {
+				case BOOLEAN:
+				case INT:
+					lmv.visitJumpInsn(IFGT, trueLabel);
+					break;
+				case STRING:
+					testStringUsability(lmv, trueLabel, falseLabel);
+					break;
+			}
+		}
+		else
+			SourceListener.standardHandle(new IncompatibleTypeException("Don't know how to handle a ref type without a comparator"));
+
+
 		if(ctx.r_if() != null) {
-
-			Label trueLabel = new Label();
-			Label falseLabel = new Label();
-			Label endLabel = new Label();
-
-			final kdlParser.ConditionContext cnd = ctx.r_if().condition();
-
-			final Value a = owner.pushValue(cnd.value(0), lmv);
-			// if the condition has two values
-			if(cnd.value(1) != null) {
-				final Comparator cmp = Comparator.match(cnd.comparator().getText());
-				final Value b = owner.pushValue(cnd.value(1), lmv);
-
-				if(a.valueType == ARRAY_LENGTH) {
-					if(b.content.isBaseType() && b.content.toBaseType() == INT)
-						testIntegers(lmv, trueLabel, cmp);
-					else
-						SourceListener.standardHandle(new IncompatibleTypeException("The length of an array can only be compared to an int."));
-				}
-				else {
-					// check type compatibility
-					if(!a.toInternalName().equals(b.toInternalName()))
-						SourceListener.standardHandle(new IncompatibleTypeException("The type " + a.toInternalName() + " is not compatible with " + b.toInternalName()));
-
-					if(a.toBaseType() == BOOLEAN)
-						testBooleans(lmv, trueLabel, cmp);
-					else if(a.toBaseType() == INT)
-						testIntegers(lmv, trueLabel, cmp);
-					else
-						SourceListener.standardHandle(new UnimplementedException("Conditions are not complete"));
-				}
-			}
-			else if(a.isBaseType()) {
-				switch(a.toBaseType()) {
-					case BOOLEAN:
-					case INT:
-						lmv.visitJumpInsn(IFGT, trueLabel);
-						break;
-					case STRING:
-						testStringUsability(lmv, trueLabel, falseLabel);
-						break;
-				}
-			}
-			else
-				SourceListener.standardHandle(new IncompatibleTypeException("Don't know how to handle a ref type without a comparator"));
-
 			// label and write out the instructions within the else clause
 			lmv.visitLabel(falseLabel);
 			if(ctx.r_if().r_else() != null)
@@ -74,6 +82,26 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 
 			lmv.visitLabel(endLabel);
 		}
+		else if(ctx.assertion() != null) {
+			// label and write out the instructions for when the assertion fails
+			lmv.visitLabel(falseLabel);
+			// push the text of the assertion condition
+			owner.pushLiteral(new Literal("Failed assertion with condition " + ctx.assertion().condition().getText()), lmv);
+			// print the text of the assertion condition to the error stream
+			ExternalMethodRouter.writeMethod(ERROR, lmv, null);
+			lmv.visitJumpInsn(GOTO, endLabel); // jump over the if instructions
+
+			// label and write out instructions for printing a constant when the assertion passes
+			lmv.visitLabel(trueLabel);
+			if(owner.owner.hasConstant("ASSERTION_PASS")) {
+				owner.pushConstant("ASSERTION_PASS", lmv);
+				ExternalMethodRouter.writeMethod(PRINT, lmv, null);
+			}
+
+			lmv.visitLabel(endLabel);
+		}
+		else
+			SourceListener.standardHandle(new UnimplementedException("A type of conditional"));
 	}
 
 	/**

@@ -71,7 +71,11 @@ public class ClassCreator implements Opcodes {
 	}
 
 	public boolean hasConstant(final String name) {
-		return getConstant(name) != null;
+		for(Constant c : constants) {
+			if(c.name.equals(name))
+				return true;
+		}
+		return false;
 	}
 
 	public Constant getConstant(final String name) {
