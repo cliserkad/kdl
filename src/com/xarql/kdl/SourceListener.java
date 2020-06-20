@@ -376,6 +376,18 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 				return new Value(POINTER, new Pointer(array.type));
 			}
 		}
+		else if(val.valueType == ARRAY_LENGTH) {
+			if(val.content instanceof Variable) {
+				final Variable content = (Variable) val.content;
+				if(content.isArray()) {
+					pushArraySize(content, lmv);
+				}
+				else
+					standardHandle(new IncompatibleTypeException(content + " was not an array"));
+			}
+			else
+				standardHandle(new IllegalArgumentException(val.content + " is not an ArrayVariable"));
+		}
 		else
 			standardHandle(new UnimplementedException("ValueExpression kind missed"));
 		return null;
@@ -452,9 +464,23 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			Variable array = owner.getLocalVariable(val.arrayAccess().VARNAME().toString());
 			return new Value(VARIABLE, array);
 		}
+		else if(val.arrayLength() != null) {
+			final Variable array = owner.getLocalVariable(val.arrayLength().VARNAME().getText());
+			return new Value(ARRAY_LENGTH, array);
+		}
 		else
-			standardHandle(new UnimplementedException("ValueExpression kind missed"));
+			standardHandle(new UnimplementedException("Value kind missed; " + val.getText()));
 		return null;
+	}
+
+	@Override
+	public void enterArrayLength(kdlParser.ArrayLengthContext ctx) {
+		System.err.println("Within array length");
+	}
+
+	public void pushArraySize(Variable var, LinedMethodVisitor lmv) {
+		lmv.visitVarInsn(ALOAD, var.localIndex);
+		lmv.visitInsn(ARRAYLENGTH);
 	}
 
 	public Value pushValue(kdlParser.ValueContext val, LinedMethodVisitor lmv) {
@@ -474,6 +500,9 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 				break;
 			case STACK:
 				pushLiteral(new Literal(out.content), lmv);
+				break;
+			case ARRAY_LENGTH:
+				pushArraySize((Variable) out.content, lmv);
 				break;
 			default:
 				standardHandle(new UnimplementedException(SWITCH_VALUETYPE));
@@ -580,13 +609,19 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 					}
 				}
 			}
+			else if(val.arrayLength() != null) {
+				pushValue(val, lmv);
+				if(target.type.isBaseType() && target.type.toBaseType() == INT)
+					lmv.visitVarInsn(ISTORE, target.localIndex);
+				else
+					throw new IncompatibleTypeException(val + INCOMPATIBLE + target);
+			}
 			else
 				throw new TokenNotFoundException("No recognizable value was found within value expression " + val.getText());
 		} catch(IncompatibleTypeException | TokenNotFoundException e) {
 			standardHandle(e);
 		}
 	}
-
 
 	private void consumeVariableDeclaration(kdlParser.VariableDeclarationContext ctx, LinedMethodVisitor lmv) {
 		final kdlParser.TypedVariableContext typedVar = ctx.typedVariable();

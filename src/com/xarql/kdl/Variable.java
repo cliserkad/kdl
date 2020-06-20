@@ -1,6 +1,9 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.*;
+import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.InternalObjectName;
+import com.xarql.kdl.names.ToName;
 
 public class Variable implements ToName {
 	public final String             name;
@@ -47,5 +50,9 @@ public class Variable implements ToName {
 	@Override
 	public InternalObjectName toInternalObjectName() {
 		return type;
+	}
+
+	public boolean isArray() {
+		return toInternalObjectName().isArray();
 	}
 }

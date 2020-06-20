@@ -78,5 +78,6 @@ public interface CommonNames {
 	ValueType STACK        = ValueType.STACK;
 	ValueType POINTER      = ValueType.POINTER;
 	ValueType ARRAY_ACCESS = ValueType.ARRAY_ACCESS;
+	ValueType ARRAY_LENGTH = ValueType.ARRAY_LENGTH;
 
 }

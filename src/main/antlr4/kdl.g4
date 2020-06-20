@@ -25,6 +25,7 @@ PKG: 'pkg';
 R_IF: 'if';
 R_ELSE: 'else';
 R_NULL: 'null';
+SIZE: 'size';
 
 // base types
 INT: 'int';
@@ -77,12 +78,13 @@ PKG_NAME: DNTEXT ('.' DNTEXT)*;
 
 ESCAPED_QUOTE : '\\"';
 
+arrayLength: VARNAME SIZE;
+
 // literals
 bool: TRUE | FALSE;
 number: MINUS? DIGIT+ ('B' | 'H')?;
 STRING_LIT: '"' (ESCAPED_QUOTE | ~'"')* '"';
 literal: bool | STRING_LIT | number;
-
 
 statement: methodCall | variableDeclaration | variableAssignment | returnStatement | conditional;
 block: BODY_OPEN statement* BODY_CLOSE | statement;
@@ -95,7 +97,7 @@ r_else: R_ELSE statementSet;
 
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
-value: literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
+value: arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS | EQUALS;
 operatorAssign: operator ASSIGN value;
 
@@ -108,6 +110,7 @@ assignment: (ASSIGN expression) | operatorAssign;
 typedVariable: type VARNAME;
 arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 
+
 // method calls
 methodCall: VARNAME parameterSet STATEMENT_END;
 parameterSet: PARAM_OPEN expression? (SEPARATOR expression)* PARAM_CLOSE;
@@ -118,6 +121,10 @@ methodType: (METHOD | FUNCTION)?;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 
 returnStatement: RETURN expression STATEMENT_END;
+
+
+
+
 
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;

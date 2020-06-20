@@ -1,10 +1,18 @@
 // author: Bryan Johnson
 class IfArgGiven {
+  const NO_ARG : "No argument given";
+
   run {
-    string arg : args[0];
-    if(arg)
-      println(arg);
-    else
-      println("No argument given");
+    // if args has 0 or less arguments
+    if(args size <= 0)
+      println(NO_ARG);
+    else {
+      // if the first argument is not empty
+      string s : args[0];
+      if(s)
+        println(s);
+      else
+        println(NO_ARG);
+    }
   }
 }

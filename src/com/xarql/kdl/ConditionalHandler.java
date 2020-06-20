@@ -28,15 +28,23 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 				final Comparator cmp = Comparator.match(cnd.comparator().getText());
 				final Value b = owner.pushValue(cnd.value(1), lmv);
 
-				// check type compatibility
-				if(!a.toInternalName().equals(b.toInternalName()))
-					SourceListener.standardHandle(new IncompatibleTypeException("The type " + a.toInternalName() + " is not compatible with " + b.toInternalName()));
-
-				if(a.toBaseType() == BOOLEAN) {
-					testBooleans(lmv, trueLabel, cmp);
+				if(a.valueType == ARRAY_LENGTH) {
+					if(b.content.isBaseType() && b.content.toBaseType() == INT)
+						testIntegers(lmv, trueLabel, cmp);
+					else
+						SourceListener.standardHandle(new IncompatibleTypeException("The length of an array can only be compared to an int."));
 				}
-				else
-					SourceListener.standardHandle(new UnimplementedException("Conditions are not complete"));
+				else {
+					// check type compatibility
+					if(!a.toInternalName().equals(b.toInternalName()))
+						SourceListener.standardHandle(new IncompatibleTypeException("The type " + a.toInternalName() + " is not compatible with " + b.toInternalName()));
+
+					if(a.toBaseType() == BOOLEAN) {
+						testBooleans(lmv, trueLabel, cmp);
+					}
+					else
+						SourceListener.standardHandle(new UnimplementedException("Conditions are not complete"));
+				}
 			}
 			else if(a.isBaseType()) {
 				switch(a.toBaseType()) {
@@ -96,6 +104,31 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 				break;
 			default:
 				SourceListener.standardHandle(new IncompatibleTypeException("Two booleans may not be compared with " + cmp));
+		}
+	}
+
+	private static void testIntegers(LinedMethodVisitor lmv, Label tl, Comparator cmp) {
+		switch(cmp) {
+			case EQUAL:
+				lmv.visitJumpInsn(IF_ICMPEQ, tl);
+				break;
+			case NOT_EQUAL:
+				lmv.visitJumpInsn(IF_ICMPNE, tl);
+				break;
+			case MORE_THAN:
+				lmv.visitJumpInsn(IF_ICMPGT, tl);
+				break;
+			case LESS_THAN:
+				lmv.visitJumpInsn(IF_ICMPLT, tl);
+				break;
+			case MORE_OR_EQUAL:
+				lmv.visitJumpInsn(IF_ICMPGE, tl);
+				break;
+			case LESS_OR_EQUAL:
+				lmv.visitJumpInsn(IF_ICMPLE, tl);
+				break;
+			default:
+				SourceListener.standardHandle(new IncompatibleTypeException("Two ints may not be compared with " + cmp));
 		}
 	}
 
