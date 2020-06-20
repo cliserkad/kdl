@@ -1,0 +1,47 @@
+// author: Bryan Johnson
+class IntCompare {
+  const GOOD : "Hello from IntCompare";
+  const FAIL : "This message was shown in error";
+
+  run {
+    if(1 = 1)
+      println(GOOD);
+    else
+      println(FAIL);
+
+    if(1 != 0)
+      println(GOOD);
+    else
+      println(FAIL);
+
+    if(2 > 1)
+      println(GOOD);
+    else
+      println(FAIL);
+
+    if(1 < 2)
+      println(GOOD);
+    else
+      println(FAIL);
+
+    if(1 <= 1)
+      println(GOOD);
+    else
+      println(FAIL);
+
+    if(1 <= 2)
+      println(GOOD);
+    else
+      println(FAIL);
+
+    if(2 >= 2)
+      println(GOOD);
+    else
+      println(FAIL);
+
+    if(2 >= 1)
+      println(GOOD);
+    else
+      println(FAIL);
+  }
+}

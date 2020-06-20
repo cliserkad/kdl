@@ -39,9 +39,10 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 					if(!a.toInternalName().equals(b.toInternalName()))
 						SourceListener.standardHandle(new IncompatibleTypeException("The type " + a.toInternalName() + " is not compatible with " + b.toInternalName()));
 
-					if(a.toBaseType() == BOOLEAN) {
+					if(a.toBaseType() == BOOLEAN)
 						testBooleans(lmv, trueLabel, cmp);
-					}
+					else if(a.toBaseType() == INT)
+						testIntegers(lmv, trueLabel, cmp);
 					else
 						SourceListener.standardHandle(new UnimplementedException("Conditions are not complete"));
 				}

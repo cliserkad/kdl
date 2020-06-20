@@ -26,3 +26,4 @@ java IfStringNotEmpty
 java IfArgGiven "hello from IfArgGiven"
 java IfArgGiven ""
 java IfArgGiven
+java IntCompare

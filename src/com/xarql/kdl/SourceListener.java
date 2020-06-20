@@ -473,11 +473,6 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return null;
 	}
 
-	@Override
-	public void enterArrayLength(kdlParser.ArrayLengthContext ctx) {
-		System.err.println("Within array length");
-	}
-
 	public void pushArraySize(Variable var, LinedMethodVisitor lmv) {
 		lmv.visitVarInsn(ALOAD, var.localIndex);
 		lmv.visitInsn(ARRAYLENGTH);
