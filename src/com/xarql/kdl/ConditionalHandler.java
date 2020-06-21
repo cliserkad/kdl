@@ -38,11 +38,19 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 			final Comparator cmp = Comparator.match(cnd.comparator().getText());
 			final Value b = owner.pushValue(cnd.value(1), lmv);
 
-			if(a.valueType == ARRAY_LENGTH) {
-				if(b.content.isBaseType() && b.content.toBaseType() == INT)
-					testIntegers(lmv, trueLabel, cmp);
-				else
-					SourceListener.standardHandle(new IncompatibleTypeException("The length of an array can only be compared to an int."));
+			if(a.valueType == ARRAY_LENGTH || b.valueType == ARRAY_LENGTH) {
+				if(a.valueType == ARRAY_LENGTH) {
+					if(b.content.isBaseType() && b.content.toBaseType() == INT)
+						testIntegers(lmv, trueLabel, cmp);
+					else
+						SourceListener.standardHandle(new IncompatibleTypeException("The length of an array can only be compared to an int."));
+				}
+				else {
+					if(a.content.isBaseType() && a.content.toBaseType() == INT)
+						testIntegers(lmv, trueLabel, cmp);
+					else
+						SourceListener.standardHandle(new IncompatibleTypeException("The length of an array can only be compared to an int."));
+				}
 			}
 			else {
 				// check type compatibility

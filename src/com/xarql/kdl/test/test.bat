@@ -32,6 +32,7 @@ cd ..
 cd while
 java NeverLoop
 java AmountLoop
+java PrintArgsLoop hello world and welcome to kdl
 cd ..
 
 cd ..
