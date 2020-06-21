@@ -1,0 +1,9 @@
+// author: Bryan Johnson
+class NeverLoop {
+  run {
+    println("hello from NeverLoop");
+    while(false) {
+      assert false;
+    }
+  }
+}

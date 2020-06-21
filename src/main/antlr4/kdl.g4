@@ -27,6 +27,7 @@ R_ELSE: 'else';
 R_NULL: 'null';
 SIZE: 'size';
 ASSERT: 'assert';
+WHILE: 'while';
 
 // base types
 INT: 'int';
@@ -92,10 +93,11 @@ block: BODY_OPEN statement* BODY_CLOSE | statement;
 statementSet: block | statement;
 
 // conditionals
-conditional: r_if | assertion;
+conditional: r_if | assertion | r_while;
 r_if: R_IF PARAM_OPEN condition PARAM_CLOSE statementSet r_else?;
 r_else: R_ELSE statementSet;
 assertion: ASSERT condition STATEMENT_END;
+r_while: WHILE PARAM_OPEN condition PARAM_CLOSE statementSet;
 
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;

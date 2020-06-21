@@ -17,7 +17,7 @@ java VariableAssignment
 java AssignmentOperators
 
 cd ..
-cd flow
+cd flow/ifelse
 java IfTest
 java IfElse
 java SingleStatement
@@ -27,6 +27,12 @@ java IfArgGiven "hello from IfArgGiven"
 java IfArgGiven ""
 java IfArgGiven
 java IntCompare
+
+cd ..
+cd while
+java NeverLoop
+java AmountLoop
+cd ..
 
 cd ..
 cd assert

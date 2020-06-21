@@ -1,0 +1,8 @@
+// author: Bryan Johnson
+class ForeverLoop {
+  run {
+    while(true) {
+      println("testing ForeverLoop is a mistake");
+    }
+  }
+}

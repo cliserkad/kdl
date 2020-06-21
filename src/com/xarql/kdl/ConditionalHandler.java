@@ -14,6 +14,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 
 
 	public void handle(kdlParser.ConditionalContext ctx, LinedMethodVisitor lmv) {
+		Label introLabel = new Label();
 		Label trueLabel = new Label();
 		Label falseLabel = new Label();
 		Label endLabel = new Label();
@@ -23,11 +24,14 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 			cnd = ctx.r_if().condition();
 		else if(ctx.assertion() != null)
 			cnd = ctx.assertion().condition();
+		else if(ctx.r_while() != null)
+			cnd = ctx.r_while().condition();
 		else {
 			SourceListener.standardHandle(new UnimplementedException("A type of conditional"));
 			return;
 		}
 
+		lmv.visitLabel(introLabel);
 		final Value a = owner.pushValue(cnd.value(0), lmv);
 		// if the condition has two values
 		if(cnd.value(1) != null) {
@@ -79,7 +83,6 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 			lmv.visitLabel(trueLabel);
 			owner.consumeStatementSet(ctx.r_if().statementSet(), lmv);
 			// no need to jump to the end since we're already there
-
 			lmv.visitLabel(endLabel);
 		}
 		else if(ctx.assertion() != null) {
@@ -97,7 +100,17 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 				owner.pushConstant("ASSERTION_PASS", lmv);
 				ExternalMethodRouter.writeMethod(PRINT, lmv, null);
 			}
-
+			lmv.visitLabel(endLabel);
+		}
+		else if(ctx.r_while() != null) {
+			// label and write out the instructions for when the while loop exits
+			lmv.visitLabel(falseLabel);
+			lmv.visitJumpInsn(GOTO, endLabel);
+			// label and write out the instructions for when the while loop continues
+			lmv.visitLabel(trueLabel);
+			owner.consumeStatementSet(ctx.r_while().statementSet(), lmv);
+			lmv.visitJumpInsn(GOTO, introLabel);
+			// label end
 			lmv.visitLabel(endLabel);
 		}
 		else
