@@ -2,7 +2,11 @@ package com.xarql.kdl.test;
 
 public class Test {
 	public static void main(String[] args) {
-		if(args.length > 0)
-			System.out.println(args[0]);
+		boolean b1 = true;
+		boolean b2 = true;
+		if(b1 && b2)
+			System.out.println("worked");
+		else
+			System.out.println("failed");
 	}
 }

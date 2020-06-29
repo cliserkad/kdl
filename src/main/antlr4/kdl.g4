@@ -63,6 +63,10 @@ DIVIDE: '/';
 MULTIPLY: '*';
 MODULUS: '%';
 
+// appenders
+AND: '&';
+OR: '|';
+
 DIGIT               : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 fragment UPLETTER   : [A-Z];
 fragment DNLETTER   : [a-z];
@@ -102,11 +106,13 @@ r_while: WHILE PARAM_OPEN condition PARAM_CLOSE statementSet;
 compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
 expression: value (operator value)?;
 value: arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
-operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS | EQUALS;
+operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 operatorAssign: operator ASSIGN value;
 
-condition: value (comparator value)?;
+condition: singleCondition (appender singleCondition)?;
+singleCondition: value (comparator value)?;
 comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
+appender: AND | OR;
 
 variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
 variableAssignment: VARNAME assignment STATEMENT_END;
