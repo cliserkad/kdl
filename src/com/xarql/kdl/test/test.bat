@@ -35,10 +35,11 @@ java AmountLoop
 java PrintArgsLoop hello world and welcome to kdl
 
 cd ..
-cd appenders
-java AndTest
-cd ..
-
 cd ..
 cd assert
 java IntAssert
+cd appenders
+java AndTest
+java OrTest
+cd ..
+cd ..

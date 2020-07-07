@@ -14,6 +14,8 @@ public interface CommonNames {
 	String KEYWORD_BOOLEAN = "boolean";
 	String KEYWORD_INT     = "int";
 	String KEYWORD_STRING  = "string";
+	String KEYWORD_TRUE    = "true";
+	String KEYWORD_FALSE   = "false";
 
 	// Defaults for BaseTypes
 	int     DEFAULT_INT     = 0;
