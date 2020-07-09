@@ -1,6 +1,7 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.antlr4.kdlParser;
+import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -27,41 +28,25 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 
 	// route a certain condition to the conditional's flow
 	private void handleSingleCondition(kdlParser.SingleConditionContext ctx, ConditionalLabelSet cls, LinedMethodVisitor lmv, boolean positive) {
-		final Value a = owner.pushValue(ctx.value(0), lmv);
+		final BaseType aType = owner.pushExpression(ctx.expression(0), lmv);
 		// if the condition has two values
-		if(ctx.value(1) != null) { // if there are two values
+		if(ctx.expression(1) != null) { // if there are two values
 			final Comparator cmp = Comparator.match(ctx.comparator().getText());
-			final Value b = owner.pushValue(ctx.value(1), lmv);
+			final BaseType bType = owner.pushExpression(ctx.expression(1), lmv);
 
-			if(a.valueType == ARRAY_LENGTH || b.valueType == ARRAY_LENGTH) {
-				if(a.valueType == ARRAY_LENGTH) {
-					if(b.content.isBaseType() && b.content.toBaseType() == INT)
-						testIntegers(lmv, cls, cmp, positive);
-					else
-						SourceListener.standardHandle(new IncompatibleTypeException("The length of an array can only be compared to an int."));
-				}
-				else {
-					if(a.content.isBaseType() && a.content.toBaseType() == INT)
-						testIntegers(lmv, cls, cmp, positive);
-					else
-						SourceListener.standardHandle(new IncompatibleTypeException("The length of an array can only be compared to an int."));
-				}
-			}
-			else {
-				// check type compatibility
-				if(!a.toInternalName().equals(b.toInternalName()))
-					SourceListener.standardHandle(new IncompatibleTypeException("The type " + a.toInternalName() + " is not compatible with " + b.toInternalName()));
+			// check type compatibility
+			if(aType != bType)
+				SourceListener.standardHandle(new IncompatibleTypeException("The type " + aType + " is not compatible with " + bType));
 
-				if(a.toBaseType() == BOOLEAN)
-					testBooleans(lmv, cls, cmp, positive);
-				else if(a.toBaseType() == INT)
-					testIntegers(lmv, cls, cmp, positive);
-				else
-					SourceListener.standardHandle(new UnimplementedException("Conditions are not complete"));
-			}
+			if(aType == BOOLEAN)
+				testBooleans(lmv, cls, cmp, positive);
+			else if(aType == INT)
+				testIntegers(lmv, cls, cmp, positive);
+			else
+				SourceListener.standardHandle(new UnimplementedException("Conditions are not complete"));
 		}
-		else if(a.isBaseType()) {
-			switch(a.toBaseType()) {
+		else if(true) {
+			switch(aType) {
 				case BOOLEAN:
 				case INT:
 					if(positive)

@@ -1,0 +1,11 @@
+// author: Bryan Johnson
+class FizzBuzz {
+  const INPUT : 30;
+
+  run {
+    if(INPUT % 3 = 0)
+      print("Fizz");
+    if(INPUT % 5 = 0)
+      print("Buzz");
+  }
+}

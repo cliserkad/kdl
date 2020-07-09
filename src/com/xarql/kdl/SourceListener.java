@@ -381,6 +381,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 				final Variable content = (Variable) val.content;
 				if(content.isArray()) {
 					pushArraySize(content, lmv);
+					return new Value(STACK, new StackValue(INT));
 				}
 				else
 					standardHandle(new IncompatibleTypeException(content + " was not an array"));
@@ -417,8 +418,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			return xprHandler.compute(new Expression(val1, val2, opr), lmv);
 		}
 		else {
-			pushValue(val1, lmv);
-			return val1.toBaseType();
+			return pushValue(val1, lmv).toBaseType();
 		}
 	}
 
@@ -473,8 +473,8 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		return null;
 	}
 
-	public void pushArraySize(Variable var, LinedMethodVisitor lmv) {
-		lmv.visitVarInsn(ALOAD, var.localIndex);
+	public void pushArraySize(Variable array, LinedMethodVisitor lmv) {
+		lmv.visitVarInsn(ALOAD, array.localIndex);
 		lmv.visitInsn(ARRAYLENGTH);
 	}
 

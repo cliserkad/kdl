@@ -27,20 +27,27 @@ public class ExpressionHandler implements CommonNames, Opcodes {
 			return null;
 		}
 		else {
-			switch(val1.toBaseType()) {
-				case INT:
-				case BOOLEAN: {
-					owner.pushValue(val1, lmv);
-					owner.pushValue(val2, lmv);
-					computeInt(val2, opr, lmv);
-					return INT;
+			if(xpr.isValueOnly() && xpr.partA.valueType == ARRAY_LENGTH) {
+				owner.pushValue(val1, lmv);
+				lmv.visitInsn(ARRAYLENGTH);
+				return INT;
+			}
+			else {
+				switch(val1.toBaseType()) {
+					case INT:
+					case BOOLEAN: {
+						owner.pushValue(val1, lmv);
+						owner.pushValue(val2, lmv);
+						computeInt(val2, opr, lmv);
+						return INT;
+					}
+					case STRING: {
+						return computeString(val1, val2, opr, lmv);
+					}
+					default:
+						standardHandle(new UnimplementedException(SWITCH_BASETYPE));
+						return null;
 				}
-				case STRING: {
-					return computeString(val1, val2, opr, lmv);
-				}
-				default:
-					standardHandle(new UnimplementedException(SWITCH_BASETYPE));
-					return null;
 			}
 		}
 	}

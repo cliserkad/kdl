@@ -110,7 +110,7 @@ operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 operatorAssign: operator ASSIGN value;
 
 condition: singleCondition (appender singleCondition)?;
-singleCondition: value (comparator value)?;
+singleCondition: expression (comparator expression)?;
 comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 appender: AND | OR;
 

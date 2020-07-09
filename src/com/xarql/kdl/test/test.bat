@@ -43,3 +43,6 @@ java AndTest
 java OrTest
 cd ..
 cd ..
+
+cd sample
+java FizzBuzz
