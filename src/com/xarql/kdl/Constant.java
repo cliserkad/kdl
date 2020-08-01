@@ -4,7 +4,7 @@ import com.xarql.kdl.names.*;
 
 import static com.xarql.kdl.BestList.list;
 
-public class Constant<Type> implements ToName {
+public class Constant<Type> implements Resolvable {
 	public static final BestList<Class<?>> ACCEPTABLE_TYPES = list(String.class, Integer.class, Boolean.class);
 
 	public final String name;
@@ -83,5 +83,10 @@ public class Constant<Type> implements ToName {
 	@Override
 	public InternalObjectName toInternalObjectName() {
 		return toInternalName().toInternalObjectName();
+	}
+
+	@Override
+	public void push(LinedMethodVisitor lmv) throws Exception {
+		lmv.visitLdcInsn(value);
 	}
 }

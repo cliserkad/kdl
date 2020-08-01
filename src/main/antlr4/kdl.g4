@@ -103,34 +103,32 @@ r_else: R_ELSE statementSet;
 assertion: ASSERT condition STATEMENT_END;
 r_while: WHILE PARAM_OPEN condition PARAM_CLOSE statementSet;
 
-compileTimeExpression: (literal | CONSTNAME) (operator (literal | CONSTNAME))?;
-expression: value (operator value)?;
-value: arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
+value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 operatorAssign: operator ASSIGN value;
 
 condition: singleCondition (appender singleCondition)?;
-singleCondition: expression (comparator expression)?;
+singleCondition: value (comparator value)?;
 comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 appender: AND | OR;
 
-variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
+variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN value)? STATEMENT_END;
 variableAssignment: VARNAME assignment STATEMENT_END;
-assignment: (ASSIGN expression) | operatorAssign;
+assignment: (ASSIGN value) | operatorAssign;
 typedVariable: type VARNAME;
-arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
+arrayAccess: VARNAME BRACE_OPEN value BRACE_CLOSE;
 
 
 // method calls
-methodCall: VARNAME parameterSet STATEMENT_END;
-parameterSet: PARAM_OPEN expression? (SEPARATOR expression)* PARAM_CLOSE;
+methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet STATEMENT_END;
+parameterSet: PARAM_OPEN value? (SEPARATOR value)* PARAM_CLOSE;
 
 // method definitions
 methodDefinition: methodType type VARNAME parameterDefinition block;
 methodType: (METHOD | FUNCTION)?;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 
-returnStatement: RETURN expression STATEMENT_END;
+returnStatement: RETURN value STATEMENT_END;
 
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;
@@ -139,5 +137,5 @@ source: pkg? see* clazz;
 pkg: PKG PKG_NAME STATEMENT_END;
 see: SEE QUALIFIED_NAME STATEMENT_END;
 clazz: CLASS CLASSNAME BODY_OPEN (constant | run | variableDeclaration | methodDefinition)* BODY_CLOSE;
-constant: CONST CONSTNAME ASSIGN compileTimeExpression STATEMENT_END;
+constant: CONST CONSTNAME ASSIGN literal STATEMENT_END;
 run: RUN block;

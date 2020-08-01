@@ -50,6 +50,7 @@ public interface CommonNames {
 	ReturnValue VOID          = ReturnValue.VOID_RETURN;
 	String      VOID_S        = VOID.stringOutput();
 	ReturnValue BOOLEAN_RV    = ReturnValue.BOOLEAN_RETURN;
+	ReturnValue INT_RV        = ReturnValue.INT_RETURN;
 	String      INIT          = JavaMethodDef.INIT;
 	String      DEFAULT       = "default";
 

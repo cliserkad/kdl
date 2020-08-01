@@ -28,11 +28,11 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 
 	// route a certain condition to the conditional's flow
 	private void handleSingleCondition(kdlParser.SingleConditionContext ctx, ConditionalLabelSet cls, LinedMethodVisitor lmv, boolean positive) {
-		final BaseType aType = owner.pushExpression(ctx.expression(0), lmv);
+		final BaseType aType = Resolvable.parse(owner, ctx.value(0)).toBaseType();
 		// if the condition has two values
-		if(ctx.expression(1) != null) { // if there are two values
+		if(ctx.value(1) != null) { // if there are two values
 			final Comparator cmp = Comparator.match(ctx.comparator().getText());
-			final BaseType bType = owner.pushExpression(ctx.expression(1), lmv);
+			final BaseType bType = Resolvable.parse(owner, ctx.value(1)).toBaseType();
 
 			// check type compatibility
 			if(aType != bType)
@@ -63,7 +63,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 			SourceListener.standardHandle(new IncompatibleTypeException("Don't know how to handle a ref type without a comparator"));
 	}
 
-	public void handle(kdlParser.ConditionalContext ctx, LinedMethodVisitor lmv) {
+	public void handle(kdlParser.ConditionalContext ctx, LinedMethodVisitor lmv) throws Exception {
 		final ConditionalLabelSet cls = new ConditionalLabelSet();
 		lmv.visitLabel(cls.intro);
 
@@ -98,8 +98,8 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 		else if(ctx.assertion() != null) {
 			// label and write out instructions for printing a constant when the assertion passes
 			if(owner.owner.hasConstant("ASSERTION_PASS")) {
-				owner.pushConstant("ASSERTION_PASS", lmv);
-				ExternalMethodRouter.writeMethod(PRINT, lmv, null);
+				owner.owner.getConstant("ASSERTION_PASS").push(lmv);
+				ExternalMethodRouter.writeMethod(PRINT, lmv);
 			}
 			lmv.visitJumpInsn(GOTO, cls.exit); // jump over the false instructions
 
@@ -111,9 +111,9 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 				msg = "Failed assertion of false. Thus, this message was shown in error.";
 			else
 				msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
-			owner.pushLiteral(new Literal(msg), lmv);
+			new Literal(msg).push(lmv);
 			// print the text of the assertion condition to the error stream
-			ExternalMethodRouter.writeMethod(ERROR, lmv, null);
+			ExternalMethodRouter.writeMethod(ERROR, lmv);
 
 			lmv.visitLabel(cls.exit);
 		}

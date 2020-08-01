@@ -1,13 +1,13 @@
 package com.xarql.kdl;
 
 public class Condition {
-	public final Value      xprA;
-	public final Value      xprB;
+	public final Resolvable a;
+	public final Resolvable b;
 	public final Comparator cmp;
 
-	public Condition(Value xpr1, Value xpr2, Comparator cmp) {
-		this.xprA = xpr1;
-		this.xprB = xpr2;
+	public Condition(Resolvable a, Resolvable b, Comparator cmp) {
+		this.a = a;
+		this.b = b;
 		this.cmp = cmp;
 	}
 }

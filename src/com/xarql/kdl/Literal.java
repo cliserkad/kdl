@@ -1,8 +1,9 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.names.*;
+import  com.xarql.kdl.antlr4.kdlParser;
 
-public class Literal<Type> implements ToName, StringOutput, CommonNames {
+public class Literal<Type> implements ToName, StringOutput, Resolvable, CommonNames {
 	Type value;
 
 	public Literal(Type value) {
@@ -49,5 +50,27 @@ public class Literal<Type> implements ToName, StringOutput, CommonNames {
 	@Override
 	public InternalObjectName toInternalObjectName() {
 		return toInternalName().toInternalObjectName();
+	}
+
+	@Override
+	public void push(LinedMethodVisitor lmv) {
+		lmv.visitLdcInsn(value);
+	}
+
+	public static Literal<?> parseLiteral(final kdlParser.LiteralContext ctx) {
+		if(ctx.bool() != null)
+			return new Literal<Boolean>(ctx.bool().TRUE() != null);
+		else if(ctx.number() != null)
+			return new Literal<Integer>(Integer.parseInt(ctx.number().toString()));
+		else if(ctx.STRING_LIT() != null)
+			return new Literal<String>(crush(ctx.STRING_LIT().getText()));
+		else {
+			System.err.println(new UnimplementedException(SWITCH_BASETYPE));
+			return null;
+		}
+	}
+
+	public static String crush(final String s) {
+		return s.substring(1, s.length() - 1);
 	}
 }

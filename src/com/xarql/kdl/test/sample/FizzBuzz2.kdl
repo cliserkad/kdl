@@ -1,0 +1,14 @@
+// author: Bryan Johnson
+class FizzBuzz {
+  run {
+    int input : parseInt("3");
+    println(input);
+
+/*
+    if(input % 3 = 0)
+      print("Fizz");
+    if(input % 5 = 0)
+      print("Buzz");
+      */
+  }
+}

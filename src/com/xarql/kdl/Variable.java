@@ -1,19 +1,19 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.names.*;
+import jdk.internal.org.objectweb.asm.Opcodes;
 
-public class Variable implements ToName {
+public class Variable implements Resolvable, CommonNames, Opcodes {
 	public final String             name;
 	public final InternalObjectName type;
 	public final int                localIndex;
+	public final Scope              owner;
 
 	public Variable(final Scope owner, final String name, final InternalObjectName type) {
 		this.name = Text.nonNull(name);
 		this.type = InternalObjectName.checkNonNull(type);
 		this.localIndex = owner.nextIndex();
+		this.owner = owner;
 		owner.addLocalVariable(this);
 	}
 
@@ -54,5 +54,19 @@ public class Variable implements ToName {
 
 	public boolean isArray() {
 		return toInternalObjectName().isArray();
+	}
+
+	@Override
+	public void push(LinedMethodVisitor lmv) throws UnimplementedException {
+		if(type.isBaseType() && type.toBaseType() != STRING) {
+			if(type.toBaseType() == INT)
+				lmv.visitVarInsn(ILOAD, localIndex);
+			else if(type.toBaseType() == BOOLEAN)
+				lmv.visitVarInsn(ILOAD, localIndex);
+			else
+				throw new UnimplementedException(SWITCH_BASETYPE);
+		}
+		else
+			lmv.visitVarInsn(ALOAD, localIndex);
 	}
 }

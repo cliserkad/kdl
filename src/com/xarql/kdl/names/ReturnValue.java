@@ -4,6 +4,7 @@ import com.xarql.kdl.StringOutput;
 
 public class ReturnValue implements StringOutput {
 	public static final ReturnValue BOOLEAN_RETURN = new ReturnValue(InternalName.BOOLEAN_IN);
+	public static final ReturnValue INT_RETURN = new ReturnValue(InternalName.INT_IN);
 
 	public static final ReturnValue VOID_RETURN = new ReturnValue();
 	public static final char        VOID_REP    = 'V';
