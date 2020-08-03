@@ -2,6 +2,8 @@ package com.xarql.kdl;
 
 import com.xarql.kdl.antlr4.kdlLexer;
 import com.xarql.kdl.antlr4.kdlParser;
+import com.xarql.kdl.calculable.Constant;
+import com.xarql.kdl.calculable.Variable;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CustomClass;
 import com.xarql.kdl.names.InternalObjectName;

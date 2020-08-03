@@ -1,10 +1,13 @@
-package com.xarql.kdl;
+package com.xarql.kdl.calculable;
 
+import com.xarql.kdl.LinedMethodVisitor;
+import com.xarql.kdl.StringOutput;
+import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.*;
 import  com.xarql.kdl.antlr4.kdlParser;
 
-public class Literal<Type> implements ToName, StringOutput, Resolvable, CommonNames {
-	Type value;
+public class Literal<Type> extends DefaultResolvable implements StringOutput, CommonNames {
+	public Type value;
 
 	public Literal(Type value) {
 		if(!BaseType.isBaseType(value))
@@ -73,4 +76,5 @@ public class Literal<Type> implements ToName, StringOutput, Resolvable, CommonNa
 	public static String crush(final String s) {
 		return s.substring(1, s.length() - 1);
 	}
+
 }

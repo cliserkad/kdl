@@ -1,10 +1,12 @@
-package com.xarql.kdl;
+package com.xarql.kdl.calculable;
 
+import com.xarql.kdl.BestList;
+import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.names.*;
 
 import static com.xarql.kdl.BestList.list;
 
-public class Constant<Type> implements Resolvable {
+public class Constant<Type> extends DefaultResolvable implements Resolvable {
 	public static final BestList<Class<?>> ACCEPTABLE_TYPES = list(String.class, Integer.class, Boolean.class);
 
 	public final String name;

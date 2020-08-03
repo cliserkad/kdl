@@ -1,5 +1,9 @@
-package com.xarql.kdl;
+package com.xarql.kdl.calculable;
 
+import com.xarql.kdl.LinedMethodVisitor;
+import com.xarql.kdl.Scope;
+import com.xarql.kdl.Text;
+import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.*;
 import org.objectweb.asm.Opcodes;
 
@@ -7,7 +11,7 @@ public class Variable implements Resolvable, CommonNames, Opcodes {
 	public final String             name;
 	public final InternalObjectName type;
 	public final int                localIndex;
-	public final Scope              owner;
+	public final Scope owner;
 
 	public Variable(final Scope owner, final String name, final InternalObjectName type) {
 		this.name = Text.nonNull(name);
@@ -68,5 +72,11 @@ public class Variable implements Resolvable, CommonNames, Opcodes {
 		}
 		else
 			lmv.visitVarInsn(ALOAD, localIndex);
+	}
+
+	@Override
+	public Resolvable calc(LinedMethodVisitor lmv) throws Exception {
+		push(lmv);
+		return this;
 	}
 }

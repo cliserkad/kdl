@@ -1,11 +1,12 @@
-package com.xarql.kdl;
+package com.xarql.kdl.calculable;
 
+import com.xarql.kdl.JavaMethodDef;
+import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
-import com.xarql.kdl.names.ReturnValue;
 
-public class MethodCall implements Resolvable {
+public class MethodCall extends DefaultResolvable {
     public final JavaMethodDef jmd;
 
     public MethodCall(JavaMethodDef javaMethodDef) {

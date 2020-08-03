@@ -1,4 +1,4 @@
-package com.xarql.kdl;
+package com.xarql.kdl.calculable;
 
 public enum Comparator {
 	EQUAL("="), MORE_THAN(">"), LESS_THAN("<"), MORE_OR_EQUAL(">="), LESS_OR_EQUAL("<="), NOT_EQUAL("!="), REF_EQUAL("?"), REF_NOT_EQUAL("!?");

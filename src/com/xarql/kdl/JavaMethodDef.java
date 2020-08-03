@@ -72,7 +72,7 @@ public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
 
 	@Override
 	public String toString() {
-		return stringOutput();
+		return owner + "." + methodName + descriptor();
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
 			if (owner.equals(def.owner) && methodName.equals(def.methodName) && paramTypes.equals(def.paramTypes))
 				return def;
 		}
-		throw new SymbolResolutionException("Couldn't resolve given method with signature " + this);
+		throw new SymbolResolutionException("Couldn't resolve given method " + this);
 	}
 
 	private JavaMethodDef invoke(final int type, final LinedMethodVisitor lmv) {

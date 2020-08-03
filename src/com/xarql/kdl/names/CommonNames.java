@@ -2,8 +2,7 @@ package com.xarql.kdl.names;
 
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.JavaMethodDef;
-import com.xarql.kdl.Operator;
-import com.xarql.kdl.ValueType;
+import com.xarql.kdl.calculable.Operator;
 
 import static com.xarql.kdl.BestList.list;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
@@ -77,14 +76,5 @@ public interface CommonNames {
 	Operator MULTIPLY = Operator.MULTIPLY;
 	Operator DIVIDE   = Operator.DIVIDE;
 	Operator MODULUS  = Operator.MODULUS;
-
-	// ValueType
-	ValueType LITERAL      = ValueType.LITERAL;
-	ValueType CONSTANT     = ValueType.CONSTANT;
-	ValueType VARIABLE     = ValueType.VARIABLE;
-	ValueType STACK        = ValueType.STACK;
-	ValueType POINTER      = ValueType.POINTER;
-	ValueType ARRAY_ACCESS = ValueType.ARRAY_ACCESS;
-	ValueType ARRAY_LENGTH = ValueType.ARRAY_LENGTH;
 
 }

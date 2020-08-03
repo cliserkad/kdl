@@ -1,4 +1,4 @@
-package com.xarql.kdl;
+package com.xarql.kdl.calculable;
 
 public enum Operator {
 	PLUS('+'), MINUS('-'), MULTIPLY('*'), DIVIDE('/'), MODULUS('%');

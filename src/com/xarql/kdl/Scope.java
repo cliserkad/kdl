@@ -1,5 +1,6 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.calculable.Variable;
 import org.objectweb.asm.Label;
 
 public class Scope {

@@ -105,30 +105,30 @@ r_while: WHILE PARAM_OPEN condition PARAM_CLOSE statementSet;
 
 value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
-operatorAssign: operator ASSIGN value;
+expression: value operator value;
+operatorAssign: operator ASSIGN expression;
 
 condition: singleCondition (appender singleCondition)?;
-singleCondition: value (comparator value)?;
+singleCondition: expression (comparator expression)?;
 comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 appender: AND | OR;
 
-variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN value)? STATEMENT_END;
+variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
 variableAssignment: VARNAME assignment STATEMENT_END;
-assignment: (ASSIGN value) | operatorAssign;
+assignment: (ASSIGN expression) | operatorAssign;
 typedVariable: type VARNAME;
-arrayAccess: VARNAME BRACE_OPEN value BRACE_CLOSE;
-
+arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 
 // method calls
 methodCall: VARNAME parameterSet STATEMENT_END;
-parameterSet: PARAM_OPEN (value (SEPARATOR value)*)? PARAM_CLOSE;
+parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
 methodDefinition: methodType type VARNAME parameterDefinition block;
 methodType: (METHOD | FUNCTION)?;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 
-returnStatement: RETURN value STATEMENT_END;
+returnStatement: RETURN expression STATEMENT_END;
 
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;

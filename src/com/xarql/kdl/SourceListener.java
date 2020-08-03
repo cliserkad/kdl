@@ -2,15 +2,13 @@ package com.xarql.kdl;
 
 import com.xarql.kdl.antlr4.kdlBaseListener;
 import com.xarql.kdl.antlr4.kdlParser;
+import com.xarql.kdl.calculable.*;
 import com.xarql.kdl.names.*;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.Text.nonNull;
-import static com.xarql.kdl.names.InternalName.internalName;
-import static java.lang.System.exit;
 
 public class SourceListener extends kdlBaseListener implements Opcodes, CommonNames {
 	public final ClassCreator owner;
@@ -149,10 +147,10 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		final String methodName = ctx.VARNAME().getText();
 
 		BestList<InternalObjectName> params;
-		if(ctx.parameterSet() != null && ctx.parameterSet().value().size() > 0) {
+		if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
 			params = new BestList<InternalObjectName>();
-			for(kdlParser.ValueContext val : ctx.parameterSet().value()) {
-				Resolvable res = Resolvable.parse(this, val);
+			for(kdlParser.ExpressionContext xpr : ctx.parameterSet().expression()) {
+				Resolvable res = Resolvable.parse(this, xpr);
 				params.add(res.toInternalObjectName());
 				res.push(lmv);
 			}

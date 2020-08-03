@@ -1,12 +1,17 @@
-package com.xarql.kdl;
+package com.xarql.kdl.calculable;
 
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.LinedMethodVisitor;
+import com.xarql.kdl.SourceListener;
+import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr4.kdlParser;
 
 /**
- * An interface which represents anything that may be pushed on to the JVM stack
+ * Represents anything that may be pushed on to the JVM stack.
+ * Resolvables are a type of Calculable that do not require any
+ * instructions to be executed after pushing. After the push method
+ * is invoked, only 1 value should be added to the stack.
  */
-public interface Resolvable extends ToName {
+public interface Resolvable extends Calculable {
     /**
      * Push this resolvable on to the JVM stack
      */
