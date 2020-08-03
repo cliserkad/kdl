@@ -12,12 +12,14 @@ public interface Resolvable extends ToName {
      */
     public void push(LinedMethodVisitor lmv) throws Exception;
 
-    public static Resolvable parse(final SourceListener src, final kdlParser.ValueContext val) {
+    public static Resolvable parse(final SourceListener src, final kdlParser.ValueContext val) throws UnimplementedException {
         if(val.literal() != null)
             return Literal.parseLiteral(val.literal());
         else if(val.CONSTNAME() != null)
             return src.owner.getConstant(val.CONSTNAME().getText());
+        else if(val.VARNAME() != null)
+            return src.owner.getLocalVariable(val.VARNAME().getText());
         else
-            return null;
+            throw new UnimplementedException("a type of Resolvable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
     }
 }

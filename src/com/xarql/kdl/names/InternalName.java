@@ -10,6 +10,9 @@ public class InternalName implements StringOutput, ToName, CommonNames {
 	public static final InternalName BOOLEAN_IN = new InternalName(BaseType.BOOLEAN);
 	public static final InternalName STRING_IN  = new InternalName(BaseType.STRING);
 
+	public static final InternalName INT_WRAPPER     = new InternalName(Integer.class);
+	public static final InternalName BOOLEAN_WRAPPER = new InternalName(Boolean.class);
+
 	public final Class<?> clazz;
 	public final BaseType base;
 	public final String   qualifiedName;
@@ -33,25 +36,21 @@ public class InternalName implements StringOutput, ToName, CommonNames {
 	}
 
 	public static InternalName internalName(Class<?> c) {
-		try {
-			if(BaseType.matchClass(c) != null) {
-				switch(BaseType.matchClass(c)) {
-					case INT:
-						return INT_IN;
-					case BOOLEAN:
-						return BOOLEAN_IN;
-					case STRING:
-						return STRING_IN;
-					default:
-						throw new UnimplementedException(SWITCH_BASETYPE);
-				}
+		if(BaseType.matchClass(c) != null) {
+			switch(BaseType.matchClass(c)) {
+				case INT:
+					return INT_IN;
+				case BOOLEAN:
+					return BOOLEAN_IN;
+				case STRING:
+					return STRING_IN;
+				default:
+					new UnimplementedException(SWITCH_BASETYPE).printStackTrace();
+					return BOOLEAN_IN;
 			}
-			else
-				return new InternalName(c);
-		} catch(UnimplementedException ue) {
-			SourceListener.standardHandle(ue);
-			return null;
 		}
+		else
+			return new InternalName(c);
 	}
 
 	public static InternalName match(BaseType base) {

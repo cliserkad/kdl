@@ -70,6 +70,10 @@ public class ClassCreator implements Opcodes {
 		methods.add(md);
 	}
 
+	public BestList<JavaMethodDef> getMethods() {
+		return methods;
+	}
+
 	public boolean hasConstant(final String name) {
 		for(Constant c : constants) {
 			if(c.name.equals(name))

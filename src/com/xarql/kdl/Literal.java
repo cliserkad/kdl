@@ -32,7 +32,7 @@ public class Literal<Type> implements ToName, StringOutput, Resolvable, CommonNa
 			case STRING:
 				return (String) value;
 			default:
-				SourceListener.standardHandle(new UnimplementedException(SWITCH_BASETYPE));
+				new UnimplementedException(SWITCH_BASETYPE).printStackTrace();
 				return null;
 		}
 	}
@@ -61,7 +61,7 @@ public class Literal<Type> implements ToName, StringOutput, Resolvable, CommonNa
 		if(ctx.bool() != null)
 			return new Literal<Boolean>(ctx.bool().TRUE() != null);
 		else if(ctx.number() != null)
-			return new Literal<Integer>(Integer.parseInt(ctx.number().toString()));
+			return new Literal<Integer>(Integer.parseInt(ctx.number().getText()));
 		else if(ctx.STRING_LIT() != null)
 			return new Literal<String>(crush(ctx.STRING_LIT().getText()));
 		else {

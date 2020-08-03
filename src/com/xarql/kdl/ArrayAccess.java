@@ -4,7 +4,7 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
-import jdk.internal.org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Opcodes;
 
 public class ArrayAccess implements Resolvable, CommonNames, Opcodes {
 	public final Variable   array;

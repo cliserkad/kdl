@@ -6,6 +6,9 @@ import com.xarql.kdl.names.CommonNames;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 
+import static com.xarql.kdl.ExternalMethodRouter.ERROR_MTD;
+import static com.xarql.kdl.ExternalMethodRouter.PRINT_MTD;
+
 public class ConditionalHandler implements CommonNames, Opcodes {
 	private final SourceListener owner;
 
@@ -13,21 +16,19 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 		this.owner = owner;
 	}
 
-	private kdlParser.ConditionContext conditionContextof(kdlParser.ConditionalContext ctx) {
+	private kdlParser.ConditionContext conditionContextof(kdlParser.ConditionalContext ctx) throws UnimplementedException {
 		if(ctx.r_if() != null)
 			return ctx.r_if().condition();
 		else if(ctx.r_while() != null)
 			return ctx.r_while().condition();
 		else if(ctx.assertion() != null)
 			return ctx.assertion().condition();
-		else {
-			SourceListener.standardHandle(new UnimplementedException("Retrieving a conditional's condition failed"));
-			return null;
-		}
+		else
+			throw new UnimplementedException("Retrieving a conditional's condition failed");
 	}
 
 	// route a certain condition to the conditional's flow
-	private void handleSingleCondition(kdlParser.SingleConditionContext ctx, ConditionalLabelSet cls, LinedMethodVisitor lmv, boolean positive) {
+	private void handleSingleCondition(kdlParser.SingleConditionContext ctx, ConditionalLabelSet cls, LinedMethodVisitor lmv, boolean positive) throws Exception {
 		final BaseType aType = Resolvable.parse(owner, ctx.value(0)).toBaseType();
 		// if the condition has two values
 		if(ctx.value(1) != null) { // if there are two values
@@ -36,14 +37,14 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 
 			// check type compatibility
 			if(aType != bType)
-				SourceListener.standardHandle(new IncompatibleTypeException("The type " + aType + " is not compatible with " + bType));
+				throw new IncompatibleTypeException("The type " + aType + " is not compatible with " + bType);
 
 			if(aType == BOOLEAN)
 				testBooleans(lmv, cls, cmp, positive);
 			else if(aType == INT)
 				testIntegers(lmv, cls, cmp, positive);
 			else
-				SourceListener.standardHandle(new UnimplementedException("Conditions are not complete"));
+				throw new UnimplementedException("Conditions are not complete");
 		}
 		else if(true) {
 			switch(aType) {
@@ -60,7 +61,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 			}
 		}
 		else
-			SourceListener.standardHandle(new IncompatibleTypeException("Don't know how to handle a ref type without a comparator"));
+			throw new IncompatibleTypeException("Don't know how to handle a ref type without a comparator");
 	}
 
 	public void handle(kdlParser.ConditionalContext ctx, LinedMethodVisitor lmv) throws Exception {
@@ -99,7 +100,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 			// label and write out instructions for printing a constant when the assertion passes
 			if(owner.owner.hasConstant("ASSERTION_PASS")) {
 				owner.owner.getConstant("ASSERTION_PASS").push(lmv);
-				ExternalMethodRouter.writeMethod(PRINT, lmv);
+				PRINT_MTD.withOwner(owner.owner).invokeSpecial(lmv);
 			}
 			lmv.visitJumpInsn(GOTO, cls.exit); // jump over the false instructions
 
@@ -113,7 +114,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 				msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
 			new Literal(msg).push(lmv);
 			// print the text of the assertion condition to the error stream
-			ExternalMethodRouter.writeMethod(ERROR, lmv);
+			ERROR_MTD.withOwner(owner.owner).invokeSpecial(lmv);
 
 			lmv.visitLabel(cls.exit);
 		}
@@ -130,7 +131,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 			lmv.visitLabel(cls.exit);
 		}
 		else
-			SourceListener.standardHandle(new UnimplementedException("A type of conditional"));
+			throw new UnimplementedException("A type of conditional");
 	}
 
 	/**
@@ -157,7 +158,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 			lmv.visitJumpInsn(IFNE, cls.onFalse); // if the string is empty, then skip to false clause
 	}
 
-	private static void testBooleans(LinedMethodVisitor lmv, ConditionalLabelSet cls, Comparator cmp, boolean positive) {
+	private static void testBooleans(LinedMethodVisitor lmv, ConditionalLabelSet cls, Comparator cmp, boolean positive) throws Exception {
 		switch(cmp) {
 			case EQUAL:
 				if(positive)
@@ -172,11 +173,11 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 					lmv.visitJumpInsn(IF_ICMPEQ, cls.onFalse);
 				break;
 			default:
-				SourceListener.standardHandle(new IncompatibleTypeException("Two booleans may not be compared with " + cmp));
+				throw new IncompatibleTypeException("Two booleans may not be compared with " + cmp);
 		}
 	}
 
-	private static void testIntegers(LinedMethodVisitor lmv, ConditionalLabelSet cls, Comparator cmp, boolean positive) {
+	private static void testIntegers(LinedMethodVisitor lmv, ConditionalLabelSet cls, Comparator cmp, boolean positive) throws Exception {
 		switch(cmp) {
 			case EQUAL:
 				if(positive)
@@ -215,7 +216,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 					lmv.visitJumpInsn(IF_ICMPGT, cls.onFalse);
 				break;
 			default:
-				SourceListener.standardHandle(new IncompatibleTypeException("Two ints may not be compared with " + cmp));
+				throw new IncompatibleTypeException("Two ints may not be compared with " + cmp);
 		}
 	}
 

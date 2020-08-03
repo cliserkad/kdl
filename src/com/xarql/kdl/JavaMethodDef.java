@@ -88,6 +88,18 @@ public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
 			return false;
 	}
 
+	public JavaMethodDef resolve(SourceListener src) throws SymbolResolutionException {
+		return resolveAgainst(src.owner.getMethods());
+	}
+
+	public JavaMethodDef resolveAgainst(BestList<JavaMethodDef> methods) throws SymbolResolutionException {
+		for(JavaMethodDef def : methods) {
+			if (owner.equals(def.owner) && methodName.equals(def.methodName) && paramTypes.equals(def.paramTypes))
+				return def;
+		}
+		throw new SymbolResolutionException("Couldn't resolve given method with signature " + this);
+	}
+
 	private JavaMethodDef invoke(final int type, final LinedMethodVisitor lmv) {
 		lmv.visitMethodInsn(type, owner.stringOutput(), methodName, descriptor(), false);
 		return this;
@@ -101,5 +113,13 @@ public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
 		return invoke(INVOKEVIRTUAL, lmv);
 	}
 
+	/**
+	 * Invoke instance method on whatever "this" references
+	 * @param lmv
+	 * @return
+	 */
+	public JavaMethodDef invokeSpecial(LinedMethodVisitor lmv) {
+		return invoke(INVOKESPECIAL, lmv);
+	}
 
 }

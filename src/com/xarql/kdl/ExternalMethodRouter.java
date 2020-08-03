@@ -14,8 +14,8 @@ import static com.xarql.kdl.names.InternalName.internalName;
 public class ExternalMethodRouter implements Opcodes, CommonNames {
 	public static final JavaMethodDef PRINTLN_MTD = new JavaMethodDef(internalName(PrintStream.class), PRINTLN, list(STRING_ION), VOID, ACC_PRIVATE + ACC_STATIC);
 	public static final JavaMethodDef PRINT_MTD   = new JavaMethodDef(internalName(PrintStream.class), PRINT, list(STRING_ION), VOID, ACC_PRIVATE + ACC_STATIC);
-	public static final JavaMethodDef ERROR_MTD   = new JavaMethodDef(internalName(PrintStream.class), PRINT, list(STRING_ION), VOID, ACC_PRIVATE + ACC_STATIC);
-	public static final JavaMethodDef PARSE_INT_MTD = new JavaMethodDef(internalName(Integer.class), "parseInt", list(STRING_ION), INT_RV, ACC_PRIVATE + ACC_STATIC);
+	public static final JavaMethodDef ERROR_MTD   = new JavaMethodDef(internalName(PrintStream.class), ERROR, list(STRING_ION), VOID, ACC_PRIVATE + ACC_STATIC);
+	public static final JavaMethodDef PARSE_INT_MTD = new JavaMethodDef(INT_WRAPPER, "parseInt", list(STRING_ION), INT_RV, ACC_PRIVATE + ACC_STATIC);
 
 	public static void writeMethods(final ClassCreator owner) {
 		LinedMethodVisitor lmv;

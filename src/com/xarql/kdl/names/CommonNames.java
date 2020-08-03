@@ -6,7 +6,6 @@ import com.xarql.kdl.Operator;
 import com.xarql.kdl.ValueType;
 
 import static com.xarql.kdl.BestList.list;
-import static com.xarql.kdl.names.InternalName.internalName;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
 public interface CommonNames {
@@ -32,7 +31,7 @@ public interface CommonNames {
 	String                       EMPTY_STRING = "";
 
 	// StringBuilder
-	InternalName       STRING_BUILDER_IN    = internalName(StringBuilder.class);
+	InternalName       STRING_BUILDER_IN    = InternalName.internalName(StringBuilder.class);
 	String             STRING_BUILDER_IN_S  = STRING_BUILDER_IN.stringOutput();
 	InternalObjectName STRING_BUILDER_ION   = STRING_BUILDER_IN.toInternalObjectName();
 	String             STRING_BUILDER_ION_S = STRING_BUILDER_ION.stringOutput();
@@ -60,6 +59,10 @@ public interface CommonNames {
 	BaseType     STRING     = BaseType.STRING;
 	InternalName INT_IN     = InternalName.INT_IN;
 	InternalName BOOLEAN_IN = InternalName.BOOLEAN_IN;
+
+	// java language wrappers that house functions for their respective primitives
+	InternalName INT_WRAPPER     = InternalName.INT_WRAPPER;
+	InternalName BOOLEAN_WRAPPER = InternalName.BOOLEAN_WRAPPER;
 
 	// Error messages
 	String SWITCH_OPERAOTR  = "switch on Operator";

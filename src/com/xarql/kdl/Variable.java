@@ -1,7 +1,7 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.names.*;
-import jdk.internal.org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Opcodes;
 
 public class Variable implements Resolvable, CommonNames, Opcodes {
 	public final String             name;

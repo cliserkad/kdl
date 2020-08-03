@@ -120,8 +120,8 @@ arrayAccess: VARNAME BRACE_OPEN value BRACE_CLOSE;
 
 
 // method calls
-methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet STATEMENT_END;
-parameterSet: PARAM_OPEN value? (SEPARATOR value)* PARAM_CLOSE;
+methodCall: VARNAME parameterSet STATEMENT_END;
+parameterSet: PARAM_OPEN (value (SEPARATOR value)*)? PARAM_CLOSE;
 
 // method definitions
 methodDefinition: methodType type VARNAME parameterDefinition block;

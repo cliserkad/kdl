@@ -31,24 +31,6 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		cmpHandler = new ConditionalHandler(this);
 	}
 
-	public static void standardHandle(Exception e) {
-		e.printStackTrace();
-		if(e instanceof Exception)
-			exit(1);
-		else if(e instanceof NullPointerException)
-			exit(2);
-		else if(e instanceof IllegalArgumentException)
-			exit(3);
-		else if(e instanceof IllegalStateException)
-			exit(4);
-		else if(e instanceof TokenNotFoundException)
-			exit(5);
-		else if(e instanceof IncompatibleTypeException)
-			exit(6);
-		else if(e instanceof UnimplementedException)
-			exit(7);
-	}
-
 	private static NameAndType parseTypedVariable(kdlParser.TypedVariableContext ctx) {
 		String name = ctx.VARNAME().toString();
 
@@ -157,20 +139,56 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 				throw new IllegalArgumentException("The const named " + name + " was taken by another const with value " + owner.getConstant(name).value);
 		}
 		else if(getPass() == 2) {
-			String name = constantNames.get(0);
-			Literal lit = Literal.parseLiteral(ctx.literal());
-			owner.addConstant(new Constant(name, lit));
+			final String name = constantNames.get(0);
+			final Literal lit = Literal.parseLiteral(ctx.literal());
+			owner.addConstant(new Constant(name, lit.value));
 		}
 	}
 
-	public void consumeStatementSet(final kdlParser.StatementSetContext ctx, LinedMethodVisitor lmv) {
+	private void consumeMethodCall(kdlParser.MethodCallContext ctx, LinedMethodVisitor lmv) throws Exception {
+		final String methodName = ctx.VARNAME().getText();
+
+		BestList<InternalObjectName> params;
+		if(ctx.parameterSet() != null && ctx.parameterSet().value().size() > 0) {
+			params = new BestList<InternalObjectName>();
+			for(kdlParser.ValueContext val : ctx.parameterSet().value()) {
+				Resolvable res = Resolvable.parse(this, val);
+				params.add(res.toInternalObjectName());
+				res.push(lmv);
+			}
+		}
+		else
+			params = null;
+
+		JavaMethodDef known = new JavaMethodDef(new InternalName(owner), methodName, params, null, ACC_PUBLIC + ACC_STATIC);
+		known = known.resolve(this);
+		known.invokeStatic(lmv);
+	}
+
+	public void consumeStatementSet(final kdlParser.StatementSetContext ctx, LinedMethodVisitor lmv) throws Exception {
 		if(ctx.statement() != null)
 			consumeStatement(ctx.statement(), lmv);
 		else
 			consumeBlock(ctx.block(), lmv);
 	}
 
-	private void consumeStatement(final kdlParser.StatementContext ctx, LinedMethodVisitor lmv) {
+	private void consumeVariableDeclaration(kdlParser.VariableDeclarationContext ctx, LinedMethodVisitor lmv) throws Exception {
+		NameAndType details = parseTypedVariable(ctx.typedVariable());
+		Variable var = new Variable(owner.currentScope, details.name, details.type.toInternalObjectName());
+
+		if(ctx.ASSIGN() != null)
+			store(Resolvable.parse(this, ctx.value()), var, lmv);
+		else
+			storeDefault(var, lmv);
+	}
+
+	private void consumeVariableAssignment(kdlParser.VariableAssignmentContext ctx, LinedMethodVisitor lmv) throws Exception {
+		Variable target = owner.getLocalVariable(ctx.VARNAME().getText());
+		Resolvable val = Resolvable.parse(this, ctx.assignment().value());
+		store(val, target, lmv);
+	}
+
+	private void consumeStatement(final kdlParser.StatementContext ctx, LinedMethodVisitor lmv) throws Exception {
 		if(ctx.variableDeclaration() != null) {
 			consumeVariableDeclaration(ctx.variableDeclaration(), lmv);
 		}
@@ -185,18 +203,17 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			cmpHandler.handle(ctx.conditional(), lmv);
 		}
 		else
-			standardHandle(new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText()));
+			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
 	}
 
 	private void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) {
-		for(kdlParser.StatementContext statement : ctx.statement())
-			consumeStatement(statement, lmv);
-	}
-
-	private void dumpShortcuts(final kdlParser.ClazzContext ctx) {
-		JavaMethodDef print = new JavaMethodDef(new InternalName(owner), PRINT, list(STRING_ION), VOID, ACC_PRIVATE);
-
-
+		try {
+			for (kdlParser.StatementContext statement : ctx.statement())
+				consumeStatement(statement, lmv);
+		} catch(Exception e) {
+			e.printStackTrace();
+			return;
+		}
 	}
 
 	@Override
@@ -205,6 +222,8 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 			owner.addMethodDef(JavaMethodDef.MAIN.withOwner(owner));
 		}
 		else if(getPass() == 3) {
+			ExternalMethodRouter.writeMethods(owner);
+
 			final LinedMethodVisitor lmv = owner.defineMethod(JavaMethodDef.MAIN, ctx.start.getLine() + 1);
 			new Variable(owner.currentScope, "args", new InternalObjectName(String.class, 1));
 			Label methodStart = new Label();
@@ -221,8 +240,6 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 				lmv.visitLocalVariable(lv.name, lv.type.toString(), null, methodStart, methodEnd, lv.localIndex);
 			lmv.visitMaxs(0, 0);
 			lmv.visitEnd();
-
-			ExternalMethodRouter.writeMethods(owner);
 		}
 	}
 
