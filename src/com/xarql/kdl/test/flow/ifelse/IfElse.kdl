@@ -3,7 +3,6 @@ class IfElse {
   const GOOD : "hello from IfElse";
   const FAIL : "This message should not have appeared";
 
-
   run {
     if(true) {
       println(GOOD);

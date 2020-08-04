@@ -30,11 +30,16 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 
 	// route a certain condition to the conditional's flow
 	private void handleSingleCondition(kdlParser.SingleConditionContext ctx, ConditionalLabelSet cls, LinedMethodVisitor lmv, boolean positive) throws Exception {
-		final BaseType aType = Resolvable.parse(owner, ctx.value(0)).toBaseType();
+		Resolvable val1 = Resolvable.parse(owner, ctx.expression(0).value(0));
+		val1.push(lmv);
+		final BaseType aType = val1.toBaseType();
 		// if the condition has two values
-		if(ctx.value(1) != null) { // if there are two values
+		if(ctx.expression(1) != null) { // if there are two values
 			final Comparator cmp = Comparator.match(ctx.comparator().getText());
-			final BaseType bType = Resolvable.parse(owner, ctx.value(1)).toBaseType();
+
+			Resolvable val2 = Resolvable.parse(owner, ctx.expression(1).value(0));
+			val2.push(lmv);
+			final BaseType bType = val2.toBaseType();
 
 			// check type compatibility
 			if(aType != bType)

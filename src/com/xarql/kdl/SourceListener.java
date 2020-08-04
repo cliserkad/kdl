@@ -137,7 +137,9 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 				throw new IllegalArgumentException("The const named " + name + " was taken by another const with value " + owner.getConstant(name).value);
 		}
 		else if(getPass() == 2) {
-			final String name = constantNames.get(0);
+			final String name = ctx.CONSTNAME().getText();
+			if(!constantNames.contains(name))
+				throw new IllegalArgumentException("The const named " + name + " was not registered in the first pass.");
 			final Literal lit = Literal.parseLiteral(ctx.literal());
 			owner.addConstant(new Constant(name, lit.value));
 		}
@@ -150,7 +152,7 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
 			params = new BestList<InternalObjectName>();
 			for(kdlParser.ExpressionContext xpr : ctx.parameterSet().expression()) {
-				Resolvable res = Resolvable.parse(this, xpr);
+				Resolvable res = Resolvable.parse(this, xpr.value(0));
 				params.add(res.toInternalObjectName());
 				res.push(lmv);
 			}
@@ -175,14 +177,14 @@ public class SourceListener extends kdlBaseListener implements Opcodes, CommonNa
 		Variable var = new Variable(owner.currentScope, details.name, details.type.toInternalObjectName());
 
 		if(ctx.ASSIGN() != null)
-			store(Resolvable.parse(this, ctx.value()), var, lmv);
+			store(Resolvable.parse(this, ctx.expression().value(0)), var, lmv);
 		else
 			storeDefault(var, lmv);
 	}
 
 	private void consumeVariableAssignment(kdlParser.VariableAssignmentContext ctx, LinedMethodVisitor lmv) throws Exception {
 		Variable target = owner.getLocalVariable(ctx.VARNAME().getText());
-		Resolvable val = Resolvable.parse(this, ctx.assignment().value());
+		Resolvable val = Resolvable.parse(this, ctx.assignment().expression().value(0));
 		store(val, target, lmv);
 	}
 

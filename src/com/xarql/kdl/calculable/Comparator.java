@@ -14,9 +14,13 @@ public enum Comparator {
 	}
 
 	public static Comparator match(String rep) {
-		for(Comparator c : values())
-			if(rep.equals(c.rep))
-				return c;
-		return null;
+		if(rep == null)
+			return null;
+		else {
+			for (Comparator c : values())
+				if (rep.equals(c.rep))
+					return c;
+			return null;
+		}
 	}
 }

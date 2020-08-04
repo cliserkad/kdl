@@ -3,7 +3,6 @@ package com.xarql.kdl.calculable;
 import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.SourceListener;
 import com.xarql.kdl.UnimplementedException;
-import com.xarql.kdl.antlr4.kdlParser;
 
 /**
  * Represents anything that may be pushed on to the JVM stack.
@@ -17,7 +16,7 @@ public interface Resolvable extends Calculable {
      */
     public void push(LinedMethodVisitor lmv) throws Exception;
 
-    public static Resolvable parse(final SourceListener src, final kdlParser.ValueContext val) throws UnimplementedException {
+    public static Resolvable parse(final SourceListener src, final com.xarql.kdl.antlr4.kdlParser.ValueContext val) throws UnimplementedException {
         if(val.literal() != null)
             return Literal.parseLiteral(val.literal());
         else if(val.CONSTNAME() != null)

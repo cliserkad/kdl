@@ -105,7 +105,7 @@ r_while: WHILE PARAM_OPEN condition PARAM_CLOSE statementSet;
 
 value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
-expression: value operator value;
+expression: value (operator value)?;
 operatorAssign: operator ASSIGN expression;
 
 condition: singleCondition (appender singleCondition)?;

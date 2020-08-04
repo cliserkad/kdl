@@ -22,6 +22,7 @@ import static com.xarql.kdl.names.InternalName.internalName;
 public class ClassCreator implements Opcodes {
 	public static final int                     CONST       = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
 	public static final File                    DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/test");
+
 	public final        BestList<Constant>      constants;
 	// set in constructor
 	private final       File                    input;
@@ -30,7 +31,7 @@ public class ClassCreator implements Opcodes {
 	private final       BestList<JavaMethodDef> methods;
 	public              Scope                   currentScope;
 	private             SourceListener          sl;
-	private             CustomClass             clazz;
+	private             CustomClass clazz;
 	private             boolean                 nameSet;
 
 	public ClassCreator(final File input) {
@@ -162,13 +163,6 @@ public class ClassCreator implements Opcodes {
 		}
 		else
 			throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
-	}
-
-	public Import resolveClassName(String className) {
-		for(Import imp : imports)
-			if(imp.className.equals(className))
-				return imp;
-		return null;
 	}
 
 	public void addImport(final Import imp) {
