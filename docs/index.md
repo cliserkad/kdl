@@ -19,3 +19,7 @@ This repository uses the [MIT License](https://cliserkad.github.io/kdl/license).
 
 ### Changing Source Directory
 Edit the `DEFAULT_LOC` variable in `ClassCreator` to specify the directory that your `.kdl` files are in.
+
+### Further Reading
+- [Positive & Negative Checks](https://cliserkad.github.io/kdl/positive-and-negative-checks)
+- [Resolvable & Calculable](https://cliserkad.github.io/kdl/resolvable-and-calculable)
