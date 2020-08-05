@@ -66,29 +66,47 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 	@Override
 	public void run() {
 		try {
+			// load source code
+			if (sourceCode == null)
+				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 			compile();
 			write();
-		} catch (IOException e) {
+			System.out.println("Compiled " + clazz.name);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	public CompilationUnit compile() throws IOException {
-		// load source code
-		if(sourceCode == null)
-			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
-		final com.xarql.kdl.antlr4.kdlLexer lex = new com.xarql.kdl.antlr4.kdlLexer(CharStreams.fromString(sourceCode));
-		final CommonTokenStream tokens = new CommonTokenStream(lex);
-		final kdlParser parser = new kdlParser(tokens);
-		final ParseTree tree = parser.source();
-		newPass();
-		ParseTreeWalker.DEFAULT.walk(this, tree);
-		newPass();
-		ParseTreeWalker.DEFAULT.walk(this, tree);
-		newPass();
-		ParseTreeWalker.DEFAULT.walk(this, tree);
-		cw.visitEnd();
+		try {
+			final ParseTree tree = makeParseTree(sourceCode);
+			newPass();
+			ParseTreeWalker.DEFAULT.walk(this, tree);
+			newPass();
+			ParseTreeWalker.DEFAULT.walk(this, tree);
+			newPass();
+			ParseTreeWalker.DEFAULT.walk(this, tree);
+			cw.visitEnd();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return this;
+	}
+
+	private static ParseTree makeParseTree(String input) {
+		final com.xarql.kdl.antlr4.kdlLexer lex = new com.xarql.kdl.antlr4.kdlLexer(CharStreams.fromString(input));
+		lex.removeErrorListeners();
+		lex.addErrorListener(SyntaxErrorHandler.DEFAULT_INSTANCE);
+
+		final CommonTokenStream tokens = new CommonTokenStream(lex);
+
+		final kdlParser parser = new kdlParser(tokens);
+		parser.removeErrorListeners();
+		parser.addErrorListener(SyntaxErrorHandler.DEFAULT_INSTANCE);
+
+		final ParseTree tree = parser.source();
+
+		return tree;
 	}
 
 	public CompilationUnit write(Path destination) throws IOException {
@@ -280,14 +298,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
 	}
 
-	private void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) throws InterruptedException {
-		try {
-			for (kdlParser.StatementContext statement : ctx.statement())
-				consumeStatement(statement, lmv);
-		} catch(Exception e) {
-			e.printStackTrace();
-			throw new InterruptedException();
-		}
+	private void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) throws Exception {
+		for (kdlParser.StatementContext statement : ctx.statement())
+			consumeStatement(statement, lmv);
 	}
 
 	@Override
@@ -303,8 +316,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 			Label methodStart = new Label();
 			try {
 				consumeBlock(ctx.block(), lmv);
-			} catch (InterruptedException e) {
-				System.err.println("Encountered an error while compiling and the thread was interrupted. class: " + getClazz().name);
+			} catch (Exception e) {
+				e.printStackTrace();
 				return;
 			}
 

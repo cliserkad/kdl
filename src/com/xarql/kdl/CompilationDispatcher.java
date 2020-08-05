@@ -2,9 +2,15 @@ package com.xarql.kdl;
 
 import org.objectweb.asm.*;
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class CompilationDispatcher implements Opcodes {
-	public static final File DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/test");
+	// location of source directory
+	public static final File    DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/test");
+	// whether or not to print some extra messages
+	public static final boolean VERBOSE     = false;
 
 	private final File input;
 
@@ -13,28 +19,28 @@ public class CompilationDispatcher implements Opcodes {
 	}
 
 	public static void main(String[] args) {
-		new CompilationDispatcher(DEFAULT_LOC).compileAll(Boolean.parseBoolean(args[0]));
-		System.out.println("Done!");
+		new CompilationDispatcher(DEFAULT_LOC).compileAll();
 	}
 
-	public void compileAll(boolean verbose) {
-		dispatch(input, verbose);
+	public void compileAll() {
+		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<CompilationUnit>(), VERBOSE))
+			unit.run();
 	}
 
-	private static void dispatch(File f, boolean verbose) {
+	private static BestList<CompilationUnit> registerCompilationUnits(File f, BestList<CompilationUnit> units, boolean verbose) {
 		if(f.isDirectory()) {
 			for(File sub : f.listFiles()) {
-				dispatch(sub, verbose);
+				registerCompilationUnits(sub, units, verbose);
 			}
 		}
 		else if(f.getName().endsWith(".kdl")) {
-			System.out.println("Compiling " + f.getName());
-			Thread compileThread = new Thread(new CompilationUnit(f));
-			compileThread.start();
+			if(verbose)
+				System.out.println("Registered " + f.getName());
+			units.add(new CompilationUnit(f));
 		}
-		else if(verbose) {
+		else if(verbose)
 			System.out.println("Skipping file " + f.getName());
-		}
+		return units;
 	}
 
 }
