@@ -1,7 +1,7 @@
 package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.LinedMethodVisitor;
-import com.xarql.kdl.SourceListener;
+import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.UnimplementedException;
 
 /**
@@ -16,13 +16,15 @@ public interface Resolvable extends Calculable {
      */
     public void push(LinedMethodVisitor lmv) throws Exception;
 
-    public static Resolvable parse(final SourceListener src, final com.xarql.kdl.antlr4.kdlParser.ValueContext val) throws UnimplementedException {
+    public static Resolvable parse(final CompilationUnit unit, final com.xarql.kdl.antlr4.kdlParser.ValueContext val) throws UnimplementedException {
         if(val.literal() != null)
             return Literal.parseLiteral(val.literal());
         else if(val.CONSTNAME() != null)
-            return src.owner.getConstant(val.CONSTNAME().getText());
+            return unit.getConstant(val.CONSTNAME().getText());
         else if(val.VARNAME() != null)
-            return src.owner.getLocalVariable(val.VARNAME().getText());
+            return unit.getLocalVariable(val.VARNAME().getText());
+        else if(val.arrayAccess() != null)
+            return new ArrayAccess(unit.getLocalVariable(val.VARNAME().getText()), parse(unit, val.arrayAccess().expression().value(0)));
         else
             throw new UnimplementedException("a type of Resolvable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
     }

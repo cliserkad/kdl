@@ -7,30 +7,25 @@ public class Scope {
 	public final  String             name;
 	private final BestList<Variable> variables;
 
-	private Label start;
+	private final Label start;
 	private Label end;
 
-	public Scope(String name, Label start) {
+	public Scope(final String name, final Label start) {
 		this.name = name;
 		variables = new BestList<>();
+		this.start = start;
+	}
+
+	public Scope(final String name) {
+		this(name, new Label());
 	}
 
 	public Label getEnd() {
 		return end;
 	}
 
-	public void setEnd(Label end) {
-		if(this.end == null)
-			this.end = end;
-	}
-
 	public Label getStart() {
 		return start;
-	}
-
-	public void setStart(Label start) {
-		if(this.start == null)
-			this.start = start;
 	}
 
 	public Variable addLocalVariable(Variable lv) {
@@ -43,7 +38,7 @@ public class Scope {
 		for(Variable lv : variables)
 			if(lv.name.equals(name))
 				return lv;
-		throw new IllegalArgumentException("The variable with name " + name + " does not exist in current scope");
+		throw new IllegalArgumentException("The variable with name " + name + " does not exist in " + this);
 	}
 
 	public int nextIndex() {

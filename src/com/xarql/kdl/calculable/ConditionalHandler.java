@@ -1,6 +1,7 @@
 package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.*;
+import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.antlr4.kdlParser;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
@@ -11,9 +12,9 @@ import static com.xarql.kdl.ExternalMethodRouter.ERROR_MTD;
 import static com.xarql.kdl.ExternalMethodRouter.PRINT_MTD;
 
 public class ConditionalHandler implements CommonNames, Opcodes {
-	private final SourceListener owner;
+	private final CompilationUnit owner;
 
-	public ConditionalHandler(SourceListener owner) {
+	public ConditionalHandler(CompilationUnit owner) {
 		this.owner = owner;
 	}
 
@@ -104,9 +105,9 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 		}
 		else if(ctx.assertion() != null) {
 			// label and write out instructions for printing a constant when the assertion passes
-			if(owner.owner.hasConstant("ASSERTION_PASS")) {
-				owner.owner.getConstant("ASSERTION_PASS").push(lmv);
-				PRINT_MTD.withOwner(owner.owner).invokeSpecial(lmv);
+			if(owner.hasConstant("ASSERTION_PASS")) {
+				owner.getConstant("ASSERTION_PASS").push(lmv);
+				PRINT_MTD.withOwner(owner.getClazz()).invokeSpecial(lmv);
 			}
 			lmv.visitJumpInsn(GOTO, cls.exit); // jump over the false instructions
 
@@ -120,7 +121,7 @@ public class ConditionalHandler implements CommonNames, Opcodes {
 				msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
 			new Literal(msg).push(lmv);
 			// print the text of the assertion condition to the error stream
-			ERROR_MTD.withOwner(owner.owner).invokeSpecial(lmv);
+			ERROR_MTD.withOwner(owner.getClazz()).invokeSpecial(lmv);
 
 			lmv.visitLabel(cls.exit);
 		}

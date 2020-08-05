@@ -1,7 +1,7 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.ClassCreator;
-import com.xarql.kdl.SourceListener;
+import com.xarql.kdl.CompilationDispatcher;
+import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.UnimplementedException;
 
@@ -29,8 +29,8 @@ public class InternalName implements StringOutput, ToName, CommonNames {
 		qualifiedName = null;
 	}
 
-	public InternalName(ClassCreator cc) {
-		this.qualifiedName = cc.getClazz().internalNameString();
+	public InternalName(CustomClass cc) {
+		this.qualifiedName = cc.internalNameString();
 		clazz = null;
 		base = null;
 	}

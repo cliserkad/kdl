@@ -1,9 +1,6 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.CommonNames;
-import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
-import com.xarql.kdl.names.ReturnValue;
+import com.xarql.kdl.names.*;
 import org.objectweb.asm.Opcodes;
 
 import java.util.List;
@@ -32,7 +29,7 @@ public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
 		this.access = access;
 	}
 
-	public JavaMethodDef withOwner(ClassCreator cc) {
+	public JavaMethodDef withOwner(CustomClass cc) {
 		return new JavaMethodDef(new InternalName(cc), methodName, paramTypes, returnValue, access);
 	}
 
@@ -88,8 +85,8 @@ public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
 			return false;
 	}
 
-	public JavaMethodDef resolve(SourceListener src) throws SymbolResolutionException {
-		return resolveAgainst(src.owner.getMethods());
+	public JavaMethodDef resolve(CompilationUnit src) throws SymbolResolutionException {
+		return resolveAgainst(src.getMethods());
 	}
 
 	public JavaMethodDef resolveAgainst(BestList<JavaMethodDef> methods) throws SymbolResolutionException {
