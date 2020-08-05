@@ -10,7 +10,7 @@ import org.objectweb.asm.Opcodes;
 /**
  * Represents the access of an array's length.
  */
-public class ArrayLength extends DefaultResolvable implements CommonNames, Opcodes {
+public class ArrayLength extends DefaultResolvable implements CommonNames {
     public final Variable array;
 
     public ArrayLength(final Variable array) {

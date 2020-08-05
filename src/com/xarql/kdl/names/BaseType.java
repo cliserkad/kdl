@@ -5,7 +5,7 @@ import com.xarql.kdl.StringOutput;
 
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public enum BaseType implements StringOutput {
+public enum BaseType implements StringOutput, ToName {
 	INT('I', new Constant<>(CommonNames.DEFAULT, 0)), BOOLEAN('Z', new Constant<>(CommonNames.DEFAULT, false)), STRING(internalName(String.class).toInternalObjectName().stringOutput(), new Constant<>(CommonNames.DEFAULT, ""));
 
 	String      rep;
@@ -70,5 +70,15 @@ public enum BaseType implements StringOutput {
 	@Override
 	public String toString() {
 		return stringOutput();
+	}
+
+	@Override
+	public boolean isBaseType() {
+		return true;
+	}
+
+	@Override
+	public BaseType toBaseType() {
+		return this;
 	}
 }

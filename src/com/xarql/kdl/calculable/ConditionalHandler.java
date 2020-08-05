@@ -11,7 +11,7 @@ import org.objectweb.asm.Opcodes;
 import static com.xarql.kdl.ExternalMethodRouter.ERROR_MTD;
 import static com.xarql.kdl.ExternalMethodRouter.PRINT_MTD;
 
-public class ConditionalHandler implements CommonNames, Opcodes {
+public class ConditionalHandler implements CommonNames {
 	private final CompilationUnit owner;
 
 	public ConditionalHandler(CompilationUnit owner) {

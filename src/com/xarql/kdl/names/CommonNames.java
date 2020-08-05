@@ -3,11 +3,11 @@ package com.xarql.kdl.names;
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.JavaMethodDef;
 import com.xarql.kdl.calculable.Operator;
+import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.BestList.list;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
-public interface CommonNames {
+public interface CommonNames extends Opcodes {
 	// keywords
 	String KEYWORD_BOOLEAN = "boolean";
 	String KEYWORD_INT     = "int";

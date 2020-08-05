@@ -11,7 +11,7 @@ import java.io.PrintStream;
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public class ExternalMethodRouter implements Opcodes, CommonNames {
+public class ExternalMethodRouter implements CommonNames {
 	public static final JavaMethodDef PRINTLN_MTD = new JavaMethodDef(internalName(PrintStream.class), PRINTLN, list(STRING_ION), VOID, ACC_PRIVATE + ACC_STATIC);
 	public static final JavaMethodDef PRINT_MTD   = new JavaMethodDef(internalName(PrintStream.class), PRINT, list(STRING_ION), VOID, ACC_PRIVATE + ACC_STATIC);
 	public static final JavaMethodDef ERROR_MTD   = new JavaMethodDef(internalName(PrintStream.class), ERROR, list(STRING_ION), VOID, ACC_PRIVATE + ACC_STATIC);

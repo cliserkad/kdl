@@ -8,7 +8,7 @@ import java.util.List;
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
+public class JavaMethodDef implements StringOutput, CommonNames {
 	public static final JavaMethodDef MAIN      = new JavaMethodDef(internalName(Object.class), "main", list(new InternalObjectName(String.class, 1)), null, ACC_PUBLIC + ACC_STATIC);
 	public static final JavaMethodDef TO_STRING = new JavaMethodDef(internalName(Object.class), "toString", null, STRING_RV, ACC_PUBLIC);
 

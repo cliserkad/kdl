@@ -6,12 +6,11 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
-import org.objectweb.asm.Opcodes;
 
 /**
  * Represents the access of an array's element
  */
-public class ArrayAccess extends DefaultResolvable implements CommonNames, Opcodes {
+public class ArrayAccess extends DefaultResolvable implements CommonNames {
 	public final Variable   array;
 	public final Resolvable index;
 

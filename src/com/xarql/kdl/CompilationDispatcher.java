@@ -1,12 +1,13 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.names.CommonNames;
 import org.objectweb.asm.*;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class CompilationDispatcher implements Opcodes {
+public class CompilationDispatcher implements CommonNames {
 	// location of source directory
 	public static final File    DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/test");
 	// whether or not to print some extra messages

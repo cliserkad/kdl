@@ -7,7 +7,7 @@ import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.*;
 import org.objectweb.asm.Opcodes;
 
-public class Variable implements Resolvable, CommonNames, Opcodes {
+public class Variable implements Resolvable, CommonNames {
 	public final String             name;
 	public final InternalObjectName type;
 	public final int                localIndex;

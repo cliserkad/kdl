@@ -19,7 +19,7 @@ import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public class CompilationUnit extends kdlBaseListener implements Runnable, Opcodes, CommonNames {
+public class CompilationUnit extends kdlBaseListener implements Runnable, CommonNames {
 	public static final int CONST_ACCESS = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
 
 	private static int unitCount = 0;
@@ -297,8 +297,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 
 	private void consumeVariableAssignment(kdlParser.VariableAssignmentContext ctx, LinedMethodVisitor lmv) throws Exception {
 		Variable target = getLocalVariable(ctx.VARNAME().getText());
-		Resolvable val = Resolvable.parse(this, ctx.assignment().expression().value(0));
-		store(val, target, lmv);
+		if(ctx.assignment().operatorAssign() != null) {
+
+		}
+		else {
+			Resolvable val = Resolvable.parse(this, ctx.assignment().expression().value(0));
+			store(val, target, lmv);
+		}
 	}
 
 	private void consumeStatement(final kdlParser.StatementContext ctx, LinedMethodVisitor lmv) throws Exception {

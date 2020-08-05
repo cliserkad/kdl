@@ -11,5 +11,5 @@ public interface Calculable extends ToName {
      * Push contents to stack and execute instructions to calculate result
      * @return expected result type
      */
-    public Resolvable calc(LinedMethodVisitor lmv) throws Exception;
+    public ToName calc(LinedMethodVisitor lmv) throws Exception;
 }
