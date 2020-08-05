@@ -34,6 +34,13 @@ public class Scope {
 		return lv;
 	}
 
+	public boolean contains(String varname) {
+		for(Variable var : variables)
+			if(var.name.equals(varname))
+				return true;
+			return false;
+	}
+
 	public Variable getVariable(String name) {
 		for(Variable lv : variables)
 			if(lv.name.equals(name))

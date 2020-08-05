@@ -1,4 +1,4 @@
-package com.xarql.kdl;
+package com.xarql.kdl.names;
 
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;

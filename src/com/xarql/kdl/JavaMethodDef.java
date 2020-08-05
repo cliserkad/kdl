@@ -69,7 +69,10 @@ public class JavaMethodDef implements StringOutput, Opcodes, CommonNames {
 
 	@Override
 	public String toString() {
-		return owner + "." + methodName + descriptor();
+		if(descriptor() != null)
+			return owner + "." + methodName + descriptor();
+		else
+			return owner + "." + methodName;
 	}
 
 	@Override

@@ -8,6 +8,9 @@ import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import org.objectweb.asm.Opcodes;
 
+/**
+ * Represents the access of an array's element
+ */
 public class ArrayAccess extends DefaultResolvable implements CommonNames, Opcodes {
 	public final Variable   array;
 	public final Resolvable index;
@@ -42,21 +45,21 @@ public class ArrayAccess extends DefaultResolvable implements CommonNames, Opcod
 
 	@Override
 	public InternalName toInternalName() {
-		return null;
+		return array.toInternalName();
 	}
 
 	@Override
 	public InternalObjectName toInternalObjectName() {
-		return null;
+		return new InternalObjectName(toInternalName(), 0);
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return false;
+		return array.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return null;
+		return array.toBaseType();
 	}
 }

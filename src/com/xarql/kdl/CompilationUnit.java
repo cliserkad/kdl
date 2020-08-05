@@ -22,6 +22,8 @@ import static com.xarql.kdl.names.InternalName.internalName;
 public class CompilationUnit extends kdlBaseListener implements Runnable, Opcodes, CommonNames {
 	public static final int CONST_ACCESS = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
 
+	private static int unitCount = 0;
+
 	private File   sourceFile;
 	private String sourceCode;
 
@@ -32,6 +34,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 	private       Scope                   currentScope;
 	private       CustomClass             clazz;
 	private       boolean                 nameSet;
+	private       int                     id;
 
 	public final BestList<Constant>  constants;
 	private final ConditionalHandler cmpHandler;
@@ -51,6 +54,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 		imports = new BestList<>();
 		methods = new BestList<>();
 		cmpHandler = new ConditionalHandler(this);
+		id = unitCount++;
 	}
 
 	public CompilationUnit(File sourceFile) {
@@ -88,23 +92,40 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 			ParseTreeWalker.DEFAULT.walk(this, tree);
 			cw.visitEnd();
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			System.err.println("Compilation aborted.");
 		}
 		return this;
 	}
 
-	private static ParseTree makeParseTree(String input) {
+	public String unitName() {
+		if(clazz.name != null && !clazz.name.isEmpty())
+			return clazz.name;
+		else if(sourceFile != null)
+			return sourceFile.getName();
+		else
+			return id + "";
+	}
+
+	private ParseTree makeParseTree(String input) throws Exception {
+		SyntaxErrorHandler syntaxErrorHandler = new SyntaxErrorHandler(this);
+
 		final com.xarql.kdl.antlr4.kdlLexer lex = new com.xarql.kdl.antlr4.kdlLexer(CharStreams.fromString(input));
 		lex.removeErrorListeners();
-		lex.addErrorListener(SyntaxErrorHandler.DEFAULT_INSTANCE);
+		lex.addErrorListener(syntaxErrorHandler);
 
 		final CommonTokenStream tokens = new CommonTokenStream(lex);
 
 		final kdlParser parser = new kdlParser(tokens);
 		parser.removeErrorListeners();
-		parser.addErrorListener(SyntaxErrorHandler.DEFAULT_INSTANCE);
+		parser.addErrorListener(syntaxErrorHandler);
 
 		final ParseTree tree = parser.source();
+
+		if(syntaxErrorHandler.hasErrors()) {
+			syntaxErrorHandler.printErrors();
+			throw new Exception("Encountered syntax errors while parsing.");
+		}
 
 		return tree;
 	}
@@ -317,8 +338,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 			try {
 				consumeBlock(ctx.block(), lmv);
 			} catch (Exception e) {
+				System.err.println("From unit: " + unitName());
 				e.printStackTrace();
-				return;
 			}
 
 			final Label ret = new Label();
@@ -335,8 +356,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Opcode
 		}
 	}
 
-	public Variable getLocalVariable(String name) {
-		return currentScope.getVariable(name);
+	public Variable getLocalVariable(final String name) {
+		return currentScope.getVariable(name.trim());
 	}
 
 	public void addMethodDef(JavaMethodDef md) {

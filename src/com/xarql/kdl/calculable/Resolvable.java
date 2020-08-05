@@ -16,6 +16,13 @@ public interface Resolvable extends Calculable {
      */
     public void push(LinedMethodVisitor lmv) throws Exception;
 
+    /**
+     * Attempts to parse a Resolvable symbol
+     * @param unit The CompilationUnit in which the symbol appears
+     * @param val The symbol
+     * @return A Resolvable whose actual type corresponds to the symbol
+     * @throws UnimplementedException thrown if missing a symbol from the grammar
+     */
     public static Resolvable parse(final CompilationUnit unit, final com.xarql.kdl.antlr4.kdlParser.ValueContext val) throws UnimplementedException {
         if(val.literal() != null)
             return Literal.parseLiteral(val.literal());
@@ -24,7 +31,9 @@ public interface Resolvable extends Calculable {
         else if(val.VARNAME() != null)
             return unit.getLocalVariable(val.VARNAME().getText());
         else if(val.arrayAccess() != null)
-            return new ArrayAccess(unit.getLocalVariable(val.VARNAME().getText()), parse(unit, val.arrayAccess().expression().value(0)));
+            return new ArrayAccess(unit.getLocalVariable(val.arrayAccess().VARNAME().getText()), parse(unit, val.arrayAccess().expression().value(0)));
+        else if(val.arrayLength() != null)
+            return new ArrayLength(unit.getLocalVariable(val.VARNAME().getText()));
         else
             throw new UnimplementedException("a type of Resolvable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
     }
