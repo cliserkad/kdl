@@ -1,0 +1,10 @@
+class BaseTypeDefaults {
+  run {
+    int i;
+    boolean b;
+    string s;
+    println(i);
+    println(b);
+    println(s);
+  }
+}
