@@ -4,13 +4,6 @@ class IfStringNotEmpty {
   const FAIL : "This message was shown in error";
 
   run {
-    // set string to null
-    string s1 : null;
-    if(s1)
-      println(FAIL);
-    else
-      println(GOOD);
-
     // set string to ""
     string s2;
     // if s is not empty
