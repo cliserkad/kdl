@@ -77,29 +77,25 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			write();
 			System.out.println("Compiled " + clazz.name);
 		} catch (Exception e) {
+			System.err.println("CompilationUnit " + unitName() + " aborted.");
 			e.printStackTrace();
 		}
 	}
 
-	public CompilationUnit compile() throws IOException {
-		try {
-			final ParseTree tree = makeParseTree(sourceCode);
-			newPass();
-			ParseTreeWalker.DEFAULT.walk(this, tree);
-			newPass();
-			ParseTreeWalker.DEFAULT.walk(this, tree);
-			newPass();
-			ParseTreeWalker.DEFAULT.walk(this, tree);
-			cw.visitEnd();
-		} catch (Exception e) {
-			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			System.err.println("Compilation aborted.");
-		}
+	public CompilationUnit compile() throws Exception {
+		final ParseTree tree = makeParseTree(sourceCode);
+		newPass();
+		ParseTreeWalker.DEFAULT.walk(this, tree);
+		newPass();
+		ParseTreeWalker.DEFAULT.walk(this, tree);
+		newPass();
+		ParseTreeWalker.DEFAULT.walk(this, tree);
+		cw.visitEnd();
 		return this;
 	}
 
 	public String unitName() {
-		if(clazz.name != null && !clazz.name.isEmpty())
+		if(clazz != null && clazz.name != null && !clazz.name.isEmpty())
 			return clazz.name;
 		else if(sourceFile != null)
 			return sourceFile.getName();

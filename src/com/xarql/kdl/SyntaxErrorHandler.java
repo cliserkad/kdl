@@ -27,6 +27,6 @@ public class SyntaxErrorHandler extends BaseErrorListener {
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-        errors.add(new SyntaxException(offendingSymbol, line, charPositionInLine));
+        errors.add(new SyntaxException(e.getOffendingToken().getText(), line, charPositionInLine));
     }
 }
