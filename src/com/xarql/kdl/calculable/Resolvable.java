@@ -33,7 +33,7 @@ public interface Resolvable extends Calculable {
         else if(val.arrayAccess() != null)
             return new ArrayAccess(unit.getLocalVariable(val.arrayAccess().VARNAME().getText()), parse(unit, val.arrayAccess().expression().value(0)));
         else if(val.arrayLength() != null)
-            return new ArrayLength(unit.getLocalVariable(val.VARNAME().getText()));
+            return new ArrayLength(unit.getLocalVariable(val.arrayLength().VARNAME().getText()));
         else if(val.R_NULL() != null)
             return new Null();
         else

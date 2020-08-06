@@ -34,7 +34,7 @@ public class ArrayLength extends DefaultResolvable implements CommonNames {
      */
     @Override
     public InternalName toInternalName() {
-        return array.toInternalName();
+        return INT_IN;
     }
 
     /**
@@ -43,7 +43,7 @@ public class ArrayLength extends DefaultResolvable implements CommonNames {
      */
     @Override
     public InternalObjectName toInternalObjectName() {
-        return array.toInternalObjectName();
+        return INT_IN.toInternalObjectName();
     }
 
     /**
@@ -52,7 +52,7 @@ public class ArrayLength extends DefaultResolvable implements CommonNames {
      */
     @Override
     public boolean isBaseType() {
-        return array.isBaseType();
+        return INT_IN.isBaseType();
     }
 
     /**
@@ -61,6 +61,6 @@ public class ArrayLength extends DefaultResolvable implements CommonNames {
      */
     @Override
     public BaseType toBaseType() {
-        return array.toBaseType();
+        return INT_IN.toBaseType();
     }
 }
