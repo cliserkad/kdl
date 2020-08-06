@@ -61,4 +61,9 @@ public class ArrayAccess extends DefaultResolvable implements CommonNames {
 	public BaseType toBaseType() {
 		return array.toBaseType();
 	}
+
+	@Override
+	public String toString() {
+		return "ArrayAccess --> {\n\t" + array + "\n\t" + index + "\n}";
+	}
 }

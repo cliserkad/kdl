@@ -5,6 +5,7 @@ import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.antlr4.kdlParser;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 
@@ -31,9 +32,8 @@ public class ConditionalHandler implements CommonNames {
 
 	// route a certain condition to the conditional's flow
 	private void handleSingleCondition(kdlParser.SingleConditionContext ctx, ConditionalLabelSet cls, LinedMethodVisitor lmv, boolean positive) throws Exception {
-		Resolvable val1 = Resolvable.parse(owner, ctx.expression(0).value(0));
-		val1.push(lmv);
-		final BaseType aType = val1.toBaseType();
+		ToName xpr1 = ExpressionHandler.compute(new Expression(ctx.expression(0), owner), lmv);
+		final BaseType aType = xpr1.toBaseType();
 		// if the condition has two values
 		if(ctx.expression(1) != null) { // if there are two values
 			final Comparator cmp = Comparator.match(ctx.comparator().getText());

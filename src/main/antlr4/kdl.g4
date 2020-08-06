@@ -92,7 +92,7 @@ number: MINUS? DIGIT+ ('B' | 'H')?;
 STRING_LIT: '"' (ESCAPED_QUOTE | ~'"')* '"';
 literal: bool | STRING_LIT | number;
 
-statement: methodCall | variableDeclaration | variableAssignment | returnStatement | conditional;
+statement: methodCall STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional;
 block: BODY_OPEN statement* BODY_CLOSE | statement;
 statementSet: block | statement;
 
@@ -115,12 +115,12 @@ appender: AND | OR;
 
 variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
 variableAssignment: VARNAME assignment STATEMENT_END;
-assignment: (ASSIGN expression) | operatorAssign;
+assignment: (ASSIGN value) | operatorAssign;
 typedVariable: type VARNAME;
 arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 
 // method calls
-methodCall: VARNAME parameterSet STATEMENT_END;
+methodCall: VARNAME parameterSet;
 parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions

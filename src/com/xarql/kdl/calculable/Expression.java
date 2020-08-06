@@ -1,6 +1,8 @@
 package com.xarql.kdl.calculable;
 
+import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.LinedMethodVisitor;
+import com.xarql.kdl.antlr4.kdlParser;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
@@ -17,6 +19,18 @@ public class Expression implements Calculable {
         this.a = a;
         this.b = b;
         this.opr = opr;
+    }
+
+    public Expression(kdlParser.ExpressionContext ctx, CompilationUnit unit) throws Exception {
+        this.a = Resolvable.parse(unit, ctx.value(0));
+        if(ctx.value(1) == null)
+            this.b = null;
+        else
+            this.b = Resolvable.parse(unit, ctx.value(1));
+        if(ctx.operator() == null)
+            opr = null;
+        else
+            opr = Operator.match(ctx.operator().getText());
     }
 
     public boolean isSingleValue() {

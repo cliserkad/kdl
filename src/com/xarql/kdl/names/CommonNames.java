@@ -65,7 +65,7 @@ public interface CommonNames extends Opcodes {
 	InternalName BOOLEAN_WRAPPER = InternalName.BOOLEAN_WRAPPER;
 
 	// Error messages
-	String SWITCH_OPERAOTR  = "switch on Operator";
+	String SWITCH_OPERATOR = "switch on Operator";
 	String SWITCH_BASETYPE  = "switch on BaseType";
 	String SWITCH_VALUETYPE = "switch on ValueType";
 	String INCOMPATIBLE     = " has a type which is incompatible with the type of ";

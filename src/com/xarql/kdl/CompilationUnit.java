@@ -258,32 +258,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeMethodCall(kdlParser.MethodCallContext ctx, LinedMethodVisitor lmv) throws Exception {
-		final String methodName = ctx.VARNAME().getText();
-
-		final BestList<InternalObjectName> params;
-		final BestList<Resolvable> arguments = new BestList<Resolvable>();
-		if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
-			params = new BestList<InternalObjectName>();
-			for(kdlParser.ExpressionContext xpr : ctx.parameterSet().expression()) {
-				Resolvable res = Resolvable.parse(this, xpr.value(0));
-				params.add(res.toInternalObjectName());
-				arguments.add(res);
-			}
-		}
-		else
-			params = null;
-
-		JavaMethodDef known = new JavaMethodDef(new InternalName(getClazz()), methodName, params, null, ACC_PUBLIC + ACC_STATIC);
-		known = known.resolve(this);
-
-		for(int i = 0; i < arguments.size(); i++) {
-			arguments.get(i).push(lmv);
-			if(known.paramTypes.get(i) == STRING_ION) {
-				convertToString(arguments.get(i).toInternalObjectName(), lmv);
-			}
-		}
-
-		known.invokeStatic(lmv);
+		new MethodCall(ctx, this).push(lmv);
 	}
 
 	public void consumeStatementSet(final kdlParser.StatementSetContext ctx, LinedMethodVisitor lmv) throws Exception {
@@ -309,7 +284,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 		}
 		else {
-			Resolvable val = Resolvable.parse(this, ctx.assignment().expression().value(0));
+			Resolvable val = Resolvable.parse(this, ctx.assignment().value());
 			store(val, target, lmv);
 		}
 	}

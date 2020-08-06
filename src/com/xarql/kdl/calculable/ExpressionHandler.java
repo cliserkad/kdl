@@ -6,7 +6,6 @@ import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
-import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 
 import static com.xarql.kdl.names.InternalName.internalName;
@@ -74,16 +73,18 @@ public interface ExpressionHandler extends CommonNames {
                 }
             }
             default: {
-                throw new UnimplementedException(SWITCH_OPERAOTR);
+                throw new UnimplementedException(SWITCH_OPERATOR);
             }
         }
     }
 
     public static BaseType computeInt(Resolvable res1, Resolvable res2, Operator opr, LinedMethodVisitor lmv) throws Exception {
-        if(res1.toBaseType() == STRING)
+        if(res2.toBaseType() == STRING)
             throw new IncompatibleTypeException(INT + INCOMPATIBLE + STRING);
             // under the hood booleans should be either 0 or 1
-        else if(res2.toBaseType() == INT || res2.toBaseType() == BOOLEAN) {
+        else {
+            res1.push(lmv);
+            res2.push(lmv);
             switch(opr) {
                 case PLUS:
                     lmv.visitInsn(IADD);
@@ -101,7 +102,7 @@ public interface ExpressionHandler extends CommonNames {
                     lmv.visitInsn(IREM);
                     break;
                 default:
-                    throw new UnimplementedException(SWITCH_OPERAOTR);
+                    throw new UnimplementedException(SWITCH_OPERATOR);
             }
         }
         return INT;
