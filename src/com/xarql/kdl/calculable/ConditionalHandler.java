@@ -38,9 +38,8 @@ public class ConditionalHandler implements CommonNames {
 		if(ctx.expression(1) != null) { // if there are two values
 			final Comparator cmp = Comparator.match(ctx.comparator().getText());
 
-			Resolvable val2 = Resolvable.parse(owner, ctx.expression(1).value(0));
-			val2.push(lmv);
-			final BaseType bType = val2.toBaseType();
+			ToName xpr2 = ExpressionHandler.compute(new Expression(ctx.expression(1), owner), lmv);
+			final BaseType bType = xpr2.toBaseType();
 
 			// check type compatibility
 			if(aType != bType)
@@ -53,7 +52,7 @@ public class ConditionalHandler implements CommonNames {
 			else
 				throw new UnimplementedException("Conditions are not complete");
 		}
-		else if(true) {
+		else {
 			switch(aType) {
 				case BOOLEAN:
 				case INT:
@@ -67,8 +66,6 @@ public class ConditionalHandler implements CommonNames {
 					break;
 			}
 		}
-		else
-			throw new IncompatibleTypeException("Don't know how to handle a ref type without a comparator");
 	}
 
 	public void handle(kdlParser.ConditionalContext ctx, LinedMethodVisitor lmv) throws Exception {

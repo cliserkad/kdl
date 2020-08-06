@@ -49,7 +49,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	private CompilationUnit() {
 		pass = 0;
-		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		constants = new BestList<>();
 		imports = new BestList<>();
 		methods = new BestList<>();
@@ -174,12 +174,17 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		lmv.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
-	private static void store(Resolvable source, Variable target, LinedMethodVisitor lmv) throws Exception {
-		if(!source.toInternalName().equals(target.toInternalName()))
-			System.err.println(source + INCOMPATIBLE + target);
+	/**
+	 * Store the value that is at the top of the stack in the target variable
+	 * @param type the type of the data on top of the stack
+	 * @param target variable in which data will be stored
+	 * @param lmv any LinedMethodVisitor
+	 */
+	private static void store(ToName type, Variable target, LinedMethodVisitor lmv) throws Exception {
+		if(!type.toInternalName().equals(target.toInternalName()))
+			throw new IncompatibleTypeException(type + INCOMPATIBLE + target);
 		else {
-			source.push(lmv);
-			if(source.toBaseType() == INT || source.toBaseType() == BOOLEAN)
+			if(type.toBaseType() == INT || type.toBaseType() == BOOLEAN)
 				lmv.visitVarInsn(ISTORE, target.localIndex);
 			else
 				lmv.visitVarInsn(ASTORE, target.localIndex);
@@ -281,11 +286,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private void consumeVariableAssignment(kdlParser.VariableAssignmentContext ctx, LinedMethodVisitor lmv) throws Exception {
 		Variable target = getLocalVariable(ctx.VARNAME().getText());
 		if(ctx.assignment().operatorAssign() != null) {
-
+			ExpressionHandler.compute(new Expression(getLocalVariable(ctx.VARNAME().getText()), Resolvable.parse(this, ctx.assignment().operatorAssign().value()), Operator.match(ctx.assignment().operatorAssign().operator().getText())), lmv);
 		}
 		else {
-			Resolvable val = Resolvable.parse(this, ctx.assignment().value());
-			store(val, target, lmv);
+			ToName resultType = ExpressionHandler.compute(new Expression(ctx.assignment().expression(), this), lmv);
+			store(resultType, target, lmv);
 		}
 	}
 

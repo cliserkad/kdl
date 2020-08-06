@@ -106,7 +106,6 @@ r_while: WHILE PARAM_OPEN condition PARAM_CLOSE statementSet;
 value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 expression: value (operator value)?;
-operatorAssign: operator ASSIGN expression;
 
 condition: singleCondition (appender singleCondition)?;
 singleCondition: expression (comparator expression)?;
@@ -115,7 +114,8 @@ appender: AND | OR;
 
 variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
 variableAssignment: VARNAME assignment STATEMENT_END;
-assignment: (ASSIGN value) | operatorAssign;
+assignment: (ASSIGN expression) | operatorAssign;
+operatorAssign: operator ASSIGN value;
 typedVariable: type VARNAME;
 arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 
