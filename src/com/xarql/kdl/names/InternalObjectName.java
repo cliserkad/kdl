@@ -94,4 +94,12 @@ public class InternalObjectName implements StringOutput, ToName {
 	public InternalObjectName toInternalObjectName() {
 		return this;
 	}
+
+	public boolean compatibleWith(InternalObjectName other) {
+		if(other.isBaseType() && isBaseType())
+			return toBaseType().ordinal() <= other.toBaseType().ordinal();
+		else
+			return equals(other);
+	}
+
 }

@@ -169,7 +169,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public static void convertToString(InternalObjectName name, LinedMethodVisitor lmv) {
 		JavaMethodDef stringValueOf;
 		if(name.isBaseType())
-			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(name), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
+			if(name.toBaseType() == STRING)
+				return;
+			else
+				stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(name), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
 		else
 			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(new InternalObjectName(Object.class)), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
 		lmv.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
@@ -261,13 +264,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private void consumeMethodCall(kdlParser.MethodCallContext ctx, LinedMethodVisitor lmv) throws Exception {
 		final String methodName = ctx.VARNAME().getText();
 
-		BestList<InternalObjectName> params;
+		final BestList<InternalObjectName> params;
+		final BestList<Resolvable> arguments = new BestList<Resolvable>();
 		if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
 			params = new BestList<InternalObjectName>();
 			for(kdlParser.ExpressionContext xpr : ctx.parameterSet().expression()) {
 				Resolvable res = Resolvable.parse(this, xpr.value(0));
 				params.add(res.toInternalObjectName());
-				res.push(lmv);
+				arguments.add(res);
 			}
 		}
 		else
@@ -275,6 +279,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 		JavaMethodDef known = new JavaMethodDef(new InternalName(getClazz()), methodName, params, null, ACC_PUBLIC + ACC_STATIC);
 		known = known.resolve(this);
+
+		for(int i = 0; i < arguments.size(); i++) {
+			arguments.get(i).push(lmv);
+			if(known.paramTypes.get(i) == STRING_ION) {
+				convertToString(arguments.get(i).toInternalObjectName(), lmv);
+			}
+		}
+
 		known.invokeStatic(lmv);
 	}
 

@@ -34,6 +34,8 @@ public interface Resolvable extends Calculable {
             return new ArrayAccess(unit.getLocalVariable(val.arrayAccess().VARNAME().getText()), parse(unit, val.arrayAccess().expression().value(0)));
         else if(val.arrayLength() != null)
             return new ArrayLength(unit.getLocalVariable(val.VARNAME().getText()));
+        else if(val.R_NULL() != null)
+            return new Null();
         else
             throw new UnimplementedException("a type of Resolvable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
     }

@@ -84,7 +84,7 @@ PKG_NAME: DNTEXT ('.' DNTEXT)*;
 
 ESCAPED_QUOTE : '\\"';
 
-arrayLength: VARNAME SIZE;
+arrayLength: VARNAME DOT SIZE;
 
 // literals
 bool: TRUE | FALSE;

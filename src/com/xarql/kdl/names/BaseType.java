@@ -6,7 +6,7 @@ import com.xarql.kdl.StringOutput;
 import static com.xarql.kdl.names.InternalName.internalName;
 
 public enum BaseType implements StringOutput, ToName {
-	INT('I', new Constant<>(CommonNames.DEFAULT, 0)), BOOLEAN('Z', new Constant<>(CommonNames.DEFAULT, false)), STRING(internalName(String.class).toInternalObjectName().stringOutput(), new Constant<>(CommonNames.DEFAULT, ""));
+	BOOLEAN('Z', new Constant<>(CommonNames.DEFAULT, false)), INT('I', new Constant<>(CommonNames.DEFAULT, 0)), STRING(internalName(String.class).toInternalObjectName().stringOutput(), new Constant<>(CommonNames.DEFAULT, ""));
 
 	String      rep;
 	Constant<?> defaultValue;

@@ -94,10 +94,20 @@ public class JavaMethodDef implements StringOutput, CommonNames {
 
 	public JavaMethodDef resolveAgainst(BestList<JavaMethodDef> methods) throws SymbolResolutionException {
 		for(JavaMethodDef def : methods) {
-			if (owner.equals(def.owner) && methodName.equals(def.methodName) && paramTypes.equals(def.paramTypes))
+			if (owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def.paramTypes))
 				return def;
 		}
 		throw new SymbolResolutionException("Couldn't resolve given method " + this);
+	}
+
+	public boolean paramsCompatible(List<InternalObjectName> others) {
+		if(paramTypes.size() != others.size())
+			return false;
+		for(int i = 0; i < paramTypes.size(); i++) {
+			if(!paramTypes.get(i).compatibleWith(others.get(i)))
+				return false;
+		}
+		return true;
 	}
 
 	private JavaMethodDef invoke(final int type, final LinedMethodVisitor lmv) {
