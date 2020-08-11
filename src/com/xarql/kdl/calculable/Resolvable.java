@@ -12,9 +12,12 @@ import com.xarql.kdl.UnimplementedException;
  */
 public interface Resolvable extends Calculable {
     /**
-     * Push this resolvable on to the JVM stack
+     * Push this value on to the stack
+     * @param lmv any LinedMethodVisitor
+     * @return instance of implementing class
+     * @throws Exception if pushing is impossible
      */
-    public void push(LinedMethodVisitor lmv) throws Exception;
+    public Resolvable push(LinedMethodVisitor lmv) throws Exception;
 
     /**
      * Attempts to parse a Resolvable symbol

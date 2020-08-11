@@ -61,7 +61,7 @@ public class Variable implements Resolvable, CommonNames {
 	}
 
 	@Override
-	public void push(LinedMethodVisitor lmv) throws UnimplementedException {
+	public Resolvable push(LinedMethodVisitor lmv) throws UnimplementedException {
 		if(type.isBaseType() && type.toBaseType() != STRING) {
 			if(type.toBaseType() == INT)
 				lmv.visitVarInsn(ILOAD, localIndex);
@@ -72,6 +72,7 @@ public class Variable implements Resolvable, CommonNames {
 		}
 		else
 			lmv.visitVarInsn(ALOAD, localIndex);
+		return this;
 	}
 
 	@Override

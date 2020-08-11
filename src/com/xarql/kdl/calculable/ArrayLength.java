@@ -23,9 +23,10 @@ public class ArrayLength extends DefaultResolvable implements CommonNames {
      * @throws Exception unused
      */
     @Override
-    public void push(LinedMethodVisitor lmv) throws Exception {
+    public Resolvable push(LinedMethodVisitor lmv) throws Exception {
         array.push(lmv);
         lmv.visitInsn(ARRAYLENGTH);
+        return this;
     }
 
     /**

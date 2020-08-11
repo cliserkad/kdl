@@ -88,7 +88,8 @@ public class Constant<Type> extends DefaultResolvable implements Resolvable {
 	}
 
 	@Override
-	public void push(LinedMethodVisitor lmv) throws Exception {
+	public Resolvable push(LinedMethodVisitor lmv) throws Exception {
 		lmv.visitLdcInsn(value);
+		return this;
 	}
 }

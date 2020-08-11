@@ -20,7 +20,7 @@ public class ArrayAccess extends DefaultResolvable implements CommonNames {
 	}
 
 	@Override
-	public void push(LinedMethodVisitor lmv) throws Exception {
+	public Resolvable push(LinedMethodVisitor lmv) throws Exception {
 		lmv.visitVarInsn(ALOAD, array.localIndex);
 
 		// throw error if value within [ ] isn't an int
@@ -40,6 +40,8 @@ public class ArrayAccess extends DefaultResolvable implements CommonNames {
 		}
 		else
 			lmv.visitInsn(AALOAD);
+
+		return this;
 	}
 
 	@Override

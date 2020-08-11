@@ -37,7 +37,7 @@ public class MethodCall extends DefaultResolvable implements CommonNames {
     /**
      * Executes the method and pushes the return value on to the stack
      */
-    public void push(LinedMethodVisitor lmv) throws Exception {
+    public Resolvable push(LinedMethodVisitor lmv) throws Exception {
         for(int i = 0; i < arguments.size(); i++) {
             arguments.get(i).push(lmv);
             if(method.paramTypes.get(i) == STRING_ION) {
@@ -45,6 +45,7 @@ public class MethodCall extends DefaultResolvable implements CommonNames {
             }
         }
         method.invokeStatic(lmv);
+        return this;
     }
 
     @Override

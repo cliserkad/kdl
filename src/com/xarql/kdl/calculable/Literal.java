@@ -56,8 +56,9 @@ public class Literal<Type> extends DefaultResolvable implements StringOutput, Co
 	}
 
 	@Override
-	public void push(LinedMethodVisitor lmv) {
+	public Resolvable push(LinedMethodVisitor lmv) {
 		lmv.visitLdcInsn(value);
+		return this;
 	}
 
 	public static Literal<?> parseLiteral(final kdlParser.LiteralContext ctx) {

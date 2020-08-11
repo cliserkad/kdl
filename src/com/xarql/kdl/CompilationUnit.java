@@ -278,7 +278,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		Variable var = new Variable(currentScope, details.name, details.type.toInternalObjectName());
 
 		if(ctx.ASSIGN() != null)
-			store(Resolvable.parse(this, ctx.expression().value(0)), var, lmv);
+			store(Resolvable.parse(this, ctx.expression().value(0)).push(lmv), var, lmv);
 		else
 			storeDefault(var, lmv);
 	}

@@ -5,8 +5,9 @@ import com.xarql.kdl.names.*;
 
 public class Null implements Resolvable, CommonNames {
     @Override
-    public void push(LinedMethodVisitor lmv) throws Exception {
+    public Resolvable push(LinedMethodVisitor lmv) throws Exception {
         lmv.visitInsn(ACONST_NULL);
+        return this;
     }
 
     @Override
