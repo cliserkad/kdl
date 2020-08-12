@@ -9,5 +9,6 @@ updates:
       interval: "daily"
     assignees:
       - "cliserkad"
-    prefix: "Update pom.xml for "
-    include: "scope"
+    commit-message:
+      prefix: "Update pom.xml for "
+      include: "scope"
