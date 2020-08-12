@@ -17,13 +17,23 @@ public class CompilationDispatcher implements CommonNames {
 	private final FileFilter filter;
 
 	public CompilationDispatcher(final File input, final FileFilter filter) {
-		this.input = input;
-		this.filter = filter;
+		if(input == null)
+			this.input = DEFAULT_LOC;
+		else
+			this.input = input;
+		if(filter == null)
+			this.filter = KDL_FILTER;
+		else
+			this.filter = filter;
+	}
+
+	public CompilationDispatcher() {
+		this(DEFAULT_LOC, KDL_FILTER);
 	}
 
 	public static void main(String[] args) {
 		if(args.length < 1)
-			new CompilationDispatcher(DEFAULT_LOC, KDL_FILTER).compileAll();
+			new CompilationDispatcher().compileAll();
 		else
 			new CompilationDispatcher(DEFAULT_LOC, new RegexFileFilter(args[0])).compileAll();
 	}
