@@ -10,5 +10,5 @@ updates:
     assignees:
       - "cliserkad"
     commit-message:
-      prefix: "Update pom.xml for "
+      prefix: "Update pom.xml"
       include: "scope"
