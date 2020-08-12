@@ -48,6 +48,10 @@ public class BestList<E> extends ArrayList<E> {
 			remove(0);
 	}
 
+	/**
+	 * Creates a string that holds the toString() of all of this list's elements
+	 * @return combined toString()
+	 */
 	public String spread() {
 		String out = "";
 		for(E elm : this)

@@ -1,6 +1,6 @@
 This repository holds the code required to compile `.kdl` source files to `.class` files. The compiled files can be run in the JVM and used in Java without any modification to the runtime environment.
 
-The language is still very much in its alpha stage. Please look in [com.xarql.kdl.test](https://github.com/cliserkad/kdl/tree/master/src/com/xarql/kdl/test) to see what has been implemented.
+The language is still very much in its alpha stage. Please look in [test](https://github.com/cliserkad/kdl/tree/master/src/com/xarql/kdl/test) to see what has been implemented.
 
 ### Use
 After cloning in to the repository, use Maven to download dependenices, build the Antlr 4 grammar, and compile the Java files. 

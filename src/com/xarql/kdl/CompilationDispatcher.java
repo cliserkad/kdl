@@ -1,40 +1,46 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.names.CommonNames;
-import org.objectweb.asm.*;
+import org.apache.commons.io.filefilter.RegexFileFilter;
+
 import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.io.FileFilter;
 
 public class CompilationDispatcher implements CommonNames {
 	// location of source directory
-	public static final File    DEFAULT_LOC = new File(System.getProperty("user.home") + "/IdeaProjects/kdl/src/com/xarql/kdl/test");
+	public static final File       DEFAULT_LOC = new File(System.getProperty("user.dir"));
+	public static final FileFilter KDL_FILTER  = new RegexFileFilter(".*\\.kdl");
 	// whether or not to print some extra messages
-	public static final boolean VERBOSE     = false;
+	public static final boolean    VERBOSE     = false;
 
-	private final File input;
+	private final File       input;
+	private final FileFilter filter;
 
-	public CompilationDispatcher(final File input) {
+	public CompilationDispatcher(final File input, final FileFilter filter) {
 		this.input = input;
+		this.filter = filter;
 	}
 
 	public static void main(String[] args) {
-		new CompilationDispatcher(DEFAULT_LOC).compileAll();
+		if(args.length < 1)
+			new CompilationDispatcher(DEFAULT_LOC, KDL_FILTER).compileAll();
+		else
+			new CompilationDispatcher(DEFAULT_LOC, new RegexFileFilter(args[0])).compileAll();
 	}
 
-	public void compileAll() {
-		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<CompilationUnit>(), VERBOSE))
+	public CompilationDispatcher compileAll() {
+		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>(), VERBOSE))
 			unit.run();
+		return this;
 	}
 
-	private static BestList<CompilationUnit> registerCompilationUnits(File f, BestList<CompilationUnit> units, boolean verbose) {
+	private BestList<CompilationUnit> registerCompilationUnits(File f, BestList<CompilationUnit> units, boolean verbose) {
 		if(f.isDirectory()) {
 			for(File sub : f.listFiles()) {
 				registerCompilationUnits(sub, units, verbose);
 			}
 		}
-		else if(f.getName().endsWith(".kdl")) {
+		else if(filter.accept(f)) {
 			if(verbose)
 				System.out.println("Registered " + f.getName());
 			units.add(new CompilationUnit(f));
