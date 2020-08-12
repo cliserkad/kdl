@@ -69,4 +69,11 @@
 			<version>2.5</version>
 		</dependency>
 	</dependencies>
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages</name>
+			<url>https://maven.pkg.github.com/cliserkad/kdl</url>
+		</repository>
+	</distributionManagement>
 </project>
