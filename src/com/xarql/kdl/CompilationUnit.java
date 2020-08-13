@@ -67,6 +67,19 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		this.sourceCode = sourceCode;
 	}
 
+	public boolean runSilent() {
+		try {
+			// load source code
+			if (sourceCode == null)
+				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
+			compile();
+			write();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	@Override
 	public void run() {
 		try {

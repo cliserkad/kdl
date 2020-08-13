@@ -1,9 +1,11 @@
 package test.java;
 
 import com.xarql.kdl.CompilationDispatcher;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.jupiter.api.Test;
 
 public class HelloWorldTest {
+	public static final String JAVA_CMD = "java -cp src/test/kdl";
 
 	public static void main(String[] args) {
 		new HelloWorldTest().testHelloWorld();
@@ -13,9 +15,9 @@ public class HelloWorldTest {
 	public void testHelloWorld() {
 		try {
 			// compile HelloWorld.kdl
-			CompilationDispatcher.main(new String[] {"HelloWorld.kdl"});
+			new CompilationDispatcher(new RegexFileFilter("HelloWorld.kdl"), true).compileAll();
 			// run HelloWorld.class
-			ProcessOutput helloWorld = ProcessOutput.runProcess("java -cp src/test/kdl HelloWorld");
+			ProcessOutput helloWorld = ProcessOutput.runProcess(JAVA_CMD + " HelloWorld");
 			assert helloWorld.getOutput().spread().equals("hello world\n");
 		} catch(Exception e) {
 			e.printStackTrace();
