@@ -1,4 +1,4 @@
-class Args {
+class PrintArg {
   run {
     println(args[0]);
   }
