@@ -39,7 +39,7 @@ public class StandardKdlTest {
     public void testKDL() {
         try {
             // compile .kdl file
-            new CompilationDispatcher(new RegexFileFilter(fileName())).dispatchSilently();
+            new CompilationDispatcher(new RegexFileFilter(fileName())).dispatchQuietly();
             // run .class file
             for(int i = 0; i < arguments.size(); i++) {
                 ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + pathExtension + " " + className);

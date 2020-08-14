@@ -7,11 +7,12 @@ import java.io.File;
 import java.io.FileFilter;
 
 public class CompilationDispatcher implements CommonNames {
-	// location of source directory
-	public static final File       DEFAULT_LOC = new File(System.getProperty("user.dir"));
-	public static final FileFilter KDL_FILTER  = new RegexFileFilter(".*\\.kdl");
-	// whether or not to print some extra messages
-	public static final boolean    VERBOSE     = false;
+	public static final File       DEFAULT_LOC = new File(System.getProperty("user.dir")); 	// default to current working directory
+	public static final FileFilter KDL_FILTER  = new RegexFileFilter(".*\\.kdl"); // default to all .kdl files
+	public static final boolean    DEFAULT_VERBOSE = false; // whether or not to print some extra messages
+
+	public static final String VERBOSE = "verbose";
+	public static final String QUIET = "quiet";
 
 	private final File       input;
 	private final FileFilter filter;
@@ -40,20 +41,49 @@ public class CompilationDispatcher implements CommonNames {
 	}
 
 	public static void main(String[] args) {
-		if(args.length < 1)
+		BestList<String> arguments = new BestList<>(args);
+
+		if(arguments.isEmpty())
 			new CompilationDispatcher().dispatch();
-		else
-			new CompilationDispatcher(DEFAULT_LOC, new RegexFileFilter(args[0])).dispatch();
+		else {
+			final CompilationDispatcher dispatcher;
+			if(arguments.get(0).equalsIgnoreCase(VERBOSE) || arguments.get(0).equalsIgnoreCase(QUIET))
+				dispatcher = new CompilationDispatcher(KDL_FILTER);
+			else {
+			    dispatcher = new CompilationDispatcher(new RegexFileFilter(arguments.get(0)));
+				arguments.remove(0);
+			}
+
+			if(arguments.contains(VERBOSE) && arguments.contains(QUIET))
+				throw new IllegalArgumentException("Compilation dispatching can't be both verbose and quiet");
+			else if(arguments.contains(VERBOSE))
+				dispatcher.dispatchVerbosely();
+			else if(arguments.contains(QUIET))
+				try {
+					dispatcher.dispatchQuietly();
+				} catch (Exception e) {
+					e.printStackTrace();
+					return;
+				}
+			else
+				dispatcher.dispatch();
+		}
 	}
 
-	public CompilationDispatcher dispatch() {
-		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>(), VERBOSE))
+	public CompilationDispatcher dispatchVerbosely() {
+		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>(), true))
 			unit.run();
 		return this;
 	}
 
-	public CompilationDispatcher dispatchSilently() throws Exception {
-		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>(), VERBOSE))
+	public CompilationDispatcher dispatch() {
+		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>()))
+			unit.run();
+		return this;
+	}
+
+	public CompilationDispatcher dispatchQuietly() throws Exception {
+		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>()))
 			try {
 				unit.runSilent();
 			} catch (Exception e) {
@@ -62,7 +92,11 @@ public class CompilationDispatcher implements CommonNames {
 		return this;
 	}
 
-	private BestList<CompilationUnit> registerCompilationUnits(File f, BestList<CompilationUnit> units, boolean verbose) {
+	private BestList<CompilationUnit> registerCompilationUnits(final File f, final BestList<CompilationUnit> units) {
+		return registerCompilationUnits(f, units, DEFAULT_VERBOSE);
+	}
+
+	private BestList<CompilationUnit> registerCompilationUnits(final File f, final BestList<CompilationUnit> units, final boolean verbose) {
 		if(f.isDirectory()) {
 			for(File sub : f.listFiles()) {
 				registerCompilationUnits(sub, units, verbose);
