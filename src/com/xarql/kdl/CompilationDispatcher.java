@@ -12,13 +12,11 @@ public class CompilationDispatcher implements CommonNames {
 	public static final FileFilter KDL_FILTER  = new RegexFileFilter(".*\\.kdl");
 	// whether or not to print some extra messages
 	public static final boolean    VERBOSE     = false;
-	public static final boolean    DEFAULT_SILENT = false;
 
 	private final File       input;
 	private final FileFilter filter;
-	private final boolean    silent;
 
-	public CompilationDispatcher(final File input, final FileFilter filter, final boolean silent) {
+	public CompilationDispatcher(final File input, final FileFilter filter) {
 		if(input == null)
 			this.input = DEFAULT_LOC;
 		else
@@ -27,47 +25,40 @@ public class CompilationDispatcher implements CommonNames {
 			this.filter = KDL_FILTER;
 		else
 			this.filter = filter;
-		this.silent = silent;
-	}
-
-	public CompilationDispatcher(final File input, final FileFilter filter) {
-		this(input, filter, DEFAULT_SILENT);
-	}
-
-	public CompilationDispatcher(final File input, final boolean silent) {
-		this(input, KDL_FILTER, DEFAULT_SILENT);
-	}
-
-	public CompilationDispatcher(final FileFilter filter, final boolean silent) {
-		this(DEFAULT_LOC, filter, silent);
 	}
 
 	public CompilationDispatcher(final File input) {
-		this(input, KDL_FILTER, DEFAULT_SILENT);
+		this(input, KDL_FILTER);
 	}
 
 	public CompilationDispatcher(final FileFilter filter) {
-		this(DEFAULT_LOC, filter, DEFAULT_SILENT);
+		this(DEFAULT_LOC, filter);
 	}
 
 	public CompilationDispatcher() {
-		this(DEFAULT_LOC, KDL_FILTER, DEFAULT_SILENT);
+		this(DEFAULT_LOC, KDL_FILTER);
 	}
 
 	public static void main(String[] args) {
 		if(args.length < 1)
-			new CompilationDispatcher().compileAll();
+			new CompilationDispatcher().dispatch();
 		else
-			new CompilationDispatcher(DEFAULT_LOC, new RegexFileFilter(args[0])).compileAll();
+			new CompilationDispatcher(DEFAULT_LOC, new RegexFileFilter(args[0])).dispatch();
 	}
 
-	public CompilationDispatcher compileAll() {
-		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>(), VERBOSE)) {
-			if(silent)
+	public CompilationDispatcher dispatch() {
+		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>(), VERBOSE))
+			unit.run();
+		return this;
+	}
+
+	public CompilationDispatcher dispatchSilently() throws Exception {
+		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>(), VERBOSE))
+			try {
 				unit.runSilent();
-			else
-				unit.run();
-		}
+			} catch (Exception e) {
+				throw e;
+			}
 		return this;
 	}
 

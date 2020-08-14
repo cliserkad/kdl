@@ -21,6 +21,7 @@ import static com.xarql.kdl.names.InternalName.internalName;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonNames {
 	public static final int CONST_ACCESS = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
+	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
 
 	private static int unitCount = 0;
 
@@ -67,16 +68,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		this.sourceCode = sourceCode;
 	}
 
-	public boolean runSilent() {
+	public void runSilent() throws Exception {
 		try {
 			// load source code
 			if (sourceCode == null)
 				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 			compile();
 			write();
-			return true;
 		} catch (Exception e) {
-			return false;
+			throw e;
 		}
 	}
 
@@ -140,6 +140,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public CompilationUnit write(Path destination) throws IOException {
+		if(sourceFile != null && !sourceFile.getName().replace(".kdl", "").equalsIgnoreCase(clazz.name))
+			throw new IllegalArgumentException(INCORRECT_FILE_NAME + " file:" + sourceFile.getName() + " class:" + clazz.name);
 		Files.write(destination, cw.toByteArray());
 		return this;
 	}
@@ -147,7 +149,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public CompilationUnit write() throws IOException, NullPointerException {
 		if(sourceFile == null)
 			throw new NullPointerException("write() without params in CompilationUnit if the unit wasn't created with a file.");
-
 		return write(sourceFile.toPath().resolveSibling(clazz.name + ".class"));
 	}
 

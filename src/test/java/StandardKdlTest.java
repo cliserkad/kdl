@@ -3,7 +3,6 @@ package test.java;
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.CompilationDispatcher;
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.junit.jupiter.api.Test;
 
 import static com.xarql.kdl.BestList.list;
 
@@ -40,7 +39,7 @@ public class StandardKdlTest {
     public void testKDL() {
         try {
             // compile .kdl file
-            new CompilationDispatcher(new RegexFileFilter(fileName()), true).compileAll();
+            new CompilationDispatcher(new RegexFileFilter(fileName())).dispatchSilently();
             // run .class file
             for(int i = 0; i < arguments.size(); i++) {
                 ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + pathExtension + " " + className);
