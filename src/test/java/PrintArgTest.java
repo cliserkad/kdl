@@ -4,11 +4,9 @@ import com.xarql.kdl.CompilationDispatcher;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.jupiter.api.Test;
 
-import static test.java.HelloWorldTest.JAVA_CMD;
-
 public class PrintArgTest {
     public static final String[] ARGS = { "hello", "test" };
-    public static final String PRINTARG_CMD = JAVA_CMD + "/basics PrintArg ";
+    public static final String PRINTARG_CMD = StandardKdlTest.JAVA_CMD + "/basics PrintArg ";
 
     public static void main(String[] args) {
         new PrintArgTest().testPrintArg();
