@@ -62,6 +62,7 @@ public class StandardKdlTest {
                 ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + pathExtension + " " + className);
                 assert process.getOutput().squish().equals(expectedOutputs.get(i));
                 assert process.getErrors().isEmpty();
+                assert process.getExitValue() == 0;
             }
         } catch(Exception e) {
             e.printStackTrace();

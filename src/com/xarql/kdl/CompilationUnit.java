@@ -299,13 +299,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	private void consumeVariableAssignment(kdlParser.VariableAssignmentContext ctx, LinedMethodVisitor lmv) throws Exception {
 		Variable target = getLocalVariable(ctx.VARNAME().getText());
-		if(ctx.assignment().operatorAssign() != null) {
-			ExpressionHandler.compute(new Expression(getLocalVariable(ctx.VARNAME().getText()), Resolvable.parse(this, ctx.assignment().operatorAssign().value()), Operator.match(ctx.assignment().operatorAssign().operator().getText())), lmv);
-		}
-		else {
-			ToName resultType = ExpressionHandler.compute(new Expression(ctx.assignment().expression(), this), lmv);
-			store(resultType, target, lmv);
-		}
+		final ToName resultType;
+		if(ctx.assignment().operatorAssign() != null)
+			resultType = ExpressionHandler.compute(new Expression(getLocalVariable(ctx.VARNAME().getText()), Resolvable.parse(this, ctx.assignment().operatorAssign().value()), Operator.match(ctx.assignment().operatorAssign().operator().getText())), lmv);
+		else
+			resultType = ExpressionHandler.compute(new Expression(ctx.assignment().expression(), this), lmv);
+		store(resultType, target, lmv);
 	}
 
 	private void consumeStatement(final kdlParser.StatementContext ctx, LinedMethodVisitor lmv) throws Exception {
