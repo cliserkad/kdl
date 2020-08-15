@@ -43,7 +43,7 @@ public class StandardKdlTest {
             // run .class file
             for(int i = 0; i < arguments.size(); i++) {
                 ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + pathExtension + " " + className);
-                assert process.getOutput().spread().equals(expectedOutputs.get(i)) || process.getOutput().spread().equals(expectedOutputs.get(i) + "\n");
+                assert process.getOutput().squish().equals(expectedOutputs.get(i));
                 assert process.getErrors().isEmpty();
             }
         } catch(Exception e) {

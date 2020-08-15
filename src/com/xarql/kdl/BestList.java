@@ -59,6 +59,17 @@ public class BestList<E> extends ArrayList<E> {
 		return out;
 	}
 
+	/**
+	 * Concatenates toString() of every element in to one string without any separation
+	 * @return concat of toString() on every element
+	 */
+	public String squish() {
+		String out = "";
+		for(E elm : this)
+			out += elm.toString();
+		return out;
+	}
+
 	@Override
 	public String toString() {
 		String out = "";
