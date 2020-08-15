@@ -1,6 +1,5 @@
 // author: Bryan Johnson
 class OrTest {
-  const ASSERTION_PASS : "hello from OrTest ";
 
   run {
     // also testing single boolean conditions as they are negative jumps too

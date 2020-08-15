@@ -14,6 +14,13 @@ public class StandardKdlTest {
     private final BestList<String> arguments;
     private final BestList<String> expectedOutputs;
 
+    /**
+     * Makes a StandardKdlTest
+     * @param pathExtension extension on /src/test/kdl for java classpath
+     * @param className name of class
+     * @param arguments a list of sets of command line arguments
+     * @param expectedOutputs a list of expected outputs for each set of arguments
+     */
     public StandardKdlTest(final String pathExtension, final String className, final BestList<String> arguments, final BestList<String> expectedOutputs) {
         if(pathExtension == null)
             this.pathExtension = "";
@@ -22,18 +29,28 @@ public class StandardKdlTest {
 
         this.className = className;
 
-        if(arguments != null && !arguments.isEmpty())
+        if(arguments != null)
             this.arguments = arguments;
         else
             this.arguments = list("");
 
-        if(expectedOutputs != null && !expectedOutputs.isEmpty())
+        if(expectedOutputs != null)
             this.expectedOutputs = expectedOutputs;
         else
-            throw new IllegalArgumentException("You must provide at least one expected output for " + getClass().getName());
+            this.expectedOutputs = list("");
 
         if(this.arguments.size() != this.expectedOutputs.size())
             throw new IllegalStateException("arguments and expectedOutputs must have the same length. Check both inputs on " + getClass().getName() + " constructor");
+    }
+
+    /**
+     * Makes a StandardKdlTest that has no arguments and no output. Use this constructor for .kdl files that use
+     * assert instead of printing.
+     * @param pathExtension extension on /src/test/kdl for java classpath
+     * @param className name of class
+     */
+    public StandardKdlTest(final String pathExtension, final String className) {
+        this(pathExtension, className, null, null);
     }
 
     public void testKDL() {
@@ -52,6 +69,9 @@ public class StandardKdlTest {
         }
     }
 
+    /**
+     * @return className + ".kdl"
+     */
     public String fileName() {
         return className + ".kdl";
     }

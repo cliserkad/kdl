@@ -1,6 +1,5 @@
 // author: Bryan Johnson
 class AndTest {
-  const ASSERTION_PASS : "hello from AndTest";
 
   run {
     if(true & true)

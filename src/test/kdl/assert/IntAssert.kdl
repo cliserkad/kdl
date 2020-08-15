@@ -1,6 +1,5 @@
 // author: Bryan Johnson
 class IntAssert {
-  const ASSERTION_PASS : "+";
 
   run {
     assert 1 != 0;
