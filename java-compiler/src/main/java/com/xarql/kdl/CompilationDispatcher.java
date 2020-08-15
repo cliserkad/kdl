@@ -17,8 +17,9 @@ public class CompilationDispatcher implements CommonNames {
 
 	private final File       input;
 	private final FileFilter filter;
+	private final File       output;
 
-	public CompilationDispatcher(final File input, final FileFilter filter) {
+	public CompilationDispatcher(final File input, final FileFilter filter, final File output) {
 		if(input == null)
 			this.input = DEFAULT_LOC;
 		else
@@ -27,18 +28,19 @@ public class CompilationDispatcher implements CommonNames {
 			this.filter = KDL_FILTER;
 		else
 			this.filter = filter;
+		this.output = output;
 	}
 
 	public CompilationDispatcher(final File input) {
-		this(input, KDL_FILTER);
+		this(input, KDL_FILTER, null);
 	}
 
 	public CompilationDispatcher(final FileFilter filter) {
-		this(DEFAULT_LOC, filter);
+		this(DEFAULT_LOC, filter, null);
 	}
 
 	public CompilationDispatcher() {
-		this(DEFAULT_LOC, KDL_FILTER);
+		this(DEFAULT_LOC, KDL_FILTER, null);
 	}
 
 	public static void main(String[] args) {
@@ -106,7 +108,7 @@ public class CompilationDispatcher implements CommonNames {
 		else if(filter.accept(f)) {
 			if(verbose)
 				System.out.println("Registered " + f.getName());
-			units.add(new CompilationUnit(f));
+			units.add(new CompilationUnit(f, output));
 		}
 		else if(verbose)
 			System.out.println("Skipping file " + f.getName());

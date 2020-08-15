@@ -27,6 +27,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	private File   sourceFile;
 	private String sourceCode;
+	private File   outputFile;
 
 	// set in constructor
 	private final ClassWriter             cw;
@@ -58,9 +59,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		id = unitCount++;
 	}
 
-	public CompilationUnit(File sourceFile) {
+	public CompilationUnit(File sourceFile, File outputFile) {
 		this();
 		this.sourceFile = sourceFile;
+		this.outputFile = outputFile;
+	}
+
+	public CompilationUnit(File sourceFile) {
+		this(sourceFile, null);
 	}
 
 	public CompilationUnit(String sourceCode) {
@@ -87,7 +93,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if (sourceCode == null)
 				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 			compile();
-			write();
+			if(outputFile != null)
+				write(outputFile);
+			else
+				write();
 			System.out.println("Compiled " + clazz.name);
 		} catch (Exception e) {
 			System.err.println("CompilationUnit " + unitName() + " aborted.");
@@ -139,17 +148,23 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return tree;
 	}
 
-	public CompilationUnit write(Path destination) throws IOException {
+	public CompilationUnit write(File destination) throws IOException {
+		// check input file name
 		if(sourceFile != null && !sourceFile.getName().replace(".kdl", "").equalsIgnoreCase(clazz.name))
 			throw new IllegalArgumentException(INCORRECT_FILE_NAME + " file:" + sourceFile.getName() + " class:" + clazz.name);
-		Files.write(destination, cw.toByteArray());
+
+		// if destination is a directory, make a file within that directory
+		if(destination.isDirectory())
+			destination = new File(destination, clazz.name + ".class");
+
+		Files.write(destination.toPath(), cw.toByteArray());
 		return this;
 	}
 
 	public CompilationUnit write() throws IOException, NullPointerException {
 		if(sourceFile == null)
 			throw new NullPointerException("write() without params in CompilationUnit if the unit wasn't created with a file.");
-		return write(sourceFile.toPath().resolveSibling(clazz.name + ".class"));
+		return write(new File(sourceFile.toPath().resolveSibling(clazz.name + ".class").toString()));
 	}
 
 	private static NameAndType parseTypedVariable(kdlParser.TypedVariableContext ctx) {
