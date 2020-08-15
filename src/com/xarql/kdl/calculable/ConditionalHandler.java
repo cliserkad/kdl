@@ -118,7 +118,7 @@ public class ConditionalHandler implements CommonNames {
 				msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
 			new Literal(msg).push(lmv);
 			// print the text of the assertion condition to the error stream
-			ERROR_MTD.withOwner(owner.getClazz()).invokeSpecial(lmv);
+			ERROR_MTD.withOwner(owner.getClazz()).invokeStatic(lmv);
 
 			lmv.visitLabel(cls.exit);
 		}

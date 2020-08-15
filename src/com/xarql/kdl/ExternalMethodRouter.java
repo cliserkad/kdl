@@ -60,7 +60,7 @@ public class ExternalMethodRouter implements CommonNames {
 		methodStart = new Label();
 		lmv.visitFieldInsn(GETSTATIC, internalName(System.class).toString(), "err", new InternalObjectName(PrintStream.class).toString());
 		lmv.visitVarInsn(ALOAD, cu.getLocalVariable(arg).localIndex); // load input
-		ERROR_MTD.invokeVirtual(lmv);
+		PRINTLN_MTD.invokeVirtual(lmv);
 		lmv.visitInsn(RETURN);
 		methodEnd = new Label();
 		lmv.visitLabel(methodEnd);

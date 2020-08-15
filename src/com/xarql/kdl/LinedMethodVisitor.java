@@ -11,6 +11,8 @@ public class LinedMethodVisitor extends MethodVisitor implements Opcodes {
 		this.line = line;
 	}
 
+
+
 	public int getLine() {
 		return line;
 	}
