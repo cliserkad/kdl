@@ -104,7 +104,7 @@ public class ConditionalHandler implements CommonNames {
 			// label and write out instructions for printing a constant when the assertion passes
 			if(owner.hasConstant("ASSERTION_PASS")) {
 				owner.getConstant("ASSERTION_PASS").push(lmv);
-				PRINT_MTD.withOwner(owner.getClazz()).invokeSpecial(lmv);
+				PRINT_MTD.withOwner(owner.getClazz()).invokeStatic(lmv);
 			}
 			lmv.visitJumpInsn(GOTO, cls.exit); // jump over the false instructions
 
