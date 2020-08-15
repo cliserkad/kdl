@@ -28,6 +28,7 @@ class AssignmentOperators {
 
     // set a to 20 again
     a : 20;
+    println("a was set to 20");
     // set a to remainder of a / 3
     a %: 3;
     print("a %: 3 --> ");
