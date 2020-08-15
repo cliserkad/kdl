@@ -21,14 +21,14 @@ public class KDLCompilerPlugin extends AbstractMojo {
 
     /**
      * Location of the file.
-     * @parameter expression="project.build.directory"
+     * @parameter property="project.build.directory"
      * @required
      */
     private File outputDirectory;
 
     /**
      * Location of .kdl files
-     * @parameter expression="project.build.sourceDirectory"
+     * @parameter property="project.build.sourceDirectory"
      * @required
      */
     private File sourceDirectory;
