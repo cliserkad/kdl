@@ -286,7 +286,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeMethodCall(kdl.MethodCallContext ctx, LinedMethodVisitor lmv) throws Exception {
-		new MethodCall(ctx, this).push(lmv);
+		new MethodCall(ctx, this).calc(lmv);
 	}
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, LinedMethodVisitor lmv) throws Exception {
@@ -294,7 +294,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		Variable var = new Variable(currentScope, details.name, details.type.toInternalObjectName());
 
 		if(ctx.ASSIGN() != null)
-			store(Resolvable.parse(this, ctx.expression().value(0)).push(lmv), var, lmv);
+			store(new Expression(ctx.expression(), this).calc(lmv), var, lmv);
 		else
 			storeDefault(var, lmv);
 	}

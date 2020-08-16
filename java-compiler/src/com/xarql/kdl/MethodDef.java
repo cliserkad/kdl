@@ -21,7 +21,7 @@ public class MethodDef extends JavaMethodDef implements CommonNames {
 	 * @param returnValue the type that is returned
 	 * @param access      access modifiers
 	 */
-	public MethodDef(InternalName owner, Type type, String methodName, List<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {
+	public MethodDef(InternalName owner, Type type, String methodName, BestList<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {
 		super(owner, methodName, paramTypes, returnValue, access);
 		this.type = type;
 	}

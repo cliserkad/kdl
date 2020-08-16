@@ -19,14 +19,17 @@ public class JavaMethodDef implements StringOutput, CommonNames {
 
 	public final InternalName owner;
 	public final String                   methodName;
-	public final List<InternalObjectName> paramTypes;
+	public final BestList<InternalObjectName> paramTypes;
 	public final ReturnValue returnValue;
 	public final int                      access;
 
-	public JavaMethodDef(InternalName owner, String methodName, List<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {
+	public JavaMethodDef(InternalName owner, String methodName, BestList<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {
 		this.owner = owner; // TODO: add check against primitives
 		this.methodName = Text.checkNotEmpty(methodName);
-		this.paramTypes = Util.nonNullList(paramTypes);
+		if(paramTypes == null)
+			this.paramTypes = new BestList<InternalObjectName>();
+		else
+			this.paramTypes = paramTypes;
 		this.returnValue = ReturnValue.nonNull(returnValue);
 		this.access = access;
 	}
@@ -102,10 +105,13 @@ public class JavaMethodDef implements StringOutput, CommonNames {
 		throw new SymbolResolutionException("Couldn't resolve given method " + this);
 	}
 
-	public boolean paramsCompatible(List<InternalObjectName> others) {
+	public boolean paramsCompatible(BestList<InternalObjectName> others) {
 		if(paramTypes.size() != others.size())
 			return false;
 		for(int i = 0; i < paramTypes.size(); i++) {
+			System.out.println(others.squish());
+			System.out.println(others.get(i));
+			System.out.println(paramTypes.get(i));
 			if(!paramTypes.get(i).compatibleWith(others.get(i)))
 				return false;
 		}

@@ -86,5 +86,3 @@ PKG_NAME: DNTEXT ('.' DNTEXT)*;
 ESCAPED_QUOTE : '\\"';
 
 STRING_LIT: '"' (ESCAPED_QUOTE | ~'"')* '"';
-
-

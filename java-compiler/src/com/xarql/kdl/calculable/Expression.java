@@ -10,7 +10,7 @@ import com.xarql.kdl.names.ToName;
 
 public class Expression implements Calculable {
     Resolvable a;
-    Resolvable b;
+    Calculable b;
     Operator opr;
 
     public Expression(Resolvable a, Resolvable b, Operator opr) {
@@ -22,15 +22,18 @@ public class Expression implements Calculable {
     }
 
     public Expression(kdl.ExpressionContext ctx, CompilationUnit unit) throws Exception {
-        this.a = Resolvable.parse(unit, ctx.value(0));
-        if(ctx.value(1) == null)
+        this.a = Resolvable.parse(unit, ctx.value());
+        if(ctx.expression() != null)
+            this.b = new Expression(ctx.expression(), unit);
+        else
             this.b = null;
-        else
-            this.b = Resolvable.parse(unit, ctx.value(1));
-        if(ctx.operator() == null)
-            opr = null;
-        else
+        if(ctx.operator() != null)
             opr = Operator.match(ctx.operator().getText());
+        else
+            opr = null;
+        if(opr != null && b == null) {
+            throw new IllegalStateException("Expressions must have a right side if they have an operator");
+        }
     }
 
     public boolean isSingleValue() {
@@ -44,21 +47,21 @@ public class Expression implements Calculable {
 
     @Override
     public InternalName toInternalName() {
-        return null;
+        return a.toInternalName();
     }
 
     @Override
     public InternalObjectName toInternalObjectName() {
-        return null;
+        return a.toInternalObjectName();
     }
 
     @Override
     public boolean isBaseType() {
-        return false;
+        return a.isBaseType();
     }
 
     @Override
     public BaseType toBaseType() {
-        return null;
+        return a.toBaseType();
     }
 }

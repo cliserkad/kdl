@@ -4,9 +4,9 @@ import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.*;
 
-public class MethodCall extends DefaultResolvable implements CommonNames {
+public class MethodCall implements CommonNames, Resolvable {
     public final JavaMethodDef method;
-    private final BestList<Resolvable> arguments;
+    private final BestList<Calculable> arguments;
 
     public MethodCall(kdl.MethodCallContext ctx, CompilationUnit unit) throws Exception {
         final String methodName = ctx.VARNAME().getText();
@@ -16,25 +16,28 @@ public class MethodCall extends DefaultResolvable implements CommonNames {
         if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
             params = new BestList<>();
             for(kdl.ExpressionContext xpr : ctx.parameterSet().expression()) {
-                Resolvable res = Resolvable.parse(unit, xpr.value(0));
-                params.add(res.toInternalObjectName());
-                arguments.add(res);
+                Expression xpr1 = new Expression(xpr, unit);
+                params.add(xpr1.toInternalObjectName());
+                arguments.add(xpr1);
             }
         }
         else
-            params = null;
+            params = new BestList<>();
 
         JavaMethodDef known = new JavaMethodDef(new InternalName(unit.getClazz()), methodName, params, null, ACC_PUBLIC + ACC_STATIC);
         method = known.resolve(unit);
     }
 
     @Override
-    /**
-     * Executes the method and pushes the return value on to the stack
-     */
     public Resolvable push(LinedMethodVisitor lmv) throws Exception {
+        calc(lmv);
+        return this;
+    }
+
+    @Override
+    public ToName calc(LinedMethodVisitor lmv) throws Exception {
         for(int i = 0; i < arguments.size(); i++) {
-            arguments.get(i).push(lmv);
+            arguments.get(i).calc(lmv);
             if(method.paramTypes.get(i) == STRING_ION) {
                 CompilationUnit.convertToString(arguments.get(i).toInternalObjectName(), lmv);
             }
@@ -71,10 +74,11 @@ public class MethodCall extends DefaultResolvable implements CommonNames {
     }
 
     private String arguments() {
-        String out = "\n\tResolvables --> {";
-        for(Resolvable arg : arguments)
+        String out = "\n\tCalculable --> {";
+        for(Calculable arg : arguments)
             out += "\n\t\t" + arg.toString().replace("\n", "\n\t\t");
         out += "\n\t}";
         return out;
     }
+
 }

@@ -13,23 +13,23 @@ import static com.xarql.kdl.names.InternalName.internalName;
 public interface ExpressionHandler extends CommonNames {
 
     public static ToName compute(final Expression xpr, final LinedMethodVisitor lmv) throws Exception {
-        final Resolvable res1 = xpr.a;
-        final Resolvable res2 = xpr.b;
+        final Resolvable res = xpr.a;
+        final Calculable calc = xpr.b;
         final Operator opr = xpr.opr;
 
         if(xpr.isSingleValue()) {
-            res1.push(lmv);
-            return res1;
+            res.push(lmv);
+            return res;
         }
         else {
-            switch(res1.toBaseType()) {
+            switch(res.toBaseType()) {
                 case INT:
                 case BOOLEAN: {
-                    computeInt(res1, res2, opr, lmv);
+                    computeInt(res, calc, opr, lmv);
                     return INT;
                 }
                 case STRING: {
-                    return computeString(res1, res2, opr, lmv);
+                    return computeString(res, calc, opr, lmv);
                 }
                 default:
                     throw new UnimplementedException(SWITCH_BASETYPE);
@@ -47,7 +47,7 @@ public interface ExpressionHandler extends CommonNames {
         lmv.visitMethodInsn(INVOKESPECIAL, internalName(StringBuilder.class).stringOutput(), INIT, NO_PARAM_VOID, false);
     }
 
-    public static BaseType computeString(Resolvable res1, Resolvable res2, Operator opr, LinedMethodVisitor lmv) throws Exception {
+    public static BaseType computeString(Resolvable res1, Calculable res2, Operator opr, LinedMethodVisitor lmv) throws Exception {
         switch(opr) {
             case PLUS: {
                 switch(res2.toBaseType()) {
@@ -55,7 +55,7 @@ public interface ExpressionHandler extends CommonNames {
                         stringBuilderInit(lmv);
                         res1.push(lmv);
                         lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-                        res2.push(lmv);
+                        res2.calc(lmv);
                         CompilationUnit.convertToString(res2.toBaseType().toInternalObjectName(), lmv);
                         lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
                         lmv.visitMethodInsn(INVOKEVIRTUAL, STRING_BUILDER_IN_S, SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
@@ -65,7 +65,7 @@ public interface ExpressionHandler extends CommonNames {
                         stringBuilderInit(lmv);
                         res1.push(lmv);
                         lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-                        res2.push(lmv);
+                        res2.calc(lmv);
                         lmv.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
                         lmv.visitMethodInsn(INVOKEVIRTUAL, STRING_BUILDER_IN_S, SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
                         return STRING;
@@ -78,13 +78,13 @@ public interface ExpressionHandler extends CommonNames {
         }
     }
 
-    public static BaseType computeInt(Resolvable res1, Resolvable res2, Operator opr, LinedMethodVisitor lmv) throws Exception {
+    public static BaseType computeInt(Resolvable res1, Calculable res2, Operator opr, LinedMethodVisitor lmv) throws Exception {
         if(res2.toBaseType() == STRING)
             throw new IncompatibleTypeException(INT + INCOMPATIBLE + STRING);
             // under the hood booleans should be either 0 or 1
         else {
             res1.push(lmv);
-            res2.push(lmv);
+            res2.calc(lmv);
             switch(opr) {
                 case PLUS:
                     lmv.visitInsn(IADD);

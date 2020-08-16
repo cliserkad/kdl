@@ -12,8 +12,7 @@ arrayLength: VARNAME SIZE;
 
 // literals
 bool: TRUE | FALSE;
-number: MINUS? DIGIT+;
-
+number: DIGIT+;
 literal: bool | STRING_LIT | number;
 
 statement: methodCall STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional;
@@ -28,7 +27,7 @@ r_while: WHILE condition block;
 
 value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
-expression: value (operator value)?;
+expression: value (operator expression)?;
 
 condition: singleCondition (appender singleCondition)?;
 singleCondition: expression (comparator expression)?;
