@@ -2,6 +2,7 @@
 *.class
 
 # Maven output
+**/gen
 **/target
 
 # IntelliJ files

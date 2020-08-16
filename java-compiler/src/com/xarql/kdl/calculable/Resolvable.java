@@ -26,7 +26,7 @@ public interface Resolvable extends Calculable {
      * @return A Resolvable whose actual type corresponds to the symbol
      * @throws UnimplementedException thrown if missing a symbol from the grammar
      */
-    public static Resolvable parse(final CompilationUnit unit, final com.xarql.kdl.antlr4.kdlParser.ValueContext val) throws Exception {
+    public static Resolvable parse(final CompilationUnit unit, final com.xarql.kdl.antlr.kdl.ValueContext val) throws Exception {
         if(val.literal() != null)
             return Literal.parseLiteral(val.literal());
         else if(val.CONSTNAME() != null)

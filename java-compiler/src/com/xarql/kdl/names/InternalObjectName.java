@@ -1,7 +1,7 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.calculable.Array;
 import com.xarql.kdl.StringOutput;
+import com.xarql.kdl.calculable.Array;
 
 import static com.xarql.kdl.names.InternalName.internalName;
 

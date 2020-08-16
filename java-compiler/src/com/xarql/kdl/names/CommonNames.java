@@ -27,7 +27,6 @@ public interface CommonNames extends Opcodes {
 	InternalObjectName           STRING_ION   = new InternalObjectName(STRING_IN);
 	String                       STRING_ION_S = STRING_ION.toString();
 	BestList<InternalObjectName> STRING_PARAM = new BestList<>(STRING_ION);
-	ReturnValue                  STRING_RV    = new ReturnValue(STRING_ION);
 	String                       EMPTY_STRING = "";
 
 	// StringBuilder
@@ -35,9 +34,8 @@ public interface CommonNames extends Opcodes {
 	String             STRING_BUILDER_IN_S  = STRING_BUILDER_IN.stringOutput();
 	InternalObjectName STRING_BUILDER_ION   = STRING_BUILDER_IN.toInternalObjectName();
 	String             STRING_BUILDER_ION_S = STRING_BUILDER_ION.stringOutput();
-	ReturnValue        STRING_BUILDER_RV    = new ReturnValue(StringBuilder.class);
-	JavaMethodDef      SB_APPEND            = new JavaMethodDef(STRING_BUILDER_IN, "append", list(STRING_ION), STRING_BUILDER_RV, ACC_PUBLIC);
-	JavaMethodDef      SB_TO_STRING         = new JavaMethodDef(STRING_BUILDER_IN, "toString", null, STRING_RV, ACC_PUBLIC);
+	JavaMethodDef      SB_APPEND            = new JavaMethodDef(STRING_BUILDER_IN, "append", list(STRING_ION), ReturnValue.returnValue(STRING_BUILDER_ION), ACC_PUBLIC);
+	JavaMethodDef      SB_TO_STRING         = new JavaMethodDef(STRING_BUILDER_IN, "toString", null, ReturnValue.STRING_RETURN, ACC_PUBLIC);
 
 	// handled by ExternalMethodRouter
 	String PRINT   = "print";
@@ -46,10 +44,8 @@ public interface CommonNames extends Opcodes {
 
 	// method parts
 	String      NO_PARAM_VOID = "()V";
-	ReturnValue VOID          = ReturnValue.VOID_RETURN;
+	ReturnValue VOID          = ReturnValue.VOID;
 	String      VOID_S        = VOID.stringOutput();
-	ReturnValue BOOLEAN_RV    = ReturnValue.BOOLEAN_RETURN;
-	ReturnValue INT_RV        = ReturnValue.INT_RETURN;
 	String      INIT          = JavaMethodDef.INIT;
 	String      DEFAULT       = "default";
 

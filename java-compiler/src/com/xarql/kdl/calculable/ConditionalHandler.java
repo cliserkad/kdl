@@ -2,12 +2,12 @@ package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.*;
 import com.xarql.kdl.CompilationUnit;
-import com.xarql.kdl.antlr4.kdlParser;
+import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.ReturnValue;
 import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.ExternalMethodRouter.ERROR_MTD;
 import static com.xarql.kdl.ExternalMethodRouter.PRINT_MTD;
@@ -19,7 +19,7 @@ public class ConditionalHandler implements CommonNames {
 		this.owner = owner;
 	}
 
-	private kdlParser.ConditionContext conditionContextof(kdlParser.ConditionalContext ctx) throws UnimplementedException {
+	private kdl.ConditionContext conditionContextof(kdl.ConditionalContext ctx) throws UnimplementedException {
 		if(ctx.r_if() != null)
 			return ctx.r_if().condition();
 		else if(ctx.r_while() != null)
@@ -31,7 +31,7 @@ public class ConditionalHandler implements CommonNames {
 	}
 
 	// route a certain condition to the conditional's flow
-	private void handleSingleCondition(kdlParser.SingleConditionContext ctx, ConditionalLabelSet cls, LinedMethodVisitor lmv, boolean positive) throws Exception {
+	private void handleSingleCondition(kdl.SingleConditionContext ctx, ConditionalLabelSet cls, LinedMethodVisitor lmv, boolean positive) throws Exception {
 		ToName xpr1 = ExpressionHandler.compute(new Expression(ctx.expression(0), owner), lmv);
 		final BaseType aType = xpr1.toBaseType();
 		// if the condition has two values
@@ -68,17 +68,17 @@ public class ConditionalHandler implements CommonNames {
 		}
 	}
 
-	public void handle(kdlParser.ConditionalContext ctx, LinedMethodVisitor lmv) throws Exception {
+	public void handle(kdl.ConditionalContext ctx, LinedMethodVisitor lmv) throws Exception {
 		final ConditionalLabelSet cls = new ConditionalLabelSet();
 		lmv.visitLabel(cls.intro);
 
-		final kdlParser.ConditionContext cnd = conditionContextof(ctx);
+		final kdl.ConditionContext cnd = conditionContextof(ctx);
 		final boolean checkPositive;
 		if(cnd.appender() != null)
 			checkPositive = cnd.appender().AND() == null;
 		else
 			checkPositive = false;
-		for(kdlParser.SingleConditionContext sc : cnd.singleCondition())
+		for(kdl.SingleConditionContext sc : cnd.singleCondition())
 			handleSingleCondition(sc, cls, lmv, checkPositive);
 
 		// if the check is positive, then we should jump to the false clause when no previous jump has been triggered
@@ -153,7 +153,7 @@ public class ConditionalHandler implements CommonNames {
 
 		// use isEmpty() on the second copy of the string
 		lmv.visitLabel(isEmpty);
-		new JavaMethodDef(STRING_IN, "isEmpty", null, BOOLEAN_RV, ACC_PUBLIC + ACC_STATIC).invokeVirtual(lmv);
+		new JavaMethodDef(STRING_IN, "isEmpty", null, ReturnValue.BOOLEAN_RETURN, ACC_PUBLIC + ACC_STATIC).invokeVirtual(lmv);
 
 		// negative vs positive jump
 		if(positive)

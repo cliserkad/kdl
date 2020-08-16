@@ -2,7 +2,7 @@ package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.LinedMethodVisitor;
-import com.xarql.kdl.antlr4.kdlParser;
+import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
@@ -21,7 +21,7 @@ public class Expression implements Calculable {
         this.opr = opr;
     }
 
-    public Expression(kdlParser.ExpressionContext ctx, CompilationUnit unit) throws Exception {
+    public Expression(kdl.ExpressionContext ctx, CompilationUnit unit) throws Exception {
         this.a = Resolvable.parse(unit, ctx.value(0));
         if(ctx.value(1) == null)
             this.b = null;

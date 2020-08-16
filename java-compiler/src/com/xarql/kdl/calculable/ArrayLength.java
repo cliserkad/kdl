@@ -5,7 +5,6 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
-import org.objectweb.asm.Opcodes;
 
 /**
  * Represents the access of an array's length.

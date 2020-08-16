@@ -1,7 +1,9 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.*;
-import org.objectweb.asm.Opcodes;
+import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.InternalObjectName;
+import com.xarql.kdl.names.ReturnValue;
 
 import java.util.List;
 
@@ -9,16 +11,16 @@ import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.InternalName.internalName;
 
 public class JavaMethodDef implements StringOutput, CommonNames {
-	public static final JavaMethodDef MAIN      = new JavaMethodDef(internalName(Object.class), "main", list(new InternalObjectName(String.class, 1)), null, ACC_PUBLIC + ACC_STATIC);
-	public static final JavaMethodDef TO_STRING = new JavaMethodDef(internalName(Object.class), "toString", null, STRING_RV, ACC_PUBLIC);
+	public static final JavaMethodDef MAIN      = new JavaMethodDef(internalName(Object.class), "main", list(new InternalObjectName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
+	public static final JavaMethodDef TO_STRING = new JavaMethodDef(internalName(Object.class), "toString", null, ReturnValue.STRING_RETURN, ACC_PUBLIC);
 
 	public static final String INIT           = "<init>";
-	public static final int    DEFAULT_ACCESS = ACC_STATIC;
+	public static final int    DEFAULT_ACCESS = ACC_PUBLIC + ACC_STATIC;
 
-	public final InternalName             owner;
+	public final InternalName owner;
 	public final String                   methodName;
 	public final List<InternalObjectName> paramTypes;
-	public final ReturnValue              returnValue;
+	public final ReturnValue returnValue;
 	public final int                      access;
 
 	public JavaMethodDef(InternalName owner, String methodName, List<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {

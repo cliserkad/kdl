@@ -1,0 +1,19 @@
+class IsEven {
+  run {
+    if args size > 0 {
+      int input : parseInt(args[0]);
+      println(isEven(input));
+    } else {
+      println("Please provide a integer argument");
+    }
+  }
+
+  fnc boolean isEven(int n) {
+    if n % 2 = 0 {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+}

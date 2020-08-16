@@ -1,7 +1,8 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.antlr4.kdlBaseListener;
-import com.xarql.kdl.antlr4.kdlParser;
+import com.xarql.kdl.antlr.kdlBaseListener;
+import com.xarql.kdl.antlr.kdlLexer;
+import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.calculable.*;
 import com.xarql.kdl.names.*;
 import org.antlr.v4.runtime.CharStreams;
@@ -13,14 +14,13 @@ import org.objectweb.asm.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.InternalName.internalName;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonNames {
-	public static final int CONST_ACCESS = Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL;
+	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
 
 	private static int unitCount = 0;
@@ -128,13 +128,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private ParseTree makeParseTree(String input) throws Exception {
 		SyntaxErrorHandler syntaxErrorHandler = new SyntaxErrorHandler(this);
 
-		final com.xarql.kdl.antlr4.kdlLexer lex = new com.xarql.kdl.antlr4.kdlLexer(CharStreams.fromString(input));
+		final kdlLexer lex = new kdlLexer(CharStreams.fromString(input));
 		lex.removeErrorListeners();
 		lex.addErrorListener(syntaxErrorHandler);
 
-		final CommonTokenStream tokens = new CommonTokenStream(lex);
+		final CommonTokenStream tokens = new CommonTokenStream(lex, 0);
 
-		final kdlParser parser = new kdlParser(tokens);
+		final kdl parser = new kdl(tokens);
 		parser.removeErrorListeners();
 		parser.addErrorListener(syntaxErrorHandler);
 
@@ -167,7 +167,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return write(new File(sourceFile.toPath().resolveSibling(clazz.name + ".class").toString()));
 	}
 
-	private static NameAndType parseTypedVariable(kdlParser.TypedVariableContext ctx) {
+	private static NameAndType parseTypedVariable(kdl.TypedVariableContext ctx) {
 		String name = ctx.VARNAME().toString();
 
 		InternalName type;
@@ -197,9 +197,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(name.toBaseType() == STRING)
 				return;
 			else
-				stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(name), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
+				stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(name), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
 		else
-			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(new InternalObjectName(Object.class)), new ReturnValue(String.class), ACC_PUBLIC + ACC_STATIC);
+			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(new InternalObjectName(Object.class)), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
 		lmv.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
@@ -240,13 +240,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private static Operator parseOperator(kdlParser.OperatorContext ctx) {
+	private static Operator parseOperator(kdl.OperatorContext ctx) {
 		return Operator.match(ctx.getText());
 	}
 
 
 	@Override
-	public void enterPkg(kdlParser.PkgContext ctx) {
+	public void enterPkg(kdl.PkgContext ctx) {
 		pkgName = ctx.PKG_NAME().getText();
 	}
 
@@ -259,13 +259,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	@Override
-	public void enterSee(kdlParser.SeeContext ctx) {
-		if(getPass() == 1)
-			addImport(new Import(ctx.QUALIFIED_NAME().toString()));
-	}
-
-	@Override
-	public void enterClazz(final kdlParser.ClazzContext clazzCtx) {
+	public void enterClazz(final kdl.ClazzContext clazzCtx) {
 		if(getPass() == 1) {
 			pkgName = nonNull(pkgName);
 			setClassName(pkgName, clazzCtx.CLASSNAME().toString());
@@ -273,7 +267,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	@Override
-	public void enterConstant(final kdlParser.ConstantContext ctx) {
+	public void enterConstant(final kdl.ConstantContext ctx) {
 		// collect names
 		if(getPass() == 1) {
 			final String name = ctx.CONSTNAME().toString();
@@ -291,11 +285,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private void consumeMethodCall(kdlParser.MethodCallContext ctx, LinedMethodVisitor lmv) throws Exception {
+	private void consumeMethodCall(kdl.MethodCallContext ctx, LinedMethodVisitor lmv) throws Exception {
 		new MethodCall(ctx, this).push(lmv);
 	}
 
-	private void consumeVariableDeclaration(kdlParser.VariableDeclarationContext ctx, LinedMethodVisitor lmv) throws Exception {
+	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, LinedMethodVisitor lmv) throws Exception {
 		NameAndType details = parseTypedVariable(ctx.typedVariable());
 		Variable var = new Variable(currentScope, details.name, details.type.toInternalObjectName());
 
@@ -305,7 +299,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			storeDefault(var, lmv);
 	}
 
-	private void consumeVariableAssignment(kdlParser.VariableAssignmentContext ctx, LinedMethodVisitor lmv) throws Exception {
+	private void consumeVariableAssignment(kdl.VariableAssignmentContext ctx, LinedMethodVisitor lmv) throws Exception {
 		Variable target = getLocalVariable(ctx.VARNAME().getText());
 		final ToName resultType;
 		if(ctx.assignment().operatorAssign() != null)
@@ -315,7 +309,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		store(resultType, target, lmv);
 	}
 
-	private void consumeStatement(final kdlParser.StatementContext ctx, LinedMethodVisitor lmv) throws Exception {
+	private void consumeStatement(final kdl.StatementContext ctx, LinedMethodVisitor lmv) throws Exception {
 		if(ctx.variableDeclaration() != null) {
 			consumeVariableDeclaration(ctx.variableDeclaration(), lmv);
 		}
@@ -329,26 +323,58 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			// forward to the handler to partition code
 			cmpHandler.handle(ctx.conditional(), lmv);
 		}
+		else if(ctx.returnStatement() != null) {
+			if(ctx.returnStatement().expression() == null) {
+				lmv.visitInsn(RETURN);
+				return;
+			}
+
+			ToName returnType = ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), this), lmv);
+			if(returnType.isBaseType()) {
+				switch(returnType.toBaseType()) {
+					case BOOLEAN:
+					case INT:
+						lmv.visitInsn(IRETURN);
+						break;
+					case STRING:
+						lmv.visitInsn(ARETURN);
+						break;
+					default:
+						throw new UnimplementedException(SWITCH_BASETYPE);
+				}
+			}
+			else
+				lmv.visitInsn(ARETURN);
+		}
 		else
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
 	}
 
-	public void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) throws Exception {
-		for (kdlParser.StatementContext statement : ctx.statement())
+	public void consumeBlock(final kdl.BlockContext ctx, LinedMethodVisitor lmv) throws Exception {
+		for (kdl.StatementContext statement : ctx.statement())
 			consumeStatement(statement, lmv);
 	}
 
 	@Override
-	public void enterRun(final kdlParser.RunContext ctx) {
-		if(getPass() == 2) {
-			addMethodDef(JavaMethodDef.MAIN.withOwner(clazz));
-		}
-		else if(getPass() == 3) {
-			ExternalMethodRouter.writeMethods(this);
+	public void enterMethodDefinition(final kdl.MethodDefinitionContext ctx) {
+		final NameAndType details = parseTypedVariable(ctx.typedVariable());
+		final BestList<NameAndType> params = new BestList<>();
+		for(kdl.TypedVariableContext typedVar : ctx.parameterDefinition().typedVariable())
+			params.add(parseTypedVariable(typedVar));
+		final ReturnValue rv = ReturnValue.returnValue(details.type);
+		final BestList<InternalObjectName> paramTypes = new BestList<>();
+		for(NameAndType param : params)
+			paramTypes.add(param.type.toInternalObjectName());
+		MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.MTD, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
 
-			final LinedMethodVisitor lmv = defineMethod(JavaMethodDef.MAIN, ctx.start.getLine() + 1);
-			new Variable(currentScope, "args", new InternalObjectName(String.class, 1));
+		if(pass == 2) {
+			addMethodDef(def);
+		} else if(pass == 3) {
 			Label methodStart = new Label();
+			final LinedMethodVisitor lmv = defineMethod(def, ctx.start.getLine());
+			for(NameAndType param : params)
+				new Variable(currentScope, param.name, param.type.toInternalObjectName());
+
 			try {
 				consumeBlock(ctx.block(), lmv);
 			} catch (Exception e) {
@@ -358,8 +384,43 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 			final Label ret = new Label();
 			lmv.visitLabel(ret);
-			lmv.visitLineNumber(ctx.start.getLine(), ret);
-			lmv.visitInsn(Opcodes.RETURN);
+			lmv.visitLineNumber(ctx.stop.getLine(), ret);
+			if(rv.isVoid())
+				lmv.visitInsn(RETURN);
+			else
+				lmv.visitInsn(NOP);
+
+			final Label methodEnd = new Label();
+			lmv.visitLabel(methodEnd);
+			for(Variable lv : currentScope.getVariables())
+				lmv.visitLocalVariable(lv.name, lv.type.toString(), null, methodStart, methodEnd, lv.localIndex);
+			lmv.visitMaxs(0, 0);
+			lmv.visitEnd();
+		}
+	}
+
+	@Override
+	public void enterRun(final kdl.RunContext ctx) {
+		if(getPass() == 2) {
+			addMethodDef(JavaMethodDef.MAIN.withOwner(clazz));
+		}
+		else if(getPass() == 3) {
+			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
+
+			Label methodStart = new Label();
+			final LinedMethodVisitor lmv = defineMethod(JavaMethodDef.MAIN, ctx.getStart().getLine());
+			new Variable(currentScope, "args", new InternalObjectName(String.class, 1));
+			try {
+				consumeBlock(ctx.block(), lmv);
+			} catch (Exception e) {
+				System.err.println("From unit: " + unitName());
+				e.printStackTrace();
+			}
+
+			final Label ret = new Label();
+			lmv.visitLabel(ret);
+			lmv.visitLineNumber(ctx.stop.getLine(), ret);
+			lmv.visitInsn(RETURN);
 
 			final Label methodEnd = new Label();
 			lmv.visitLabel(methodEnd);
@@ -416,7 +477,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			nameSet = true;
 
 			// give name to ClassWriter
-			cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
+			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
 			cw.visitSource(clazz + ".kdl", null);
 
 			return true;
@@ -461,14 +522,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void addDefaultConstructor(final ClassWriter cw) {
-		final MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null);
+		final MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
 		mv.visitCode();
 		final Label l0 = new Label();
 		mv.visitLabel(l0);
 		mv.visitLineNumber(3, l0);
-		mv.visitVarInsn(Opcodes.ALOAD, 0);
-		mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
-		mv.visitInsn(Opcodes.RETURN);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+		mv.visitInsn(RETURN);
 		final Label l1 = new Label();
 		mv.visitLabel(l1);
 		mv.visitLocalVariable("this", clazz.internalObjectNameString(), null, l0, l1, 0);

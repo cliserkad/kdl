@@ -1,4 +1,4 @@
-package com.xarql.kdl.names;
+package com.xarql.kdl;
 
 import static com.xarql.kdl.names.InternalObjectName.OBJECT_PREFIX;
 import static com.xarql.kdl.names.InternalObjectName.OBJECT_SUFFIX;

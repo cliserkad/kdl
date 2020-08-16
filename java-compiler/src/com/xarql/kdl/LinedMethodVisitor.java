@@ -7,11 +7,9 @@ public class LinedMethodVisitor extends MethodVisitor implements Opcodes {
 	private int line;
 
 	public LinedMethodVisitor(MethodVisitor mv, int line) {
-		super(ASM6, mv);
+		super(ASM8, mv);
 		this.line = line;
 	}
-
-
 
 	public int getLine() {
 		return line;

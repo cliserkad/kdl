@@ -1,26 +1,21 @@
 package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.*;
-import com.xarql.kdl.antlr4.kdlParser;
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.CommonNames;
-import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
-
-import javax.management.remote.JMXServerErrorException;
+import com.xarql.kdl.antlr.kdl;
+import com.xarql.kdl.names.*;
 
 public class MethodCall extends DefaultResolvable implements CommonNames {
     public final JavaMethodDef method;
     private final BestList<Resolvable> arguments;
 
-    public MethodCall(kdlParser.MethodCallContext ctx, CompilationUnit unit) throws Exception {
+    public MethodCall(kdl.MethodCallContext ctx, CompilationUnit unit) throws Exception {
         final String methodName = ctx.VARNAME().getText();
 
         final BestList<InternalObjectName> params;
         arguments = new BestList<>();
         if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
             params = new BestList<>();
-            for(com.xarql.kdl.antlr4.kdlParser.ExpressionContext xpr : ctx.parameterSet().expression()) {
+            for(kdl.ExpressionContext xpr : ctx.parameterSet().expression()) {
                 Resolvable res = Resolvable.parse(unit, xpr.value(0));
                 params.add(res.toInternalObjectName());
                 arguments.add(res);
@@ -50,6 +45,8 @@ public class MethodCall extends DefaultResolvable implements CommonNames {
 
     @Override
     public InternalName toInternalName() {
+        if(method.returnValue.returnType == null)
+            return new InternalName();
         return method.returnValue.returnType.toInternalName();
     }
 

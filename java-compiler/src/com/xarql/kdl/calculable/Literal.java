@@ -4,7 +4,7 @@ import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.*;
-import  com.xarql.kdl.antlr4.kdlParser;
+import  com.xarql.kdl.antlr.kdl;
 
 public class Literal<Type> extends DefaultResolvable implements StringOutput, CommonNames {
 	public Type value;
@@ -61,7 +61,7 @@ public class Literal<Type> extends DefaultResolvable implements StringOutput, Co
 		return this;
 	}
 
-	public static Literal<?> parseLiteral(final kdlParser.LiteralContext ctx) {
+	public static Literal<?> parseLiteral(final kdl.LiteralContext ctx) {
 		if(ctx.bool() != null)
 			return new Literal<Boolean>(ctx.bool().TRUE() != null);
 		else if(ctx.number() != null)
