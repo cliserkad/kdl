@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class BooleanCompare {
+type BooleanCompare {
   const GOOD : "hello from BooleanCompare";
   const FAIL : "This message was shown in error";
 

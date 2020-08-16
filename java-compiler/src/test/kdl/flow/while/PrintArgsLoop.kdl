@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class PrintArgsLoop {
+type PrintArgsLoop {
   run {
     int a;
     while a < args size {

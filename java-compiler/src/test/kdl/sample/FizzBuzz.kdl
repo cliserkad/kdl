@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class FizzBuzz {
+type FizzBuzz {
   run {
     int input : parseInt(args[0]);
 

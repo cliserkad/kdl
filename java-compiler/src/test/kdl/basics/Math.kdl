@@ -1,4 +1,4 @@
-class Math {
+type Math {
   run {
     int a : 1;
     println(a);

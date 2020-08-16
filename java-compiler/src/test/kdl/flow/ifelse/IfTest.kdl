@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class IfTest {
+type IfTest {
   run {
     if true {
       println("hello from IfTest");

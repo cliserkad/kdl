@@ -1,4 +1,4 @@
-class BaseTypeDefaults {
+type BaseTypeDefaults {
   run {
     int i;
     boolean b;

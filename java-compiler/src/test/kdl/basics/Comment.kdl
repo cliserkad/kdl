@@ -1,4 +1,4 @@
-class Comment {
+type Comment {
   run {
     // This is a comment so I write what I want to
     // println("First message");

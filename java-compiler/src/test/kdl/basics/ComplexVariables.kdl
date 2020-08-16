@@ -1,4 +1,4 @@
-class ComplexVariables {
+type ComplexVariables {
   run {
     string s : "hi";
     string s2 : "hello from ComplexVariables";

@@ -1,4 +1,4 @@
-class IsEven {
+type IsEven {
   run {
     if args size > 0 {
       int input : parseInt(args[0]);

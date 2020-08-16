@@ -1,4 +1,4 @@
-class VariableAssignment {
+type VariableAssignment {
   run {
     int a;
     a : 1;

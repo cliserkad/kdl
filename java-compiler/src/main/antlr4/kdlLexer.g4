@@ -13,7 +13,7 @@ NEWLINES: '\n' -> channel(HIDDEN);
 WS : [ \t\r]+ -> channel(HIDDEN);
 
 // keywords
-CLASS: 'class';
+TYPE: 'type';
 CONST: 'const';
 RUN: 'run';
 METHOD: 'mtd';

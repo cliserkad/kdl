@@ -1,4 +1,4 @@
-class StringAutoCast {
+type StringAutoCast {
   run {
     int a : 10;
     boolean b : true;

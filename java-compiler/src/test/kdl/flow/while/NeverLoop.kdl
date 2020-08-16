@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class NeverLoop {
+type NeverLoop {
   run {
     println("hello from NeverLoop");
     while false {

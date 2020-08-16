@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class HelloUser {
+type HelloUser {
   run {
     print("hello ");
     println(args[0]);

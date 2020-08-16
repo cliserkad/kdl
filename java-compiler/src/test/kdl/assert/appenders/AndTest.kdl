@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class AndTest {
+type AndTest {
 
   run {
     if true  & true  { assert true; }

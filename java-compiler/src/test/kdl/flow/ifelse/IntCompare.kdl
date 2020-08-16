@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class IntCompare {
+type IntCompare {
   const ASSERTION_PASS : "This should be printed 8 times";
 
   run {

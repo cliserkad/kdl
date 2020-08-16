@@ -1,4 +1,4 @@
-class Variable {
+type Variable {
     run {
         string msg : "hello from Variable";
         println(msg);

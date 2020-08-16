@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class ForeverLoop {
+type ForeverLoop {
   run {
     while true {
       println("testing ForeverLoop is a mistake");

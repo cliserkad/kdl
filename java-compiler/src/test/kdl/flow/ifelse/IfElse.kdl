@@ -1,5 +1,5 @@
 // author: Bryan Johnson
-class IfElse {
+type IfElse {
   const GOOD : "hello from IfElse";
   const FAIL : "This message should not have appeared";
 

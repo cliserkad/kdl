@@ -1,4 +1,4 @@
-class HelloWorld {
+type HelloWorld {
   run {
     println("hello world");
   }

@@ -1,4 +1,4 @@
-class StringOperators {
+type StringOperators {
   run {
     string msg : "hello from ";
     msg +: "StringOperators";

@@ -1,4 +1,4 @@
-class AssignmentOperators {
+type AssignmentOperators {
   run {
     // set a to 0
     int a;

@@ -1,4 +1,4 @@
-class Increment {
+type Increment {
   run {
     int a;
     print("a is ");
