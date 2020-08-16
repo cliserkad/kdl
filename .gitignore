@@ -1,8 +1,14 @@
+# compiled classes
 *.class
-*.iml
-**/.idea
+
+# Maven output
 **/target
-*/target/
-*/.idea
-.idea/
-.target/
+
+# IntelliJ files
+**/.idea
+*.iml
+
+# Eclipse files
+*.prefs
+*.project
+*.classpath

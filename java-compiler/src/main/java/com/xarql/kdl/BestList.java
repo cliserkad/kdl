@@ -21,6 +21,7 @@ public class BestList<E> extends ArrayList<E> {
 		add(elements);
 	}
 
+	@SafeVarargs
 	public static <E> BestList<E> list(E... element) {
 		return new BestList<>(element);
 	}

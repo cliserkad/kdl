@@ -53,7 +53,7 @@ public class Constant<Type> extends DefaultResolvable implements Resolvable {
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof Constant) {
-			Constant other = (Constant) o;
+			Constant<?> other = (Constant<?>) o;
 			return other.name.equals(name);
 		}
 		return false;

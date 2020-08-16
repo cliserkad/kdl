@@ -116,7 +116,7 @@ public class ConditionalHandler implements CommonNames {
 				msg = "Failed assertion of false. Thus, this message was shown in error.";
 			else
 				msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
-			new Literal(msg).push(lmv);
+			new Literal<String>(msg).push(lmv);
 			// print the text of the assertion condition to the error stream
 			ERROR_MTD.withOwner(owner.getClazz()).invokeStatic(lmv);
 

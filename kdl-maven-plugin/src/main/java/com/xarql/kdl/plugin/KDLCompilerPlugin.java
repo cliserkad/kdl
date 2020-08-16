@@ -4,7 +4,6 @@ import com.xarql.kdl.CompilationDispatcher;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 
-import com.xarql.kdl.*;
 import test.java.ProcessOutput;
 
 import java.io.File;
