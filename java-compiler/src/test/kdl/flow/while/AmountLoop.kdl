@@ -4,7 +4,7 @@ class AmountLoop {
 
   run {
     int a;
-    while(a < 5) {
+    while a < 5 {
       assert true;
       a +: 1;
     }

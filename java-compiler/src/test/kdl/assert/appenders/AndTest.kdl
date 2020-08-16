@@ -2,16 +2,9 @@
 class AndTest {
 
   run {
-    if(true & true)
-      assert true;
-
-    if(true & false)
-      assert false;
-
-    if(false & true)
-      assert false;
-
-    if(false & false)
-      assert false;
+    if true  & true  { assert true; }
+    if true  & false { assert false; }
+    if false & true  { assert false; }
+    if false & false { assert false; }
   }
 }

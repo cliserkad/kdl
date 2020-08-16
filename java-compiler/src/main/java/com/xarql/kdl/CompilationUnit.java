@@ -295,13 +295,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		new MethodCall(ctx, this).push(lmv);
 	}
 
-	public void consumeStatementSet(final kdlParser.StatementSetContext ctx, LinedMethodVisitor lmv) throws Exception {
-		if(ctx.statement() != null)
-			consumeStatement(ctx.statement(), lmv);
-		else
-			consumeBlock(ctx.block(), lmv);
-	}
-
 	private void consumeVariableDeclaration(kdlParser.VariableDeclarationContext ctx, LinedMethodVisitor lmv) throws Exception {
 		NameAndType details = parseTypedVariable(ctx.typedVariable());
 		Variable var = new Variable(currentScope, details.name, details.type.toInternalObjectName());
@@ -340,7 +333,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
 	}
 
-	private void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) throws Exception {
+	public void consumeBlock(final kdlParser.BlockContext ctx, LinedMethodVisitor lmv) throws Exception {
 		for (kdlParser.StatementContext statement : ctx.statement())
 			consumeStatement(statement, lmv);
 	}

@@ -2,7 +2,7 @@
 class PrintArgsLoop {
   run {
     int a;
-    while(a < args size) {
+    while a < args size {
       println(args[a]);
       a +: 1;
     }

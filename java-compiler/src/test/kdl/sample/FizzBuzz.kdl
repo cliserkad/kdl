@@ -3,9 +3,11 @@ class FizzBuzz {
   run {
     int input : parseInt(args[0]);
 
-    if(input % 3 = 0)
+    if input % 3 = 0 {
       print("Fizz");
-    if(input % 5 = 0)
+    }
+    if input % 5 = 0 {
       print("Buzz");
+    }
   }
 }

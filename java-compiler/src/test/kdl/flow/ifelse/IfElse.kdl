@@ -4,14 +4,14 @@ class IfElse {
   const FAIL : "This message should not have appeared";
 
   run {
-    if(true) {
+    if true {
       println(GOOD);
     }
     else {
       println(FAIL);
     }
 
-    if(false) {
+    if false {
       println(FAIL);
     }
     else {

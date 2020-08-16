@@ -7,14 +7,15 @@ class IfStringNotEmpty {
     // set string to ""
     string s2;
     // if s is not empty
-    if(s2)
+    if s2 {
       println(FAIL);
+    }
 
     s2 : "testing";
     // if s is not empty
     // should yield true as s is "testing"
-    if(s2)
+    if s2 {
       println(GOOD);
-
+    }
   }
 }

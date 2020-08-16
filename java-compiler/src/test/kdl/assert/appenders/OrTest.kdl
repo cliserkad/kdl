@@ -3,21 +3,12 @@ class OrTest {
 
   run {
     // also testing single boolean conditions as they are negative jumps too
-    if(true)
-      assert true;
-    if(false)
-      assert false;
+    if true { assert true; }
+    if false { assert false; }
 
-    if(true | true)
-      assert true;
-
-    if(true | false)
-      assert true;
-
-    if(false | true)
-      assert true;
-
-    if(false | false)
-      assert false;
+    if true  | true  { assert true; }
+    if true  | false { assert true; }
+    if false | true  { assert true; }
+    if false | false { assert false; }
   }
 }

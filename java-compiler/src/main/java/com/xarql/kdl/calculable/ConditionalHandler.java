@@ -90,13 +90,13 @@ public class ConditionalHandler implements CommonNames {
 		// always write out the true flow first
 		if(ctx.r_if() != null) {
 			// label and write out instructions within the if clause
-			owner.consumeStatementSet(ctx.r_if().statementSet(), lmv);
+			owner.consumeBlock(ctx.r_if().block(), lmv);
 			lmv.visitJumpInsn(GOTO, cls.exit); // jump over the else instructions
 
 			// label and write out the instructions within the else clause
 			lmv.visitLabel(cls.onFalse);
 			if(ctx.r_if().r_else() != null)
-				owner.consumeStatementSet(ctx.r_if().r_else().statementSet(), lmv);
+				owner.consumeBlock(ctx.r_if().r_else().block(), lmv);
 			// no need to jump to the end since we're already there
 			lmv.visitLabel(cls.exit);
 		}
@@ -124,7 +124,7 @@ public class ConditionalHandler implements CommonNames {
 		}
 		else if(ctx.r_while() != null) {
 			// label and write out the instructions for when the while loop continues
-			owner.consumeStatementSet(ctx.r_while().statementSet(), lmv);
+			owner.consumeBlock(ctx.r_while().block(), lmv);
 			lmv.visitJumpInsn(GOTO, cls.intro);
 
 			// label and write out the instructions for when the while loop exits

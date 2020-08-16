@@ -1,7 +1,7 @@
 // author: Bryan Johnson
 class ForeverLoop {
   run {
-    while(true) {
+    while true {
       println("testing ForeverLoop is a mistake");
     }
   }

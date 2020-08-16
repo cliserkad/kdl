@@ -2,7 +2,7 @@
 class NeverLoop {
   run {
     println("hello from NeverLoop");
-    while(false) {
+    while false {
       assert false;
     }
   }

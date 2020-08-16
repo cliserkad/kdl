@@ -93,15 +93,14 @@ STRING_LIT: '"' (ESCAPED_QUOTE | ~'"')* '"';
 literal: bool | STRING_LIT | number;
 
 statement: methodCall STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional;
-block: BODY_OPEN statement* BODY_CLOSE | statement;
-statementSet: block | statement;
+block: BODY_OPEN statement* BODY_CLOSE;
 
 // conditionals
 conditional: r_if | assertion | r_while;
-r_if: R_IF PARAM_OPEN condition PARAM_CLOSE statementSet r_else?;
-r_else: R_ELSE statementSet;
+r_if: R_IF condition block r_else?;
+r_else: R_ELSE block;
 assertion: ASSERT condition STATEMENT_END;
-r_while: WHILE PARAM_OPEN condition PARAM_CLOSE statementSet;
+r_while: WHILE condition block;
 
 value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;

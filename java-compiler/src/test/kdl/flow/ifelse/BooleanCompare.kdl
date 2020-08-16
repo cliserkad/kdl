@@ -5,28 +5,36 @@ class BooleanCompare {
 
   // compare two boolean literals with = and !=
   run {
-    if(true)
+    if true {
       println(GOOD);
+    }
 
-    if(false)
+    if false {
       println(FAIL);
+    }
 
-    if(true = true)
+    if true = true {
       println(GOOD);
+    }
 
-    if(true = false)
+    if true = false {
       println(FAIL);
+    }
 
-    if(true != false)
+    if true != false {
       println(GOOD);
+    }
 
-    if(true != true)
+    if true != true {
       println(FAIL);
+    }
 
-    if(false = false)
+    if false = false {
       println(GOOD);
+    }
 
-    if(false != false)
+    if false != false {
       println(FAIL);
+    }
   }
 }
