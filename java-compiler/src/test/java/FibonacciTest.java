@@ -1,13 +1,19 @@
 package test.java;
 
+import com.xarql.kdl.BestList;
 import org.junit.jupiter.api.Test;
 
 public class FibonacciTest {
 
     @Test
     public void testFibonacci() {
-        int n = 10;
-        System.out.println(fib(n));
+        BestList<String> arguments = new BestList<>();
+        BestList<String> outputs = new BestList<>();
+        for(int n = 0; n < 10; n++) {
+            arguments.add("" + n);
+            outputs.add("" + fib(n));
+        }
+        new StandardKdlTest("/sample", "Fibonacci", arguments, outputs);
     }
 
     static int fib(int n)

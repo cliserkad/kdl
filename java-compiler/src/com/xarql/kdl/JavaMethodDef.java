@@ -109,9 +109,6 @@ public class JavaMethodDef implements StringOutput, CommonNames {
 		if(paramTypes.size() != others.size())
 			return false;
 		for(int i = 0; i < paramTypes.size(); i++) {
-			System.out.println(others.squish());
-			System.out.println(others.get(i));
-			System.out.println(paramTypes.get(i));
 			if(!paramTypes.get(i).compatibleWith(others.get(i)))
 				return false;
 		}
