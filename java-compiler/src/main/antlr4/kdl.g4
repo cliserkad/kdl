@@ -21,7 +21,7 @@ block: BODY_OPEN statement* BODY_CLOSE;
 // conditionals
 conditional: r_if | assertion | r_while;
 r_if: R_IF condition block r_else?;
-r_else: R_ELSE block;
+r_else: R_ELSE (block | statement);
 assertion: ASSERT condition STATEMENT_END;
 r_while: WHILE condition block;
 

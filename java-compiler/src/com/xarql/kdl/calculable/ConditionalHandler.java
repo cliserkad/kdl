@@ -95,8 +95,12 @@ public class ConditionalHandler implements CommonNames {
 
 			// label and write out the instructions within the else clause
 			lmv.visitLabel(cls.onFalse);
-			if(ctx.r_if().r_else() != null)
-				owner.consumeBlock(ctx.r_if().r_else().block(), lmv);
+			if(ctx.r_if().r_else() != null) {
+				if(ctx.r_if().r_else().block() != null)
+					owner.consumeBlock(ctx.r_if().r_else().block(), lmv);
+				else
+					owner.consumeStatement(ctx.r_if().r_else().statement(), lmv);
+			}
 			// no need to jump to the end since we're already there
 			lmv.visitLabel(cls.exit);
 		}

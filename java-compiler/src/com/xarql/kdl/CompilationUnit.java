@@ -309,7 +309,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		store(resultType, target, lmv);
 	}
 
-	private void consumeStatement(final kdl.StatementContext ctx, LinedMethodVisitor lmv) throws Exception {
+	public void consumeStatement(final kdl.StatementContext ctx, LinedMethodVisitor lmv) throws Exception {
 		if(ctx.variableDeclaration() != null) {
 			consumeVariableDeclaration(ctx.variableDeclaration(), lmv);
 		}
