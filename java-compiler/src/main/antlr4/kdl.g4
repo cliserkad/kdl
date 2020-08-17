@@ -55,7 +55,7 @@ returnStatement: RETURN expression STATEMENT_END;
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;
 
-source: pkg? use* clazz;
+source: pkg? use* clazz EOF;
 pkg: PKG PKG_NAME STATEMENT_END;
 use: USE QUALIFIED_NAME STATEMENT_END;
 clazz: TYPE CLASSNAME BODY_OPEN (constant | run | variableDeclaration | methodDefinition)* BODY_CLOSE;

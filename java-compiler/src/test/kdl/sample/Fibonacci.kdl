@@ -1,17 +1,16 @@
 type Fibonacci {
   run {
     // parse the first argument as an int
-    int i : parseInt(args[0]);
+    int i: parseInt(args[0]);
     println(fib(i));
   }
 
   fnc int fib(int n) {
-    if n = 0 {
+    if n <= 1 {
       return n;
-    } else if n = 1 {
-      return n;
+    } else {
+      return fib(n - 1) + fib(n - 2);
     }
-    return fib(n - 1) + fib(n - 2);
   }
 
 }
