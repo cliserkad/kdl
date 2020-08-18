@@ -264,6 +264,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			pkgName = nonNull(pkgName);
 			setClassName(pkgName, ctx.CLASSNAME().toString());
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
+			addDefaultConstructor(cw);
 		}
 	}
 
