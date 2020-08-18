@@ -5,28 +5,57 @@ import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.*;
 import org.objectweb.asm.MethodVisitor;
 
-public class MethodCall implements CommonNames, Resolvable {
+public class MethodCall implements CommonText, Resolvable {
     public final JavaMethodDef method;
     private final BestList<Calculable> arguments;
 
+    public MethodCall(kdl.MethodCallStatementContext ctx, CompilationUnit unit) throws Exception {
+
+        // parse methodCall alone
+        final String methodName = ctx.methodCall().VARNAME().getText();
+        arguments = parseArguments(ctx.methodCall().parameterSet(), unit);
+        final BestList<InternalObjectName> params = new BestList<>();
+        for(Calculable arg : arguments)
+            params.add(arg.toInternalObjectName());
+
+        // determine which class owns the method being called
+        final InternalName owner;
+        int accessModifier = 0;
+        if(ctx.CLASSNAME() != null) {
+            owner = unit.resolveAgainstImports(ctx.CLASSNAME().getText());
+            accessModifier += ACC_STATIC;
+        }
+        else if(ctx.VARNAME() != null)
+            owner = unit.getLocalVariable(ctx.VARNAME().getText()).toInternalName();
+        else {
+            owner = new InternalName(unit.getClazz());
+            accessModifier += ACC_STATIC;
+        }
+
+        JavaMethodDef known = new JavaMethodDef(owner, methodName, params, null, ACC_PUBLIC + accessModifier);
+        method = known.resolve(unit);
+    }
+
     public MethodCall(kdl.MethodCallContext ctx, CompilationUnit unit) throws Exception {
         final String methodName = ctx.VARNAME().getText();
-
-        final BestList<InternalObjectName> params;
-        arguments = new BestList<>();
-        if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
-            params = new BestList<>();
-            for(kdl.ExpressionContext xpr : ctx.parameterSet().expression()) {
-                Expression xpr1 = new Expression(xpr, unit);
-                params.add(xpr1.toInternalObjectName());
-                arguments.add(xpr1);
-            }
-        }
-        else
-            params = new BestList<>();
+        arguments = parseArguments(ctx.parameterSet(), unit);
+        final BestList<InternalObjectName> params = new BestList<>();
+        for(Calculable arg : arguments)
+            params.add(arg.toInternalObjectName());
 
         JavaMethodDef known = new JavaMethodDef(new InternalName(unit.getClazz()), methodName, params, null, ACC_PUBLIC + ACC_STATIC);
         method = known.resolve(unit);
+    }
+
+    public static BestList<Calculable> parseArguments(kdl.ParameterSetContext ctx, CompilationUnit unit) throws Exception {
+        final BestList<Calculable> arguments = new BestList<>();
+        if(ctx != null && ctx.expression().size() > 0) {
+            for(kdl.ExpressionContext xpr : ctx.expression()) {
+                Expression xpr1 = new Expression(xpr, unit);
+                arguments.add(xpr1);
+            }
+        }
+        return arguments;
     }
 
     @Override
@@ -39,11 +68,11 @@ public class MethodCall implements CommonNames, Resolvable {
     public ToName calc(final MethodVisitor visitor) throws Exception {
         for(int i = 0; i < arguments.size(); i++) {
             arguments.get(i).calc(visitor);
-            if(method.paramTypes.get(i) == STRING_ION) {
+            if(method.paramTypes.get(i) == InternalObjectName.STRING) {
                 CompilationUnit.convertToString(arguments.get(i).toInternalObjectName(), visitor);
             }
         }
-        method.invokeStatic(visitor);
+        method.invoke(visitor);
         return this;
     }
 

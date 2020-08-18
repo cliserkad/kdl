@@ -6,7 +6,7 @@ import com.xarql.kdl.names.*;
 import com.xarql.kdl.antlr.kdl;
 import org.objectweb.asm.MethodVisitor;
 
-public class Literal<Type> extends DefaultResolvable implements StringOutput, CommonNames {
+public class Literal<Type> extends DefaultResolvable implements StringOutput, CommonText {
 	public Type value;
 
 	public Literal(Type value) {

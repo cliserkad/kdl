@@ -9,10 +9,11 @@ import com.xarql.kdl.antlr.kdl;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class NewObject implements Calculable, Opcodes, CommonNames, Resolvable {
+import static com.xarql.kdl.JavaMethodDef.INIT;
+
+public class NewObject implements Calculable, Opcodes, Resolvable {
     public final ToName type;
     private final BestList<Calculable> arguments;
-    private final CompilationUnit unit;
 
     public NewObject(final kdl.NewObjectContext ctx, CompilationUnit unit) throws Exception {
         type = unit.resolveAgainstImports(ctx.CLASSNAME(0).getText());
@@ -26,7 +27,6 @@ public class NewObject implements Calculable, Opcodes, CommonNames, Resolvable {
                 arguments.add(xpr1);
             }
         }
-        this.unit = unit;
     }
 
 
@@ -39,11 +39,11 @@ public class NewObject implements Calculable, Opcodes, CommonNames, Resolvable {
         visitor.visitInsn(DUP);
         for(int i = 0; i < arguments.size(); i++) {
             arguments.get(i).calc(visitor);
-            if(paramTypes.get(i) == STRING_ION) {
+            if(paramTypes.get(i) == InternalObjectName.STRING) {
                 CompilationUnit.convertToString(arguments.get(i).toInternalObjectName(), visitor);
             }
         }
-        new JavaMethodDef(type.toInternalName(), INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invokeSpecial(visitor);
+        new JavaMethodDef(type.toInternalName(), INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
         return type;
     }
 

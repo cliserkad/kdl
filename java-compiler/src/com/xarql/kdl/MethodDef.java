@@ -1,13 +1,11 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ReturnValue;
 
-import java.util.List;
-
-public class MethodDef extends JavaMethodDef implements CommonNames {
+public class MethodDef extends JavaMethodDef implements CommonText {
 	public static final Type DEFAULT_TYPE   = Type.MTD;
 	public static final int  DEFAULT_ACCESS = ACC_PUBLIC;
 

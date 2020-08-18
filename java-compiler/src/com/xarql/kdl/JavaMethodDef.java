@@ -1,15 +1,17 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.MethodVisitor;
 
+import java.lang.reflect.Method;
+
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public class JavaMethodDef implements StringOutput, CommonNames {
+public class JavaMethodDef implements StringOutput, CommonText {
 	public static final JavaMethodDef MAIN      = new JavaMethodDef(internalName(Object.class), "main", list(new InternalObjectName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
 	public static final JavaMethodDef TO_STRING = new JavaMethodDef(internalName(Object.class), "toString", null, ReturnValue.STRING_RETURN, ACC_PUBLIC);
 
@@ -31,6 +33,18 @@ public class JavaMethodDef implements StringOutput, CommonNames {
 			this.paramTypes = paramTypes;
 		this.returnValue = ReturnValue.nonNull(returnValue);
 		this.access = access;
+	}
+
+	public JavaMethodDef(Class<?> jvmClass, Method method) {
+		this.owner = InternalName.internalName(jvmClass);
+		this.methodName = method.getName();
+		this.paramTypes = new BestList<>();
+		if(method.getParameterTypes().length > 0) {
+			for(Class<?> c : method.getParameterTypes())
+				paramTypes.add(new InternalObjectName(c));
+		}
+		this.returnValue = ReturnValue.returnValue(method.getReturnType());
+		this.access = method.getModifiers();
 	}
 
 	public JavaMethodDef withOwner(CustomClass cc) {
@@ -114,26 +128,18 @@ public class JavaMethodDef implements StringOutput, CommonNames {
 		return true;
 	}
 
-	private JavaMethodDef invoke(final int type, final MethodVisitor visitor) {
+	private JavaMethodDef invoke0(final int type, final MethodVisitor visitor) {
 		visitor.visitMethodInsn(type, owner.stringOutput(), methodName, descriptor(), false);
 		return this;
 	}
 
-	public JavaMethodDef invokeStatic(MethodVisitor visitor) {
-		return invoke(INVOKESTATIC, visitor);
-	}
-
-	public JavaMethodDef invokeVirtual(MethodVisitor visitor) {
-		return invoke(INVOKEVIRTUAL, visitor);
-	}
-
-	/**
-	 * Invoke instance method on whatever "this" references
-	 * @param visitor
-	 * @return
-	 */
-	public JavaMethodDef invokeSpecial(MethodVisitor visitor) {
-		return invoke(INVOKESPECIAL, visitor);
+	public JavaMethodDef invoke(MethodVisitor visitor) {
+		if((access & ACC_STATIC) == ACC_STATIC)
+			return invoke0(INVOKESTATIC, visitor);
+		else if((access & ACC_PRIVATE) == ACC_PRIVATE || methodName.equals(INIT))
+			return invoke0(INVOKESPECIAL, visitor);
+		else
+			return invoke0(INVOKEVIRTUAL, visitor);
 	}
 
 }

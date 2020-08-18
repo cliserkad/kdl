@@ -1,7 +1,7 @@
 package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import org.objectweb.asm.MethodVisitor;
@@ -9,7 +9,7 @@ import org.objectweb.asm.MethodVisitor;
 /**
  * Represents the access of an array's length.
  */
-public class ArrayLength extends DefaultResolvable implements CommonNames {
+public class ArrayLength extends DefaultResolvable implements CommonText {
     public final Variable array;
 
     public ArrayLength(final Variable array) {
@@ -18,49 +18,47 @@ public class ArrayLength extends DefaultResolvable implements CommonNames {
 
     /**
      * Pushes an int to the stack that is equal to the array's length
-     * @param lmv any MethodVisitor
+     * @param visitor any MethodVisitor
      * @throws Exception unused
      */
     @Override
-    public Resolvable push(MethodVisitor lmv) throws Exception {
-        array.push(lmv);
-        lmv.visitInsn(ARRAYLENGTH);
+    public Resolvable push(MethodVisitor visitor) throws Exception {
+        array.push(visitor);
+        visitor.visitInsn(ARRAYLENGTH);
         return this;
     }
 
     /**
-     * Forward to underlying array
-     * @return array.toInternalName();
+     * @return InternalName.INT
      */
     @Override
     public InternalName toInternalName() {
-        return INT_IN;
+        return InternalName.INT;
     }
 
     /**
-     * Forward to underlying array
-     * @return array.toInternalObjectName();
+     * @return InternalObjectName.INT
      */
     @Override
     public InternalObjectName toInternalObjectName() {
-        return INT_IN.toInternalObjectName();
+        return InternalObjectName.INT;
     }
 
     /**
-     * Forward to underlying array
-     * @return array.isBaseType();
+     * Determines if this will provide a base type
+     * @return true
      */
     @Override
     public boolean isBaseType() {
-        return INT_IN.isBaseType();
+        return true;
     }
 
     /**
-     * Forward to underlying array
-     * @return array.toBaseType();
+     * An array's length is always an INT
+     * @return BaseType.INT
      */
     @Override
     public BaseType toBaseType() {
-        return INT_IN.toBaseType();
+        return BaseType.INT;
     }
 }

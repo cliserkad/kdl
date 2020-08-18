@@ -13,13 +13,15 @@ import org.objectweb.asm.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.Text.nonNull;
+import static com.xarql.kdl.names.BaseType.*;
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public class CompilationUnit extends kdlBaseListener implements Runnable, CommonNames {
+public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
 
@@ -173,11 +175,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		InternalName type = null;
 		if(ctx.type().basetype() != null) {
 			if (ctx.type().basetype().BOOLEAN() != null) {
-				type = BOOLEAN_IN;
+				type = InternalName.BOOLEAN;
 			} else if (ctx.type().basetype().INT() != null) {
-				type = INT_IN;
+				type = InternalName.INT;
 			} else if (ctx.type().basetype().STRING() != null) {
-				type = STRING_IN;
+				type = InternalName.STRING;
 			} else {
 				throw new UnimplementedException(SWITCH_BASETYPE);
 			}
@@ -212,9 +214,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(name.toBaseType() == STRING)
 				return;
 			else
-				stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(name), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
+				stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(name), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
 		else
-			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(new InternalObjectName(Object.class)), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
+			stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(new InternalObjectName(Object.class)), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
 		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
@@ -302,7 +304,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private void consumeMethodCall(kdl.MethodCallContext ctx, MethodVisitor lmv) throws Exception {
+	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, MethodVisitor lmv) throws Exception {
 		new MethodCall(ctx, this).calc(lmv);
 	}
 
@@ -311,8 +313,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, MethodVisitor lmv) throws Exception {
-		NameAndType details = parseTypedVariable(ctx.typedVariable());
-		Variable var = new Variable(currentScope, details.name, details.type.toInternalObjectName());
+		final NameAndType details = parseTypedVariable(ctx.typedVariable());
+		Variable var = getCurrentScope().newVariable(details.name, details.type);
 
 		if(ctx.ASSIGN() != null)
 			store(new Expression(ctx.expression(), this).calc(lmv), var, lmv);
@@ -337,8 +339,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		else if(ctx.variableAssignment() != null) {
 			consumeVariableAssignment(ctx.variableAssignment(), visitor);
 		}
-		else if(ctx.methodCall() != null) {
-			consumeMethodCall(ctx.methodCall(), visitor);
+		else if(ctx.methodCallStatement() != null) {
+			consumeMethodCallStatement(ctx.methodCallStatement(), visitor);
 		}
 		else if(ctx.conditional() != null) {
 			// forward to the handler to partition code
@@ -383,7 +385,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void enterUse(final kdl.UseContext ctx) {
 		if(pass == 1) {
 			try {
-				imports.add(internalName(Class.forName(ctx.getText().substring(3, ctx.getText().length() - 1))));
+				final Class<?> jvmClass = Class.forName(ctx.getText().substring(3, ctx.getText().length() - 1));
+				imports.add(internalName(jvmClass));
+				for(Method method : jvmClass.getMethods()) {
+					methods.add(new JavaMethodDef(jvmClass, method));
+				}
 			} catch (Exception e) {
 				System.err.println("From unit: " + unitName());
 				e.printStackTrace();
@@ -419,7 +425,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				Label methodStart = new Label();
 				final MethodVisitor visitor = defineMethod(def);
 				for(NameAndType param : params)
-					new Variable(currentScope, param.name, param.type.toInternalObjectName());
+					getCurrentScope().newVariable(param.name, param.type);
 				consumeBlock(ctx.block(), visitor);
 
 				getCurrentScope().end(ctx.stop.getLine(), visitor, rv);
@@ -440,21 +446,19 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			addMethodDef(JavaMethodDef.MAIN.withOwner(clazz));
 		}
 		else if(getPass() == 3) {
-			Label methodStart = new Label();
 			final MethodVisitor mv = defineMethod(JavaMethodDef.MAIN);
-			new Variable(currentScope, "args", new InternalObjectName(String.class, 1));
+			getCurrentScope().newVariable("args", new InternalObjectName(String.class, 1));
 			try {
 				consumeBlock(ctx.block(), mv);
 			} catch (Exception e) {
 				printException(e);
 			}
-
 			getCurrentScope().end(ctx.stop.getLine(), mv, ReturnValue.VOID);
 		}
 	}
 
 	public Variable getLocalVariable(final String name) {
-		return currentScope.getVariable(name.trim());
+		return getCurrentScope().getVariable(name.trim());
 	}
 
 	public void addMethodDef(JavaMethodDef md) {
@@ -533,9 +537,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(c.value instanceof String)
 			fv = cw.visitField(CONST_ACCESS, c.name, new InternalObjectName(String.class).toString(), null, c.value.toString());
 		else if(c.value instanceof Boolean)
-			fv = cw.visitField(CONST_ACCESS, c.name, BaseType.BOOLEAN.stringOutput(), null, c.value);
+			fv = cw.visitField(CONST_ACCESS, c.name, BOOLEAN.stringOutput(), null, c.value);
 		else if(c.value instanceof Integer)
-			fv = cw.visitField(CONST_ACCESS, c.name, BaseType.INT.stringOutput(), null, c.value);
+			fv = cw.visitField(CONST_ACCESS, c.name, INT.stringOutput(), null, c.value);
 		else
 			throw new UnsupportedOperationException("The class " + c.value.getClass() + " could not be resolved to a const type");
 		fv.visitEnd();

@@ -3,9 +3,9 @@ package com.xarql.kdl.names;
 import com.xarql.kdl.StringOutput;
 
 public class ReturnValue implements StringOutput, ToName {
-	public static final ReturnValue BOOLEAN_RETURN = returnValue(InternalName.BOOLEAN_IN);
-	public static final ReturnValue INT_RETURN = returnValue(InternalName.INT_IN);
-	public static final ReturnValue STRING_RETURN = returnValue(InternalName.STRING_IN);
+	public static final ReturnValue BOOLEAN_RETURN = returnValue(InternalName.BOOLEAN);
+	public static final ReturnValue INT_RETURN = returnValue(InternalName.INT);
+	public static final ReturnValue STRING_RETURN = returnValue(InternalName.STRING);
 
 	public static final ReturnValue VOID = new ReturnValue(null);
 	public static final char        VOID_REP    = 'V';

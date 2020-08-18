@@ -1,23 +1,22 @@
 package com.xarql.kdl.calculable;
 
-import com.xarql.kdl.Scope;
 import com.xarql.kdl.Text;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.*;
 import org.objectweb.asm.MethodVisitor;
 
-public class Variable implements Resolvable, CommonNames {
+import static com.xarql.kdl.names.BaseType.BOOLEAN;
+import static com.xarql.kdl.names.BaseType.INT;
+
+public class Variable implements Resolvable, CommonText {
 	public final String             name;
 	public final InternalObjectName type;
 	public final int                localIndex;
-	public final Scope owner;
 
-	public Variable(final Scope owner, final String name, final InternalObjectName type) {
+	public Variable(final String name, final InternalObjectName type, final int localIndex) {
 		this.name = Text.nonNull(name);
 		this.type = InternalObjectName.checkNonNull(type);
-		this.localIndex = owner.nextIndex();
-		this.owner = owner;
-		owner.addLocalVariable(this);
+		this.localIndex = localIndex;
 	}
 
 	@Override
@@ -61,7 +60,7 @@ public class Variable implements Resolvable, CommonNames {
 
 	@Override
 	public Resolvable push(final MethodVisitor visitor) throws UnimplementedException {
-		if(type.isBaseType() && type.toBaseType() != STRING) {
+		if(type.isBaseType() && type.toBaseType() != BaseType.STRING) {
 			if(type.toBaseType() == INT)
 				visitor.visitVarInsn(ILOAD, localIndex);
 			else if(type.toBaseType() == BOOLEAN)

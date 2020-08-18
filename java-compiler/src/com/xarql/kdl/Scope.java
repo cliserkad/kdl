@@ -1,7 +1,9 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.calculable.Variable;
+import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ReturnValue;
+import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -27,6 +29,10 @@ public class Scope implements Opcodes {
 
 	public Label getStart() {
 		return start;
+	}
+
+	public Variable newVariable(final String name, final ToName type) {
+		return addLocalVariable(new Variable(name, type.toInternalObjectName(), nextIndex()));
 	}
 
 	public Variable addLocalVariable(Variable lv) {

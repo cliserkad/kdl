@@ -3,17 +3,16 @@ package com.xarql.kdl.calculable;
 import com.xarql.kdl.*;
 import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.CommonNames;
-import com.xarql.kdl.names.ReturnValue;
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.names.*;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.ExternalMethodRouter.ERROR_MTD;
 import static com.xarql.kdl.ExternalMethodRouter.PRINT_MTD;
+import static com.xarql.kdl.names.BaseType.BOOLEAN;
+import static com.xarql.kdl.names.BaseType.INT;
 
-public class ConditionalHandler implements CommonNames {
+public class ConditionalHandler implements CommonText {
 	private final CompilationUnit owner;
 
 	public ConditionalHandler(CompilationUnit owner) {
@@ -86,7 +85,7 @@ public class ConditionalHandler implements CommonNames {
 			final kdl.For_loopContext loop = ctx.for_loop();
 
 			// set up values from within for declaration
-			Variable increment = new Variable(unit.getCurrentScope(), ctx.for_loop().VARNAME().getText(), INT.toInternalObjectName());
+			Variable increment = unit.getCurrentScope().newVariable(ctx.for_loop().VARNAME().getText(), InternalObjectName.INT);
 			Range range = new Range(loop.range(), unit, visitor);
 			range.min.calc(visitor);
 			CompilationUnit.store(INT, increment, visitor);
@@ -147,7 +146,7 @@ public class ConditionalHandler implements CommonNames {
 				// label and write out instructions for printing a constant when the assertion passes
 				if (owner.hasConstant("ASSERTION_PASS")) {
 					owner.getConstant("ASSERTION_PASS").push(visitor);
-					PRINT_MTD.withOwner(owner.getClazz()).invokeStatic(visitor);
+					PRINT_MTD.withOwner(owner.getClazz()).invoke(visitor);
 				}
 				visitor.visitJumpInsn(GOTO, cls.exit); // jump over the false instructions
 
@@ -161,7 +160,7 @@ public class ConditionalHandler implements CommonNames {
 					msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
 				new Literal<String>(msg).push(visitor);
 				// print the text of the assertion condition to the error stream
-				ERROR_MTD.withOwner(owner.getClazz()).invokeStatic(visitor);
+				ERROR_MTD.withOwner(owner.getClazz()).invoke(visitor);
 
 				visitor.visitLabel(cls.exit);
 			} else if (ctx.r_while() != null) {
@@ -195,7 +194,7 @@ public class ConditionalHandler implements CommonNames {
 
 		// use isEmpty() on the second copy of the string
 		lmv.visitLabel(isEmpty);
-		new JavaMethodDef(STRING_IN, "isEmpty", null, ReturnValue.BOOLEAN_RETURN, ACC_PUBLIC + ACC_STATIC).invokeVirtual(lmv);
+		new JavaMethodDef(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN_RETURN, ACC_PUBLIC + ACC_STATIC).invoke(lmv);
 
 		// negative vs positive jump
 		if(positive)

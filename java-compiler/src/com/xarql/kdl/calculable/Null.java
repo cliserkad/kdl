@@ -3,7 +3,7 @@ package com.xarql.kdl.calculable;
 import com.xarql.kdl.names.*;
 import org.objectweb.asm.MethodVisitor;
 
-public class Null implements Resolvable, CommonNames {
+public class Null implements Resolvable, CommonText {
     @Override
     public Resolvable push(final MethodVisitor visitor) throws Exception {
         visitor.visitInsn(ACONST_NULL);

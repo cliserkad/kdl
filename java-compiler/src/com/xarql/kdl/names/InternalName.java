@@ -4,11 +4,12 @@ import com.xarql.kdl.CustomClass;
 import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.UnimplementedException;
 
-public class InternalName implements StringOutput, ToName, CommonNames {
-	public static final InternalName INT_IN     = new InternalName(BaseType.INT);
-	public static final InternalName BOOLEAN_IN = new InternalName(BaseType.BOOLEAN);
-	public static final InternalName STRING_IN  = new InternalName(BaseType.STRING);
+public class InternalName implements StringOutput, ToName, CommonText {
+	public static final InternalName INT     = new InternalName(BaseType.INT);
+	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN);
+	public static final InternalName STRING  = new InternalName(BaseType.STRING);
 
+	public static final InternalName STRING_BUILDER  = new InternalName(StringBuilder.class);
 	public static final InternalName INT_WRAPPER     = new InternalName(Integer.class);
 	public static final InternalName BOOLEAN_WRAPPER = new InternalName(Boolean.class);
 
@@ -44,14 +45,14 @@ public class InternalName implements StringOutput, ToName, CommonNames {
 		if(BaseType.matchClass(c) != null) {
 			switch(BaseType.matchClass(c)) {
 				case INT:
-					return INT_IN;
+					return INT;
 				case BOOLEAN:
-					return BOOLEAN_IN;
+					return BOOLEAN;
 				case STRING:
-					return STRING_IN;
+					return STRING;
 				default:
 					new UnimplementedException(SWITCH_BASETYPE).printStackTrace();
-					return BOOLEAN_IN;
+					return BOOLEAN;
 			}
 		}
 		else
@@ -61,11 +62,11 @@ public class InternalName implements StringOutput, ToName, CommonNames {
 	public static InternalName match(BaseType base) {
 		switch(base) {
 			case INT:
-				return INT_IN;
+				return INT;
 			case BOOLEAN:
-				return BOOLEAN_IN;
+				return BOOLEAN;
 			case STRING:
-				return STRING_IN;
+				return STRING;
 			default:
 				throw new IllegalStateException("A BaseType to InternalName conversion is missing");
 		}
@@ -94,7 +95,7 @@ public class InternalName implements StringOutput, ToName, CommonNames {
 		if(clazz != null)
 			return clazz.getName().replace('.', '/');
 		else if(isBaseType()) {
-			if(toBaseType() == STRING)
+			if(toBaseType() == BaseType.STRING)
 				return String.class.getName().replace('.', '/');
 			else
 				return toBaseType().rep;

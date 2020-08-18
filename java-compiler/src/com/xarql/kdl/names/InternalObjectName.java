@@ -5,7 +5,12 @@ import com.xarql.kdl.calculable.Array;
 
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public class InternalObjectName implements StringOutput, ToName, CommonNames {
+public class InternalObjectName implements StringOutput, ToName, CommonText {
+	public static final InternalObjectName STRING = new InternalObjectName(String.class);
+	public static final InternalObjectName STRING_BUILDER = new InternalObjectName(StringBuilder.class);
+	public static final InternalObjectName INT = InternalName.INT.toInternalObjectName();
+	public static final InternalObjectName BOOLEAN = InternalName.BOOLEAN.toInternalObjectName();
+
 	public static final String OBJECT_SUFFIX            = ";";
 	public static final String OBJECT_PREFIX            = "L";
 	public static final String ARRAY_PREFIX             = "[";
@@ -96,7 +101,7 @@ public class InternalObjectName implements StringOutput, ToName, CommonNames {
 	}
 
 	public boolean compatibleWith(InternalObjectName other) {
-		if(other.isBaseType() && other.toBaseType() == STRING)
+		if(other.isBaseType() && other.toBaseType() == BaseType.STRING)
 			return true;
 		if(other.isBaseType() && isBaseType())
 			return toBaseType().ordinal() <= other.toBaseType().ordinal();

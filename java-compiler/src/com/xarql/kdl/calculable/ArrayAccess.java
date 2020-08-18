@@ -2,15 +2,17 @@ package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.xarql.kdl.names.BaseType.INT;
+
 /**
  * Represents the access of an array's element
  */
-public class ArrayAccess extends DefaultResolvable implements CommonNames {
+public class ArrayAccess extends DefaultResolvable implements CommonText {
 	public final Variable   array;
 	public final Resolvable index;
 

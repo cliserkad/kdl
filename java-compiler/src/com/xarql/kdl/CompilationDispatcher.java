@@ -1,12 +1,12 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.CommonText;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
 
-public class CompilationDispatcher implements CommonNames {
+public class CompilationDispatcher implements CommonText {
 	public static final File       DEFAULT_LOC = new File(System.getProperty("user.dir")); 	// default to current working directory
 	public static final FileFilter KDL_FILTER  = new RegexFileFilter(".*\\.kdl"); // default to all .kdl files
 	public static final boolean    DEFAULT_VERBOSE = false; // whether or not to print some extra messages

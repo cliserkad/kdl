@@ -2,15 +2,19 @@ package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.IncompatibleTypeException;
+import com.xarql.kdl.JavaMethodDef;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.CommonNames;
+import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.xarql.kdl.names.BaseType.STRING;
 import static com.xarql.kdl.names.InternalName.internalName;
 
-public interface ExpressionHandler extends CommonNames {
+public interface ExpressionHandler extends CommonText {
+    JavaMethodDef INIT_STRING_BUILDER = new JavaMethodDef(internalName(StringBuilder.class), JavaMethodDef.INIT, null, null, ACC_PUBLIC);
 
     public static ToName compute(final Expression xpr, final MethodVisitor visitor) throws Exception {
         final Resolvable res = xpr.a;
@@ -26,7 +30,7 @@ public interface ExpressionHandler extends CommonNames {
                 case INT:
                 case BOOLEAN: {
                     computeInt(res, calc, opr, visitor);
-                    return INT;
+                    return BaseType.INT;
                 }
                 case STRING: {
                     return computeString(res, calc, opr, visitor);
@@ -44,7 +48,7 @@ public interface ExpressionHandler extends CommonNames {
     public static void stringBuilderInit(MethodVisitor visitor) {
         visitor.visitTypeInsn(NEW, internalName(StringBuilder.class).stringOutput());
         visitor.visitInsn(DUP);
-        visitor.visitMethodInsn(INVOKESPECIAL, internalName(StringBuilder.class).stringOutput(), INIT, NO_PARAM_VOID, false);
+        INIT_STRING_BUILDER.invoke(visitor);
     }
 
     public static BaseType computeString(Resolvable res1, Calculable res2, Operator opr, MethodVisitor visitor) throws Exception {
@@ -58,7 +62,7 @@ public interface ExpressionHandler extends CommonNames {
                         res2.calc(visitor);
                         CompilationUnit.convertToString(res2.toBaseType().toInternalObjectName(), visitor);
                         visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-                        visitor.visitMethodInsn(INVOKEVIRTUAL, STRING_BUILDER_IN_S, SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
+                        visitor.visitMethodInsn(INVOKEVIRTUAL, InternalName.STRING_BUILDER.stringOutput(), SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
                         return STRING;
                     }
                     case STRING: {
@@ -67,7 +71,7 @@ public interface ExpressionHandler extends CommonNames {
                         visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
                         res2.calc(visitor);
                         visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-                        visitor.visitMethodInsn(INVOKEVIRTUAL, STRING_BUILDER_IN_S, SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
+                        visitor.visitMethodInsn(INVOKEVIRTUAL, InternalName.STRING_BUILDER.stringOutput(), SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
                         return STRING;
                     }
                 }
@@ -80,7 +84,7 @@ public interface ExpressionHandler extends CommonNames {
 
     public static BaseType computeInt(Resolvable res1, Calculable res2, Operator opr, MethodVisitor visitor) throws Exception {
         if(res2.toBaseType() == STRING)
-            throw new IncompatibleTypeException(INT + INCOMPATIBLE + STRING);
+            throw new IncompatibleTypeException(BaseType.INT + INCOMPATIBLE + STRING);
             // under the hood booleans should be either 0 or 1
         else {
             res1.push(visitor);
@@ -105,7 +109,7 @@ public interface ExpressionHandler extends CommonNames {
                     throw new UnimplementedException(SWITCH_OPERATOR);
             }
         }
-        return INT;
+        return BaseType.INT;
     }
 
 }

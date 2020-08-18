@@ -15,7 +15,8 @@ bool: TRUE | FALSE;
 number: DIGIT+;
 literal: bool | STRING_LIT | number;
 
-statement: (methodCall | newObject) STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional;
+statement: methodCallStatement | variableDeclaration | variableAssignment | returnStatement | conditional | newObject STATEMENT_END;
+methodCallStatement: ((VARNAME | CLASSNAME) DOT)? methodCall STATEMENT_END;
 block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
