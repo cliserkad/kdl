@@ -5,6 +5,8 @@ import com.xarql.kdl.CompilationDispatcher;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import static com.xarql.kdl.BestList.list;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StandardKdlTest {
     public static final String JAVA_CMD = "java -cp src/test/kdl";
@@ -59,10 +61,10 @@ public class StandardKdlTest {
             new CompilationDispatcher(new RegexFileFilter(fileName())).dispatchQuietly();
             // run .class file
             for(int i = 0; i < arguments.size(); i++) {
-                ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + pathExtension + " " + className);
-                assert process.getOutput().squish().equals(expectedOutputs.get(i));
-                assert process.getErrors().isEmpty();
-                assert process.getExitValue() == 0;
+                ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + pathExtension + " " + className + " " + arguments.get(i));
+                assertEquals(expectedOutputs.get(i), process.getOutput().squish());
+                assertTrue(process.getErrors().isEmpty());
+                assertEquals(0, process.getExitValue());
             }
         } catch(Exception e) {
             e.printStackTrace();

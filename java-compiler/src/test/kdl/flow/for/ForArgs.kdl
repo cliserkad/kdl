@@ -1,0 +1,8 @@
+type ForArgs {
+  run {
+    for i: ..args size {
+      println(args[i]);
+    }
+  }
+
+}

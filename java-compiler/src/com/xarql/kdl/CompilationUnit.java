@@ -168,7 +168,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private static NameAndType parseTypedVariable(kdl.TypedVariableContext ctx) {
-		String name = ctx.VARNAME().toString();
+		String name = ctx.VARNAME().getText();
 
 		InternalName type;
 		if(ctx.type().basetype().BOOLEAN() != null) {
@@ -209,7 +209,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param target variable in which data will be stored
 	 * @param lmv any MethodVisitor
 	 */
-	private static void store(ToName type, Variable target, MethodVisitor lmv) throws Exception {
+	public static void store(ToName type, Variable target, MethodVisitor lmv) throws Exception {
 		if(!type.toInternalName().equals(target.toInternalName()))
 			throw new IncompatibleTypeException(type + INCOMPATIBLE + target);
 		else {
@@ -220,7 +220,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private static void storeDefault(Variable lv, MethodVisitor lmv) {
+	public static void storeDefault(Variable lv, MethodVisitor lmv) {
 		if(lv.type.isBaseType()) {
 			switch(lv.type.toBaseType()) {
 				case INT:
@@ -323,7 +323,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 		else if(ctx.conditional() != null) {
 			// forward to the handler to partition code
-			cmpHandler.handle(ctx.conditional(), lmv);
+			cmpHandler.handle(ctx.conditional(), lmv, this);
 		}
 		else if(ctx.returnStatement() != null) {
 			if(ctx.returnStatement().expression() == null) {

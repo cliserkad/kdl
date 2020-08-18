@@ -15,15 +15,15 @@ bool: TRUE | FALSE;
 number: DIGIT+;
 literal: bool | STRING_LIT | number;
 
-statement: methodCall STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional | for_loop;
+statement: methodCall STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional;
 block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
 for_loop: FOR VARNAME ASSIGN range block;
-range: number? DOT DOT number;
+range: expression? DOT DOT expression;
 
 // conditionals
-conditional: r_if | assertion | r_while;
+conditional: r_if | assertion | r_while | for_loop;
 r_if: R_IF condition block r_else?;
 r_else: R_ELSE (block | statement);
 assertion: ASSERT condition STATEMENT_END;

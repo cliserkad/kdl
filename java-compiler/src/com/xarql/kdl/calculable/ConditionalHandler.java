@@ -27,6 +27,8 @@ public class ConditionalHandler implements CommonNames {
 			return ctx.r_while().condition();
 		else if(ctx.assertion() != null)
 			return ctx.assertion().condition();
+		else if(ctx.for_loop() != null)
+			return null;
 		else
 			throw new UnimplementedException("Retrieving a conditional's condition failed");
 	}
@@ -69,78 +71,113 @@ public class ConditionalHandler implements CommonNames {
 		}
 	}
 
-	public void handle(kdl.ConditionalContext ctx, MethodVisitor lmv) throws Exception {
+	public void handle(kdl.ConditionalContext ctx, MethodVisitor visitor, CompilationUnit unit) throws Exception {
 		final ConditionalLabelSet cls = new ConditionalLabelSet();
-		lmv.visitLabel(cls.intro);
+
 
 		final kdl.ConditionContext cnd = conditionContextof(ctx);
 		final boolean checkPositive;
-		if(cnd.appender() != null)
+		if(cnd != null && cnd.appender() != null)
 			checkPositive = cnd.appender().AND() == null;
 		else
 			checkPositive = false;
-		for(kdl.SingleConditionContext sc : cnd.singleCondition())
-			handleSingleCondition(sc, cls, lmv, checkPositive);
 
-		// if the check is positive, then we should jump to the false clause when no previous jump has been triggered
-		if(checkPositive)
-			lmv.visitJumpInsn(GOTO, cls.onFalse);
-		lmv.visitLabel(cls.onTrue);
+		if(ctx.for_loop() != null) {
+			final kdl.For_loopContext loop = ctx.for_loop();
 
-		// write instructions that correspond with the conditional's desired flow
-		// always write out the true flow first
-		if(ctx.r_if() != null) {
-			// label and write out instructions within the if clause
-			owner.consumeBlock(ctx.r_if().block(), lmv);
-			lmv.visitJumpInsn(GOTO, cls.exit); // jump over the else instructions
+			// set up values from within for declaration
+			Variable increment = new Variable(unit.getCurrentScope(), ctx.for_loop().VARNAME().getText(), INT.toInternalObjectName());
+			Range range = new Range(loop.range(), unit, visitor);
+			range.min.calc(visitor);
+			CompilationUnit.store(INT, increment, visitor);
 
-			// label and write out the instructions within the else clause
-			lmv.visitLabel(cls.onFalse);
-			if(ctx.r_if().r_else() != null) {
-				if(ctx.r_if().r_else().block() != null)
-					owner.consumeBlock(ctx.r_if().r_else().block(), lmv);
-				else
-					owner.consumeStatement(ctx.r_if().r_else().statement(), lmv);
-			}
-			// no need to jump to the end since we're already there
-			lmv.visitLabel(cls.exit);
-		}
-		else if(ctx.assertion() != null) {
-			// label and write out instructions for printing a constant when the assertion passes
-			if(owner.hasConstant("ASSERTION_PASS")) {
-				owner.getConstant("ASSERTION_PASS").push(lmv);
-				PRINT_MTD.withOwner(owner.getClazz()).invokeStatic(lmv);
-			}
-			lmv.visitJumpInsn(GOTO, cls.exit); // jump over the false instructions
+			// if the check is positive, then we should jump to the false clause when no previous jump has been triggered
+			if (checkPositive)
+				visitor.visitJumpInsn(GOTO, cls.onFalse);
+			visitor.visitLabel(cls.onTrue);
 
-			// label and write out the instructions for when the assertion fails
-			lmv.visitLabel(cls.onFalse);
-			// push the text of the assertion condition
-			String msg;
-			if(ctx.assertion().condition().getText().equals(KEYWORD_FALSE))
-				msg = "Failed assertion of false. Thus, this message was shown in error.";
-			else
-				msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
-			new Literal<String>(msg).push(lmv);
-			// print the text of the assertion condition to the error stream
-			ERROR_MTD.withOwner(owner.getClazz()).invokeStatic(lmv);
+			visitor.visitLabel(cls.intro);
+			// make comparison
+			increment.push(visitor);
+			range.max.calc(visitor);
+			testIntegers(visitor, cls, Comparator.LESS_THAN, checkPositive);
 
-			lmv.visitLabel(cls.exit);
-		}
-		else if(ctx.r_while() != null) {
-			// label and write out the instructions for when the while loop continues
-			owner.consumeBlock(ctx.r_while().block(), lmv);
-			lmv.visitJumpInsn(GOTO, cls.intro);
+			// label and write out the instructions for when the for loop continues
+			owner.consumeBlock(loop.block(), visitor);
+			// add increment instruction at end of block
+			new Expression(increment, new Literal<>(1), Operator.PLUS).calc(visitor);
+			CompilationUnit.store(INT, increment, visitor);
+			visitor.visitJumpInsn(GOTO, cls.intro);
 
-			// label and write out the instructions for when the while loop exits
-			lmv.visitLabel(cls.onFalse);
-			lmv.visitJumpInsn(GOTO, cls.exit);
+			// label and write out the instructions for when the for loop exits
+			visitor.visitLabel(cls.onFalse);
+			visitor.visitJumpInsn(GOTO, cls.exit);
 
 			// label end
-			lmv.visitLabel(cls.exit);
+			visitor.visitLabel(cls.exit);
 		}
-		else
-			throw new UnimplementedException("A type of conditional");
+		else {
+			visitor.visitLabel(cls.intro);
+			for (kdl.SingleConditionContext sc : cnd.singleCondition())
+				handleSingleCondition(sc, cls, visitor, checkPositive);
+
+			// if the check is positive, then we should jump to the false clause when no previous jump has been triggered
+			if (checkPositive)
+				visitor.visitJumpInsn(GOTO, cls.onFalse);
+			visitor.visitLabel(cls.onTrue);
+
+			// write instructions that correspond with the conditional's desired flow
+			// always write out the true flow first
+			if (ctx.r_if() != null) {
+				// label and write out instructions within the if clause
+				owner.consumeBlock(ctx.r_if().block(), visitor);
+				visitor.visitJumpInsn(GOTO, cls.exit); // jump over the else instructions
+
+				// label and write out the instructions within the else clause
+				visitor.visitLabel(cls.onFalse);
+				if (ctx.r_if().r_else() != null) {
+					if (ctx.r_if().r_else().block() != null)
+						owner.consumeBlock(ctx.r_if().r_else().block(), visitor);
+					else
+						owner.consumeStatement(ctx.r_if().r_else().statement(), visitor);
+				}
+				// no need to jump to the end since we're already there
+				visitor.visitLabel(cls.exit);
+			} else if (ctx.assertion() != null) {
+				// label and write out instructions for printing a constant when the assertion passes
+				if (owner.hasConstant("ASSERTION_PASS")) {
+					owner.getConstant("ASSERTION_PASS").push(visitor);
+					PRINT_MTD.withOwner(owner.getClazz()).invokeStatic(visitor);
+				}
+				visitor.visitJumpInsn(GOTO, cls.exit); // jump over the false instructions
+
+				// label and write out the instructions for when the assertion fails
+				visitor.visitLabel(cls.onFalse);
+				// push the text of the assertion condition
+				String msg;
+				if (ctx.assertion().condition().getText().equals(KEYWORD_FALSE))
+					msg = "Failed assertion of false. Thus, this message was shown in error.";
+				else
+					msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
+				new Literal<String>(msg).push(visitor);
+				// print the text of the assertion condition to the error stream
+				ERROR_MTD.withOwner(owner.getClazz()).invokeStatic(visitor);
+
+				visitor.visitLabel(cls.exit);
+			} else if (ctx.r_while() != null) {
+				// label and write out the instructions for when the while loop continues
+				owner.consumeBlock(ctx.r_while().block(), visitor);
+				visitor.visitJumpInsn(GOTO, cls.intro);
+
+				// label and write out the instructions for when the while loop exits
+				visitor.visitLabel(cls.onFalse);
+				visitor.visitJumpInsn(GOTO, cls.exit);
+
+				// label end
+				visitor.visitLabel(cls.exit);
+			} else
+				throw new UnimplementedException("A type of conditional");
+		}
 	}
 
 	/**
