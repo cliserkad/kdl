@@ -3,7 +3,7 @@ type IfElse {
   const GOOD : "hello from IfElse";
   const FAIL : "This message should not have appeared";
 
-  run {
+  main {
     if true {
       println(GOOD);
     }

@@ -1,6 +1,6 @@
 // author: Bryan Johnson
 type HelloUser {
-  run {
+  main {
     print("hello ");
     println(args[0]);
   }

@@ -1,5 +1,5 @@
 type Increment {
-  run {
+  main {
     int a;
     print("a is ");
     println(a);

@@ -62,6 +62,6 @@ basetype: BOOLEAN | INT | STRING;
 source: pkg? use* clazz EOF;
 pkg: PKG PKG_NAME STATEMENT_END;
 use: USE QUALIFIED_NAME STATEMENT_END;
-clazz: TYPE CLASSNAME BODY_OPEN (constant | run | variableDeclaration | methodDefinition)* BODY_CLOSE;
+clazz: TYPE CLASSNAME BODY_OPEN (constant | main | variableDeclaration | methodDefinition)* BODY_CLOSE;
 constant: CONST CONSTNAME ASSIGN literal STATEMENT_END;
-run: RUN block;
+main: MAIN block;

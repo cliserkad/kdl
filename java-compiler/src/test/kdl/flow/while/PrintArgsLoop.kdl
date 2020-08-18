@@ -1,6 +1,6 @@
 // author: Bryan Johnson
 type PrintArgsLoop {
-  run {
+  main {
     int a;
     while a < args size {
       println(args[a]);

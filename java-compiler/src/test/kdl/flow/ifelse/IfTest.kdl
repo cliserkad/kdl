@@ -1,6 +1,6 @@
 // author: Bryan Johnson
 type IfTest {
-  run {
+  main {
     if true {
       println("hello from IfTest");
     }

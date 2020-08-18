@@ -15,7 +15,7 @@ WS : [ \t\r]+ -> channel(HIDDEN);
 // keywords
 TYPE: 'type';
 CONST: 'const';
-RUN: 'run';
+MAIN: 'main';
 METHOD: 'mtd';
 FUNCTION: 'fnc';
 TRUE: 'true';

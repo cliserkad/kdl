@@ -1,5 +1,5 @@
 type Test {
-  run {
+  main {
     print("testing");
   }
 }

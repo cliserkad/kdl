@@ -2,7 +2,7 @@
 type IfArgGiven {
   const NO_ARG : "No argument given";
 
-  run {
+  main {
     // if args has 0 or less arguments
     if args size <= 0 {
       println(NO_ARG);

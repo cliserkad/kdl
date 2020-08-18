@@ -2,7 +2,7 @@
 type AmountLoop {
   const ASSERTION_PASS : "This message should be printed 5 times";
 
-  run {
+  main {
     int a;
     while a < 5 {
       assert true;

@@ -1,6 +1,6 @@
 // author: Bryan Johnson
 type NeverLoop {
-  run {
+  main {
     println("hello from NeverLoop");
     while false {
       assert false;

@@ -4,7 +4,7 @@ type BooleanCompare {
   const FAIL : "This message was shown in error";
 
   // compare two boolean literals with = and !=
-  run {
+  main {
     if true {
       println(GOOD);
     }

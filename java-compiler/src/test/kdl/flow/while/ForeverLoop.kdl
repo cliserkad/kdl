@@ -1,6 +1,6 @@
 // author: Bryan Johnson
 type ForeverLoop {
-  run {
+  main {
     while true {
       println("testing ForeverLoop is a mistake");
     }

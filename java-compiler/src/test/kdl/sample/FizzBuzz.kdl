@@ -1,6 +1,6 @@
 // author: Bryan Johnson
 type FizzBuzz {
-  run {
+  main {
     int input : parseInt(args[0]);
 
     if input % 3 = 0 {

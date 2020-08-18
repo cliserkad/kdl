@@ -398,7 +398,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	@Override
-	public void enterRun(final kdl.RunContext ctx) {
+	public void enterMain(final kdl.MainContext ctx) {
 		if(getPass() == 2) {
 			addMethodDef(JavaMethodDef.MAIN.withOwner(clazz));
 		}

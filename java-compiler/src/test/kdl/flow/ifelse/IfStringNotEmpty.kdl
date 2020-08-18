@@ -3,7 +3,7 @@ type IfStringNotEmpty {
   const GOOD : "hello from IfStringNotEmpty";
   const FAIL : "This message was shown in error";
 
-  run {
+  main {
     // set string to ""
     string s2;
     // if s is not empty

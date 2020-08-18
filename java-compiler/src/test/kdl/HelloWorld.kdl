@@ -1,5 +1,5 @@
 type HelloWorld {
-  run {
+  main {
     println("hello world");
   }
 }

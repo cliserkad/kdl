@@ -1,5 +1,5 @@
 type Variable {
-    run {
+    main {
         string msg : "hello from Variable";
         println(msg);
     }

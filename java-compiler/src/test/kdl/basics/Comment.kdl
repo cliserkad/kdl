@@ -1,5 +1,5 @@
 type Comment {
-  run {
+  main {
     // This is a comment so I write what I want to
     // println("First message");
     println("hello from Comment!");

@@ -1,6 +1,6 @@
 type ForRange {
 
-  run {
+  main {
     printDefaultTo10();
     print0To9();
     print1To9();

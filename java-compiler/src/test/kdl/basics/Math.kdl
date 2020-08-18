@@ -1,5 +1,5 @@
 type Math {
-  run {
+  main {
     int a : 1;
     println(a);
     a : a * 4;

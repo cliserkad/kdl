@@ -1,5 +1,5 @@
 type VariableAssignment {
-  run {
+  main {
     int a;
     a : 1;
     boolean b;

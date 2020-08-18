@@ -1,7 +1,7 @@
 type Const {
     const MSG : "hello from Const";
 
-    run {
+    main {
         println(MSG);
     }
 }

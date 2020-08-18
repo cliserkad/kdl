@@ -1,5 +1,5 @@
 type Fibonacci {
-  run {
+  main {
     // parse the first argument as an int
     println(fib(parseInt(args[0])));
   }

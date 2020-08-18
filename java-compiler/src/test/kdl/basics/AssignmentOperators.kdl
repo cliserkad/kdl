@@ -1,5 +1,5 @@
 type AssignmentOperators {
-  run {
+  main {
     // set a to 0
     int a;
 

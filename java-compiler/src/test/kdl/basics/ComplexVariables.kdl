@@ -1,5 +1,5 @@
 type ComplexVariables {
-  run {
+  main {
     string s : "hi";
     string s2 : "hello from ComplexVariables";
     s : s2;

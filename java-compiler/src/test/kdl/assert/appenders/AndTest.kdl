@@ -1,7 +1,7 @@
 // author: Bryan Johnson
 type AndTest {
 
-  run {
+  main {
     if true  & true  { assert true; }
     if true  & false { assert false; }
     if false & true  { assert false; }

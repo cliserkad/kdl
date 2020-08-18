@@ -1,5 +1,5 @@
 type StringOperators {
-  run {
+  main {
     string msg : "hello from ";
     msg +: "StringOperators";
     println(msg);
