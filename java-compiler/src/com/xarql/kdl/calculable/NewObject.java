@@ -1,0 +1,75 @@
+package com.xarql.kdl.calculable;
+
+import com.xarql.kdl.BestList;
+import com.xarql.kdl.CompilationUnit;
+import com.xarql.kdl.JavaMethodDef;
+import com.xarql.kdl.names.*;
+
+import com.xarql.kdl.antlr.kdl;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+
+public class NewObject implements Calculable, Opcodes, CommonNames, Resolvable {
+    public final ToName type;
+    private final BestList<Calculable> arguments;
+    private final CompilationUnit unit;
+
+    public NewObject(final kdl.NewObjectContext ctx, CompilationUnit unit) throws Exception {
+        type = unit.resolveAgainstImports(ctx.CLASSNAME(0).getText());
+        if(type.isBaseType())
+            throw new IllegalArgumentException("Can't instantiate a base type with a constructor. Use a literal instead");
+
+        arguments = new BestList<>();
+        if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
+            for(kdl.ExpressionContext xpr : ctx.parameterSet().expression()) {
+                Expression xpr1 = new Expression(xpr, unit);
+                arguments.add(xpr1);
+            }
+        }
+        this.unit = unit;
+    }
+
+
+    @Override
+    public ToName calc(MethodVisitor visitor) throws Exception {
+        final BestList<InternalObjectName> paramTypes = new BestList<>();
+        for(Calculable arg : arguments)
+            paramTypes.add(arg.toInternalObjectName());
+        visitor.visitTypeInsn(NEW, type.toInternalName().stringOutput());
+        visitor.visitInsn(DUP);
+        for(int i = 0; i < arguments.size(); i++) {
+            arguments.get(i).calc(visitor);
+            if(paramTypes.get(i) == STRING_ION) {
+                CompilationUnit.convertToString(arguments.get(i).toInternalObjectName(), visitor);
+            }
+        }
+        new JavaMethodDef(type.toInternalName(), INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invokeSpecial(visitor);
+        return type;
+    }
+
+    @Override
+    public InternalName toInternalName() {
+        return type.toInternalName();
+    }
+
+    @Override
+    public InternalObjectName toInternalObjectName() {
+        return type.toInternalObjectName();
+    }
+
+    @Override
+    public boolean isBaseType() {
+        return type.isBaseType();
+    }
+
+    @Override
+    public BaseType toBaseType() {
+        return type.toBaseType();
+    }
+
+    @Override
+    public Resolvable push(MethodVisitor visitor) throws Exception {
+        calc(visitor);
+        return this;
+    }
+}

@@ -1,0 +1,8 @@
+use java.io.File;
+
+type MakeFile {
+  main {
+    File f: File("test.txt");
+    println(f);
+  }
+}

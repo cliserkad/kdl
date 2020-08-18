@@ -15,7 +15,7 @@ bool: TRUE | FALSE;
 number: DIGIT+;
 literal: bool | STRING_LIT | number;
 
-statement: methodCall STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional;
+statement: (methodCall | newObject) STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional;
 block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
@@ -29,7 +29,8 @@ r_else: R_ELSE (block | statement);
 assertion: ASSERT condition STATEMENT_END;
 r_while: WHILE condition block;
 
-value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL;
+value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL | newObject;
+newObject: CLASSNAME + parameterSet;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 expression: value (operator expression)?;
 

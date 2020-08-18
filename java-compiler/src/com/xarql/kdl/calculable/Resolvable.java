@@ -4,6 +4,8 @@ import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.UnimplementedException;
 import org.objectweb.asm.MethodVisitor;
 
+import com.xarql.kdl.antlr.kdl;
+
 /**
  * Represents anything that may be pushed on to the JVM stack.
  * Resolvables are a type of Calculable that do not require any
@@ -26,7 +28,7 @@ public interface Resolvable extends Calculable {
      * @return A Resolvable whose actual type corresponds to the symbol
      * @throws UnimplementedException thrown if missing a symbol from the grammar
      */
-    public static Resolvable parse(final CompilationUnit unit, final com.xarql.kdl.antlr.kdl.ValueContext val) throws Exception {
+    public static Resolvable parse(final CompilationUnit unit, final kdl.ValueContext val) throws Exception {
         if(val.literal() != null)
             return Literal.parseLiteral(val.literal());
         else if(val.CONSTNAME() != null)
@@ -41,6 +43,8 @@ public interface Resolvable extends Calculable {
             return new Null();
         else if(val.methodCall() != null)
             return new MethodCall(val.methodCall(), unit);
+        else if(val.newObject() != null)
+            return new NewObject(val.newObject(), unit);
         else
             throw new UnimplementedException("a type of Resolvable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
     }

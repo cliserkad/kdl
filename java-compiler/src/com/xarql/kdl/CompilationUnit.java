@@ -31,7 +31,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	// set in constructor
 	private final ClassWriter             cw;
-	private final BestList<Import>        imports;
+	private final BestList<InternalName>  imports;
 	private final BestList<JavaMethodDef> methods;
 	private       Scope                   currentScope;
 	private       CustomClass             clazz;
@@ -167,23 +167,38 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return write(new File(sourceFile.toPath().resolveSibling(clazz.name + ".class").toString()));
 	}
 
-	private static NameAndType parseTypedVariable(kdl.TypedVariableContext ctx) {
+	private NameAndType parseTypedVariable(kdl.TypedVariableContext ctx) throws Exception {
 		String name = ctx.VARNAME().getText();
 
-		InternalName type;
-		if(ctx.type().basetype().BOOLEAN() != null) {
-			type = BOOLEAN_IN;
+		InternalName type = null;
+		if(ctx.type().basetype() != null) {
+			if (ctx.type().basetype().BOOLEAN() != null) {
+				type = BOOLEAN_IN;
+			} else if (ctx.type().basetype().INT() != null) {
+				type = INT_IN;
+			} else if (ctx.type().basetype().STRING() != null) {
+				type = STRING_IN;
+			} else {
+				throw new UnimplementedException(SWITCH_BASETYPE);
+			}
 		}
-		else if(ctx.type().basetype().INT() != null) {
-			type = INT_IN;
+		else {
+			type = resolveAgainstImports(ctx.type().getText());
+			if(type == null)
+				throw new IllegalArgumentException("Couldn't recognize type");
 		}
-		else if(ctx.type().basetype().STRING() != null) {
-			type = STRING_IN;
-		}
-		else
-			throw new IllegalArgumentException("Couldn't resolve type of variable");
 
 		return new NameAndType(name, type);
+	}
+
+	public InternalName resolveAgainstImports(String src) {
+		for(InternalName in : imports) {
+			String str = in.stringOutput();
+			if(str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(src)) {
+				return in;
+			}
+		}
+		throw new IllegalArgumentException("Couldn't recognize type");
 	}
 
 	/**
@@ -291,6 +306,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		new MethodCall(ctx, this).calc(lmv);
 	}
 
+	private void consumeNewObject(kdl.NewObjectContext ctx, MethodVisitor visitor) throws Exception {
+		new NewObject(ctx, this).calc(visitor);
+	}
+
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, MethodVisitor lmv) throws Exception {
 		NameAndType details = parseTypedVariable(ctx.typedVariable());
 		Variable var = new Variable(currentScope, details.name, details.type.toInternalObjectName());
@@ -311,42 +330,45 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		store(resultType, target, lmv);
 	}
 
-	public void consumeStatement(final kdl.StatementContext ctx, MethodVisitor lmv) throws Exception {
+	public void consumeStatement(final kdl.StatementContext ctx, MethodVisitor visitor) throws Exception {
 		if(ctx.variableDeclaration() != null) {
-			consumeVariableDeclaration(ctx.variableDeclaration(), lmv);
+			consumeVariableDeclaration(ctx.variableDeclaration(), visitor);
 		}
 		else if(ctx.variableAssignment() != null) {
-			consumeVariableAssignment(ctx.variableAssignment(), lmv);
+			consumeVariableAssignment(ctx.variableAssignment(), visitor);
 		}
 		else if(ctx.methodCall() != null) {
-			consumeMethodCall(ctx.methodCall(), lmv);
+			consumeMethodCall(ctx.methodCall(), visitor);
 		}
 		else if(ctx.conditional() != null) {
 			// forward to the handler to partition code
-			cmpHandler.handle(ctx.conditional(), lmv, this);
+			cmpHandler.handle(ctx.conditional(), visitor, this);
 		}
 		else if(ctx.returnStatement() != null) {
 			if(ctx.returnStatement().expression() == null) {
-				lmv.visitInsn(RETURN);
+				visitor.visitInsn(RETURN);
 				return;
 			}
 
-			ToName returnType = ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), this), lmv);
+			ToName returnType = ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), this), visitor);
 			if(returnType.isBaseType()) {
 				switch(returnType.toBaseType()) {
 					case BOOLEAN:
 					case INT:
-						lmv.visitInsn(IRETURN);
+						visitor.visitInsn(IRETURN);
 						break;
 					case STRING:
-						lmv.visitInsn(ARETURN);
+						visitor.visitInsn(ARETURN);
 						break;
 					default:
 						throw new UnimplementedException(SWITCH_BASETYPE);
 				}
 			}
 			else
-				lmv.visitInsn(ARETURN);
+				visitor.visitInsn(ARETURN);
+		}
+		else if(ctx.newObject() != null) {
+			consumeNewObject(ctx.newObject(), visitor);
 		}
 		else
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
@@ -358,43 +380,58 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	@Override
-	public void enterMethodDefinition(final kdl.MethodDefinitionContext ctx) {
-		// parse name and return type
-		final NameAndType details;
-		if(ctx.typedVariable() != null)
-			details = parseTypedVariable(ctx.typedVariable());
-		else
-			details = new NameAndType(ctx.VARNAME().getText(), null);
-		final ReturnValue rv = ReturnValue.returnValue(details.type);
-
-		// parse parameters
-		final BestList<NameAndType> params = new BestList<>();
-		for(kdl.TypedVariableContext typedVar : ctx.parameterDefinition().typedVariable())
-			params.add(parseTypedVariable(typedVar));
-
-		// create MethodDef
-		final BestList<InternalObjectName> paramTypes = new BestList<>();
-		for(NameAndType param : params)
-			paramTypes.add(param.type.toInternalObjectName());
-		MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
-
-		if(pass == 2) {
-			addMethodDef(def);
-		} else if(pass == 3) {
-			Label methodStart = new Label();
-			final MethodVisitor visitor = defineMethod(def);
-			for(NameAndType param : params)
-				new Variable(currentScope, param.name, param.type.toInternalObjectName());
-
+	public void enterUse(final kdl.UseContext ctx) {
+		if(pass == 1) {
 			try {
-				consumeBlock(ctx.block(), visitor);
+				imports.add(internalName(Class.forName(ctx.getText().substring(3, ctx.getText().length() - 1))));
 			} catch (Exception e) {
 				System.err.println("From unit: " + unitName());
 				e.printStackTrace();
 			}
-
-			getCurrentScope().end(ctx.stop.getLine(), visitor, rv);
 		}
+	}
+
+	@Override
+	public void enterMethodDefinition(final kdl.MethodDefinitionContext ctx) {
+		try {
+			// parse name and return type
+			final NameAndType details;
+			if (ctx.typedVariable() != null)
+				details = parseTypedVariable(ctx.typedVariable());
+			else
+				details = new NameAndType(ctx.VARNAME().getText(), null);
+			final ReturnValue rv = ReturnValue.returnValue(details.type);
+
+			// parse parameters
+			final BestList<NameAndType> params = new BestList<>();
+			for (kdl.TypedVariableContext typedVar : ctx.parameterDefinition().typedVariable())
+				params.add(parseTypedVariable(typedVar));
+
+			// create MethodDef
+			final BestList<InternalObjectName> paramTypes = new BestList<>();
+			for (NameAndType param : params)
+				paramTypes.add(param.type.toInternalObjectName());
+			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
+
+			if(pass == 2) {
+				addMethodDef(def);
+			} else if(pass == 3) {
+				Label methodStart = new Label();
+				final MethodVisitor visitor = defineMethod(def);
+				for(NameAndType param : params)
+					new Variable(currentScope, param.name, param.type.toInternalObjectName());
+				consumeBlock(ctx.block(), visitor);
+
+				getCurrentScope().end(ctx.stop.getLine(), visitor, rv);
+			}
+		} catch(Exception e) {
+			printException(e);
+		}
+	}
+
+	private void printException(final Exception e) {
+		System.err.println("From unit: " + unitName());
+		e.printStackTrace();
 	}
 
 	@Override
@@ -409,8 +446,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			try {
 				consumeBlock(ctx.block(), mv);
 			} catch (Exception e) {
-				System.err.println("From unit: " + unitName());
-				e.printStackTrace();
+				printException(e);
 			}
 
 			getCurrentScope().end(ctx.stop.getLine(), mv, ReturnValue.VOID);
@@ -488,10 +524,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 		else
 			throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
-	}
-
-	public void addImport(final Import imp) {
-		imports.add(imp);
 	}
 
 	public boolean addConstant(final Constant<?> c) {
