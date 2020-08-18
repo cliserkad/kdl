@@ -1,8 +1,8 @@
 package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.BestList;
-import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.names.*;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.BestList.list;
 
@@ -88,8 +88,13 @@ public class Constant<Type> extends DefaultResolvable implements Resolvable {
 	}
 
 	@Override
-	public Resolvable push(LinedMethodVisitor lmv) throws Exception {
-		lmv.visitLdcInsn(value);
+	public Resolvable push(final MethodVisitor visitor) throws Exception {
+		visitor.visitLdcInsn(value);
 		return this;
+	}
+
+	@Override
+	public Resolvable calc(final MethodVisitor visitor) throws Exception {
+		return push(visitor);
 	}
 }

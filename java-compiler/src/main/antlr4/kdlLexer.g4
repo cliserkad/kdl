@@ -29,6 +29,7 @@ R_NULL: 'null';
 SIZE: 'size';
 ASSERT: 'assert';
 WHILE: 'while';
+FOR: 'for';
 
 // base types
 INT: 'int';

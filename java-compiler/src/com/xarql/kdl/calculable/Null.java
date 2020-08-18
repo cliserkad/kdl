@@ -1,18 +1,18 @@
 package com.xarql.kdl.calculable;
 
-import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.names.*;
+import org.objectweb.asm.MethodVisitor;
 
 public class Null implements Resolvable, CommonNames {
     @Override
-    public Resolvable push(LinedMethodVisitor lmv) throws Exception {
-        lmv.visitInsn(ACONST_NULL);
+    public Resolvable push(final MethodVisitor visitor) throws Exception {
+        visitor.visitInsn(ACONST_NULL);
         return this;
     }
 
     @Override
-    public ToName calc(LinedMethodVisitor lmv) throws Exception {
-        push(lmv);
+    public ToName calc(final MethodVisitor visitor) throws Exception {
+        push(visitor);
         return toInternalName();
     }
 

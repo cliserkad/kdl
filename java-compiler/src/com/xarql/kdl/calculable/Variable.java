@@ -1,11 +1,10 @@
 package com.xarql.kdl.calculable;
 
-import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.Scope;
 import com.xarql.kdl.Text;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.*;
-import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.MethodVisitor;
 
 public class Variable implements Resolvable, CommonNames {
 	public final String             name;
@@ -61,23 +60,23 @@ public class Variable implements Resolvable, CommonNames {
 	}
 
 	@Override
-	public Resolvable push(LinedMethodVisitor lmv) throws UnimplementedException {
+	public Resolvable push(final MethodVisitor visitor) throws UnimplementedException {
 		if(type.isBaseType() && type.toBaseType() != STRING) {
 			if(type.toBaseType() == INT)
-				lmv.visitVarInsn(ILOAD, localIndex);
+				visitor.visitVarInsn(ILOAD, localIndex);
 			else if(type.toBaseType() == BOOLEAN)
-				lmv.visitVarInsn(ILOAD, localIndex);
+				visitor.visitVarInsn(ILOAD, localIndex);
 			else
 				throw new UnimplementedException(SWITCH_BASETYPE);
 		}
 		else
-			lmv.visitVarInsn(ALOAD, localIndex);
+			visitor.visitVarInsn(ALOAD, localIndex);
 		return this;
 	}
 
 	@Override
-	public Resolvable calc(LinedMethodVisitor lmv) throws Exception {
-		push(lmv);
+	public Resolvable calc(final MethodVisitor visitor) throws Exception {
+		push(visitor);
 		return this;
 	}
 }

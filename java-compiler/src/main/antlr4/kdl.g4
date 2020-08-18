@@ -15,8 +15,12 @@ bool: TRUE | FALSE;
 number: DIGIT+;
 literal: bool | STRING_LIT | number;
 
-statement: methodCall STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional;
+statement: methodCall STATEMENT_END | variableDeclaration | variableAssignment | returnStatement | conditional | for_loop;
 block: BODY_OPEN statement* BODY_CLOSE;
+
+// for loop
+for_loop: FOR VARNAME ASSIGN range block;
+range: number? DOT DOT number;
 
 // conditionals
 conditional: r_if | assertion | r_while;
@@ -46,7 +50,7 @@ methodCall: VARNAME parameterSet;
 parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
-methodDefinition: methodType typedVariable parameterDefinition block;
+methodDefinition: methodType (typedVariable | VARNAME) parameterDefinition block;
 methodType: (METHOD | FUNCTION)?;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 

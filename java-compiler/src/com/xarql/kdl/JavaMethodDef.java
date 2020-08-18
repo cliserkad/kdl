@@ -4,8 +4,7 @@ import com.xarql.kdl.names.CommonNames;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ReturnValue;
-
-import java.util.List;
+import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.InternalName.internalName;
@@ -115,26 +114,26 @@ public class JavaMethodDef implements StringOutput, CommonNames {
 		return true;
 	}
 
-	private JavaMethodDef invoke(final int type, final LinedMethodVisitor lmv) {
-		lmv.visitMethodInsn(type, owner.stringOutput(), methodName, descriptor(), false);
+	private JavaMethodDef invoke(final int type, final MethodVisitor visitor) {
+		visitor.visitMethodInsn(type, owner.stringOutput(), methodName, descriptor(), false);
 		return this;
 	}
 
-	public JavaMethodDef invokeStatic(LinedMethodVisitor lmv) {
-		return invoke(INVOKESTATIC, lmv);
+	public JavaMethodDef invokeStatic(MethodVisitor visitor) {
+		return invoke(INVOKESTATIC, visitor);
 	}
 
-	public JavaMethodDef invokeVirtual(LinedMethodVisitor lmv) {
-		return invoke(INVOKEVIRTUAL, lmv);
+	public JavaMethodDef invokeVirtual(MethodVisitor visitor) {
+		return invoke(INVOKEVIRTUAL, visitor);
 	}
 
 	/**
 	 * Invoke instance method on whatever "this" references
-	 * @param lmv
+	 * @param visitor
 	 * @return
 	 */
-	public JavaMethodDef invokeSpecial(LinedMethodVisitor lmv) {
-		return invoke(INVOKESPECIAL, lmv);
+	public JavaMethodDef invokeSpecial(MethodVisitor visitor) {
+		return invoke(INVOKESPECIAL, visitor);
 	}
 
 }

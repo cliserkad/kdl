@@ -1,23 +1,24 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.calculable.Variable;
+import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
-public class Scope {
+public class Scope implements Opcodes {
 	public final  String             name;
 	private final BestList<Variable> variables;
 
 	private final Label start;
-	private Label end;
+	private final Label end;
 
-	public Scope(final String name, final Label start) {
+	public Scope(final String name, final MethodVisitor visitor) {
 		this.name = name;
 		variables = new BestList<>();
-		this.start = start;
-	}
-
-	public Scope(final String name) {
-		this(name, new Label());
+		start = new Label();
+		visitor.visitLabel(start);
+		end = new Label();
 	}
 
 	public Label getEnd() {
@@ -32,6 +33,24 @@ public class Scope {
 		if(!variables.contains(lv))
 			variables.add(lv);
 		return lv;
+	}
+
+	public Label end(final int line, final MethodVisitor visitor, final ReturnValue rv) {
+		final Label ret = new Label();
+		visitor.visitLabel(ret);
+		visitor.visitLineNumber(line, ret);
+		if(rv.isVoid())
+			visitor.visitInsn(RETURN);
+		else
+			visitor.visitInsn(NOP);
+
+		visitor.visitLabel(end);
+		for(Variable lv : getVariables())
+			visitor.visitLocalVariable(lv.name, lv.type.toString(), null, start, end, lv.localIndex);
+		visitor.visitMaxs(0, 0);
+		visitor.visitEnd();
+
+		return ret;
 	}
 
 	public boolean contains(String varname) {

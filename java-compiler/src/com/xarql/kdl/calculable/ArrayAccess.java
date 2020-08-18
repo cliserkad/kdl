@@ -1,11 +1,11 @@
 package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.IncompatibleTypeException;
-import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * Represents the access of an array's element
@@ -20,7 +20,7 @@ public class ArrayAccess extends DefaultResolvable implements CommonNames {
 	}
 
 	@Override
-	public Resolvable push(LinedMethodVisitor lmv) throws Exception {
+	public Resolvable push(MethodVisitor lmv) throws Exception {
 		lmv.visitVarInsn(ALOAD, array.localIndex);
 
 		// throw error if value within [ ] isn't an int

@@ -3,6 +3,7 @@ package com.xarql.kdl.calculable;
 import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.*;
+import org.objectweb.asm.MethodVisitor;
 
 public class MethodCall implements CommonNames, Resolvable {
     public final JavaMethodDef method;
@@ -29,20 +30,20 @@ public class MethodCall implements CommonNames, Resolvable {
     }
 
     @Override
-    public Resolvable push(LinedMethodVisitor lmv) throws Exception {
-        calc(lmv);
+    public Resolvable push(final MethodVisitor visitor) throws Exception {
+        calc(visitor);
         return this;
     }
 
     @Override
-    public ToName calc(LinedMethodVisitor lmv) throws Exception {
+    public ToName calc(final MethodVisitor visitor) throws Exception {
         for(int i = 0; i < arguments.size(); i++) {
-            arguments.get(i).calc(lmv);
+            arguments.get(i).calc(visitor);
             if(method.paramTypes.get(i) == STRING_ION) {
-                CompilationUnit.convertToString(arguments.get(i).toInternalObjectName(), lmv);
+                CompilationUnit.convertToString(arguments.get(i).toInternalObjectName(), visitor);
             }
         }
-        method.invokeStatic(lmv);
+        method.invokeStatic(visitor);
         return this;
     }
 

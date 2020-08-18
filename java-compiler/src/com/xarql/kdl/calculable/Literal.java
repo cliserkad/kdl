@@ -1,10 +1,10 @@
 package com.xarql.kdl.calculable;
 
-import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.*;
-import  com.xarql.kdl.antlr.kdl;
+import com.xarql.kdl.antlr.kdl;
+import org.objectweb.asm.MethodVisitor;
 
 public class Literal<Type> extends DefaultResolvable implements StringOutput, CommonNames {
 	public Type value;
@@ -56,8 +56,8 @@ public class Literal<Type> extends DefaultResolvable implements StringOutput, Co
 	}
 
 	@Override
-	public Resolvable push(LinedMethodVisitor lmv) {
-		lmv.visitLdcInsn(value);
+	public Resolvable push(MethodVisitor visitor) {
+		visitor.visitLdcInsn(value);
 		return this;
 	}
 
@@ -77,5 +77,4 @@ public class Literal<Type> extends DefaultResolvable implements StringOutput, Co
 	public static String crush(final String s) {
 		return s.substring(1, s.length() - 1);
 	}
-
 }

@@ -1,12 +1,12 @@
 package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.CompilationUnit;
-import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ToName;
+import org.objectweb.asm.MethodVisitor;
 
 public class Expression implements Calculable {
     Resolvable a;
@@ -41,8 +41,8 @@ public class Expression implements Calculable {
     }
 
     @Override
-    public ToName calc(LinedMethodVisitor lmv) throws Exception {
-        return ExpressionHandler.compute(this, lmv);
+    public ToName calc(final MethodVisitor visitor) throws Exception {
+        return ExpressionHandler.compute(this, visitor);
     }
 
     @Override

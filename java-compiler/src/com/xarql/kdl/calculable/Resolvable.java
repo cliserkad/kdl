@@ -1,8 +1,8 @@
 package com.xarql.kdl.calculable;
 
-import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.UnimplementedException;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * Represents anything that may be pushed on to the JVM stack.
@@ -17,7 +17,7 @@ public interface Resolvable extends Calculable {
      * @return instance of implementing class
      * @throws Exception if pushing is impossible
      */
-    public Resolvable push(LinedMethodVisitor lmv) throws Exception;
+    public Resolvable push(final MethodVisitor lmv) throws Exception;
 
     /**
      * Attempts to parse a Resolvable symbol

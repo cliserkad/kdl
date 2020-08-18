@@ -39,11 +39,17 @@ public class ReturnValue implements StringOutput, ToName {
 	}
 
 	public static ReturnValue returnValue(InternalName returnType) {
-		return returnValue(returnType.toInternalObjectName());
+		if(returnType == null)
+			return VOID;
+		else
+			return returnValue(returnType.toInternalObjectName());
 	}
 
 	public static ReturnValue returnValue(Class<?> clazz) {
-		return returnValue(new InternalObjectName(clazz));
+		if(clazz == null)
+			return VOID;
+		else
+			return returnValue(new InternalObjectName(clazz));
 	}
 
 	public static ReturnValue nonNull(ReturnValue returnValue) {

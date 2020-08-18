@@ -1,13 +1,14 @@
 package com.xarql.kdl.calculable;
 
-import com.xarql.kdl.LinedMethodVisitor;
+import org.objectweb.asm.MethodVisitor;
 
 public abstract class DefaultResolvable implements Resolvable {
 
     @Override
-    public Resolvable calc(LinedMethodVisitor lmv) throws Exception {
-        push(lmv);
+    public Resolvable calc(final MethodVisitor visitor) throws Exception {
+        push(visitor);
         return this;
     }
 
+    public abstract Resolvable push(MethodVisitor visitor) throws Exception;
 }

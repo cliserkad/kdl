@@ -1,11 +1,10 @@
 type Fibonacci {
   run {
     // parse the first argument as an int
-    int i: parseInt(args[0]);
-    println(fib(i));
+    println(fib(parseInt(args[0])));
   }
 
-  fnc int fib(int n) {
+  int fib(int n) {
     if n <= 1 {
       return n;
     } else {

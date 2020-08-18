@@ -189,9 +189,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	/**
 	 * Converts the top item of the stack in to a string
 	 * @param name
-	 * @param lmv
+	 * @param visitor
 	 */
-	public static void convertToString(InternalObjectName name, LinedMethodVisitor lmv) {
+	public static void convertToString(InternalObjectName name, MethodVisitor visitor) {
 		JavaMethodDef stringValueOf;
 		if(name.isBaseType())
 			if(name.toBaseType() == STRING)
@@ -200,16 +200,16 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(name), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
 		else
 			stringValueOf = new JavaMethodDef(STRING_IN, "valueOf", list(new InternalObjectName(Object.class)), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
-		lmv.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
+		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
 	/**
 	 * Store the value that is at the top of the stack in the target variable
 	 * @param type the type of the data on top of the stack
 	 * @param target variable in which data will be stored
-	 * @param lmv any LinedMethodVisitor
+	 * @param lmv any MethodVisitor
 	 */
-	private static void store(ToName type, Variable target, LinedMethodVisitor lmv) throws Exception {
+	private static void store(ToName type, Variable target, MethodVisitor lmv) throws Exception {
 		if(!type.toInternalName().equals(target.toInternalName()))
 			throw new IncompatibleTypeException(type + INCOMPATIBLE + target);
 		else {
@@ -220,7 +220,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private static void storeDefault(Variable lv, LinedMethodVisitor lmv) {
+	private static void storeDefault(Variable lv, MethodVisitor lmv) {
 		if(lv.type.isBaseType()) {
 			switch(lv.type.toBaseType()) {
 				case INT:
@@ -259,10 +259,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	@Override
-	public void enterClazz(final kdl.ClazzContext clazzCtx) {
+	public void enterClazz(final kdl.ClazzContext ctx) {
 		if(getPass() == 1) {
 			pkgName = nonNull(pkgName);
-			setClassName(pkgName, clazzCtx.CLASSNAME().toString());
+			setClassName(pkgName, ctx.CLASSNAME().toString());
+			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 		}
 	}
 
@@ -285,11 +286,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private void consumeMethodCall(kdl.MethodCallContext ctx, LinedMethodVisitor lmv) throws Exception {
+	private void consumeMethodCall(kdl.MethodCallContext ctx, MethodVisitor lmv) throws Exception {
 		new MethodCall(ctx, this).calc(lmv);
 	}
 
-	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, LinedMethodVisitor lmv) throws Exception {
+	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, MethodVisitor lmv) throws Exception {
 		NameAndType details = parseTypedVariable(ctx.typedVariable());
 		Variable var = new Variable(currentScope, details.name, details.type.toInternalObjectName());
 
@@ -299,7 +300,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			storeDefault(var, lmv);
 	}
 
-	private void consumeVariableAssignment(kdl.VariableAssignmentContext ctx, LinedMethodVisitor lmv) throws Exception {
+	private void consumeVariableAssignment(kdl.VariableAssignmentContext ctx, MethodVisitor lmv) throws Exception {
 		Variable target = getLocalVariable(ctx.VARNAME().getText());
 		final ToName resultType;
 		if(ctx.assignment().operatorAssign() != null)
@@ -309,7 +310,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		store(resultType, target, lmv);
 	}
 
-	public void consumeStatement(final kdl.StatementContext ctx, LinedMethodVisitor lmv) throws Exception {
+	public void consumeStatement(final kdl.StatementContext ctx, MethodVisitor lmv) throws Exception {
 		if(ctx.variableDeclaration() != null) {
 			consumeVariableDeclaration(ctx.variableDeclaration(), lmv);
 		}
@@ -350,52 +351,48 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
 	}
 
-	public void consumeBlock(final kdl.BlockContext ctx, LinedMethodVisitor lmv) throws Exception {
+	public void consumeBlock(final kdl.BlockContext ctx, MethodVisitor lmv) throws Exception {
 		for (kdl.StatementContext statement : ctx.statement())
 			consumeStatement(statement, lmv);
 	}
 
 	@Override
 	public void enterMethodDefinition(final kdl.MethodDefinitionContext ctx) {
-		final NameAndType details = parseTypedVariable(ctx.typedVariable());
+		// parse name and return type
+		final NameAndType details;
+		if(ctx.typedVariable() != null)
+			details = parseTypedVariable(ctx.typedVariable());
+		else
+			details = new NameAndType(ctx.VARNAME().getText(), null);
+		final ReturnValue rv = ReturnValue.returnValue(details.type);
+
+		// parse parameters
 		final BestList<NameAndType> params = new BestList<>();
 		for(kdl.TypedVariableContext typedVar : ctx.parameterDefinition().typedVariable())
 			params.add(parseTypedVariable(typedVar));
-		final ReturnValue rv = ReturnValue.returnValue(details.type);
+
+		// create MethodDef
 		final BestList<InternalObjectName> paramTypes = new BestList<>();
 		for(NameAndType param : params)
 			paramTypes.add(param.type.toInternalObjectName());
-		MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.MTD, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
+		MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
 
 		if(pass == 2) {
 			addMethodDef(def);
 		} else if(pass == 3) {
 			Label methodStart = new Label();
-			final LinedMethodVisitor lmv = defineMethod(def, ctx.start.getLine());
+			final MethodVisitor visitor = defineMethod(def);
 			for(NameAndType param : params)
 				new Variable(currentScope, param.name, param.type.toInternalObjectName());
 
 			try {
-				consumeBlock(ctx.block(), lmv);
+				consumeBlock(ctx.block(), visitor);
 			} catch (Exception e) {
 				System.err.println("From unit: " + unitName());
 				e.printStackTrace();
 			}
 
-			final Label ret = new Label();
-			lmv.visitLabel(ret);
-			lmv.visitLineNumber(ctx.stop.getLine(), ret);
-			if(rv.isVoid())
-				lmv.visitInsn(RETURN);
-			else
-				lmv.visitInsn(NOP);
-
-			final Label methodEnd = new Label();
-			lmv.visitLabel(methodEnd);
-			for(Variable lv : currentScope.getVariables())
-				lmv.visitLocalVariable(lv.name, lv.type.toString(), null, methodStart, methodEnd, lv.localIndex);
-			lmv.visitMaxs(0, 0);
-			lmv.visitEnd();
+			getCurrentScope().end(ctx.stop.getLine(), visitor, rv);
 		}
 	}
 
@@ -405,29 +402,17 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			addMethodDef(JavaMethodDef.MAIN.withOwner(clazz));
 		}
 		else if(getPass() == 3) {
-			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
-
 			Label methodStart = new Label();
-			final LinedMethodVisitor lmv = defineMethod(JavaMethodDef.MAIN, ctx.getStart().getLine());
+			final MethodVisitor mv = defineMethod(JavaMethodDef.MAIN);
 			new Variable(currentScope, "args", new InternalObjectName(String.class, 1));
 			try {
-				consumeBlock(ctx.block(), lmv);
+				consumeBlock(ctx.block(), mv);
 			} catch (Exception e) {
 				System.err.println("From unit: " + unitName());
 				e.printStackTrace();
 			}
 
-			final Label ret = new Label();
-			lmv.visitLabel(ret);
-			lmv.visitLineNumber(ctx.stop.getLine(), ret);
-			lmv.visitInsn(RETURN);
-
-			final Label methodEnd = new Label();
-			lmv.visitLabel(methodEnd);
-			for(Variable lv : currentScope.getVariables())
-				lmv.visitLocalVariable(lv.name, lv.type.toString(), null, methodStart, methodEnd, lv.localIndex);
-			lmv.visitMaxs(0, 0);
-			lmv.visitEnd();
+			getCurrentScope().end(ctx.stop.getLine(), mv, ReturnValue.VOID);
 		}
 	}
 
@@ -436,7 +421,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void addMethodDef(JavaMethodDef md) {
-		methods.add(md);
+		if(methods.contains(md))
+			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
+		else
+			methods.add(md);
 	}
 
 	public BestList<JavaMethodDef> getMethods() {
@@ -490,12 +478,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return clazz;
 	}
 
-	public LinedMethodVisitor defineMethod(JavaMethodDef md, int line) {
+	public MethodVisitor defineMethod(JavaMethodDef md) {
 		if(methods.contains(md)) {
-			currentScope = new Scope("Method " + md.methodName + " of class " + clazz, new Label());
 			final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);
+			currentScope = new Scope("Method " + md.methodName + " of class " + clazz, mv);
 			mv.visitCode();
-			return new LinedMethodVisitor(mv, line);
+			return mv;
 		}
 		else
 			throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
@@ -538,8 +526,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public Scope getCurrentScope() {
-		if(currentScope == null)
-			currentScope = new Scope("default");
 		return currentScope;
 	}
 

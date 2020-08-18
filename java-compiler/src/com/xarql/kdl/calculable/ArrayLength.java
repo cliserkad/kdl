@@ -1,10 +1,10 @@
 package com.xarql.kdl.calculable;
 
-import com.xarql.kdl.LinedMethodVisitor;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonNames;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.InternalObjectName;
+import org.objectweb.asm.MethodVisitor;
 
 /**
  * Represents the access of an array's length.
@@ -18,11 +18,11 @@ public class ArrayLength extends DefaultResolvable implements CommonNames {
 
     /**
      * Pushes an int to the stack that is equal to the array's length
-     * @param lmv any LinedMethodVisitor
+     * @param lmv any MethodVisitor
      * @throws Exception unused
      */
     @Override
-    public Resolvable push(LinedMethodVisitor lmv) throws Exception {
+    public Resolvable push(MethodVisitor lmv) throws Exception {
         array.push(lmv);
         lmv.visitInsn(ARRAYLENGTH);
         return this;
