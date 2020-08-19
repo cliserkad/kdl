@@ -509,7 +509,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			nameSet = true;
 
 			// give name to ClassWriter
-			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
+			cw.visit(V1_8, ACC_PUBLIC + ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
 			cw.visitSource(clazz + ".kdl", null);
 
 			return true;
