@@ -461,11 +461,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return getCurrentScope().getVariable(name.trim());
 	}
 
-	public void addMethodDef(JavaMethodDef md) {
+	public JavaMethodDef addMethodDef(JavaMethodDef md) {
 		if(methods.contains(md))
 			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
 		else
 			methods.add(md);
+		return md;
 	}
 
 	public BestList<JavaMethodDef> getMethods() {

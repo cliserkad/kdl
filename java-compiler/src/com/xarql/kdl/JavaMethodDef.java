@@ -55,6 +55,10 @@ public class JavaMethodDef implements StringOutput, CommonText {
 		return new JavaMethodDef(owner, methodName, paramTypes, returnValue, access);
 	}
 
+	public JavaMethodDef withAccess(final int access) {
+		return new JavaMethodDef(owner, methodName, paramTypes, returnValue, access);
+	}
+
 	public static void main(String[] args) {
 		System.out.println(MAIN);
 	}
