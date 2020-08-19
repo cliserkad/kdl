@@ -304,8 +304,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, MethodVisitor lmv) throws Exception {
-		new MethodCall(ctx, this).calc(lmv);
+	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, MethodVisitor visitor) throws Exception {
+		if(ctx.VARNAME() != null)
+			getLocalVariable(ctx.VARNAME().getText()).push(visitor);
+		new MethodCall(ctx, this).calc(visitor);
 	}
 
 	private void consumeNewObject(kdl.NewObjectContext ctx, MethodVisitor visitor) throws Exception {

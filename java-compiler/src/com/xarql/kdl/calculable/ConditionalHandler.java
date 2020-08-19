@@ -138,7 +138,7 @@ public class ConditionalHandler implements CommonText {
 					if (ctx.r_if().r_else().block() != null)
 						owner.consumeBlock(ctx.r_if().r_else().block(), visitor);
 					else
-						owner.consumeStatement(ctx.r_if().r_else().statement(), visitor);
+						throw new IllegalArgumentException("Missing block for else clause of if statement");
 				}
 				// no need to jump to the end since we're already there
 				visitor.visitLabel(cls.exit);
@@ -146,7 +146,7 @@ public class ConditionalHandler implements CommonText {
 				// label and write out instructions for printing a constant when the assertion passes
 				if (owner.hasConstant("ASSERTION_PASS")) {
 					owner.getConstant("ASSERTION_PASS").push(visitor);
-					PRINT_MTD.withOwner(owner.getClazz()).invoke(visitor);
+					PRINT_MTD.withOwner(owner.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC).invoke(visitor);
 				}
 				visitor.visitJumpInsn(GOTO, cls.exit); // jump over the false instructions
 
@@ -160,7 +160,7 @@ public class ConditionalHandler implements CommonText {
 					msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
 				new Literal<String>(msg).push(visitor);
 				// print the text of the assertion condition to the error stream
-				ERROR_MTD.withOwner(owner.getClazz()).invoke(visitor);
+				ERROR_MTD.withOwner(owner.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC).invoke(visitor);
 
 				visitor.visitLabel(cls.exit);
 			} else if (ctx.r_while() != null) {

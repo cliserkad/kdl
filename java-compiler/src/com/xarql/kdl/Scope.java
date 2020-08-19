@@ -38,6 +38,8 @@ public class Scope implements Opcodes {
 	public Variable addLocalVariable(Variable lv) {
 		if(!variables.contains(lv))
 			variables.add(lv);
+		else
+			throw new IllegalArgumentException("The variable " + lv + "already exists within this scope");
 		return lv;
 	}
 
