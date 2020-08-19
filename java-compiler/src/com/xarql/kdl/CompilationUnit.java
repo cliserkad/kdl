@@ -261,12 +261,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return Operator.match(ctx.getText());
 	}
 
-
-	@Override
-	public void enterPkg(kdl.PkgContext ctx) {
-		pkgName = ctx.PKG_NAME().getText();
-	}
-
 	public int getPass() {
 		return pass;
 	}

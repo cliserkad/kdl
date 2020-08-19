@@ -4,6 +4,6 @@ type MakeFile {
   main {
     File f: File("test.txt");
     println(f);
-    f . createNewFile();
+    f.createNewFile();
   }
 }
