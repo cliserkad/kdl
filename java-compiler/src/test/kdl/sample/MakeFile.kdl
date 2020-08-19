@@ -1,4 +1,4 @@
-ext test.kdl.sample.MakeFile;
+path test.kdl.sample.MakeFile;
 
 use java.io.File;
 use test.kdl.sample.FileUtil;

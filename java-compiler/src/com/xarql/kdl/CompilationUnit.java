@@ -383,7 +383,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterPath(final kdl.PathContext ctx) {
 		if(pass == 1)
-			pkgName = ctx.getText().trim().substring(3).trim();
+			pkgName = ctx.getText().trim().substring(4).trim();
 	}
 
 	@Override
