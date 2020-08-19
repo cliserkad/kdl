@@ -61,8 +61,9 @@ returnStatement: RETURN expression STATEMENT_END;
 type: basetype | CLASSNAME;
 basetype: BOOLEAN | INT | STRING;
 
-source: use* clazz EOF;
+source: path? use* clazz EOF;
 use: USE QUALIFIED_NAME STATEMENT_END;
+path: PATH QUALIFIED_NAME STATEMENT_END;
 clazz: TYPE CLASSNAME BODY_OPEN (constant | main | variableDeclaration | methodDefinition)* BODY_CLOSE;
 constant: CONST CONSTNAME ASSIGN literal STATEMENT_END;
 main: MAIN block;

@@ -22,7 +22,7 @@ TRUE: 'true';
 FALSE: 'false';
 RETURN: 'return';
 USE: 'use';
-PKG: 'pkg';
+PATH: 'path';
 R_IF: 'if';
 R_ELSE: 'else';
 R_NULL: 'null';

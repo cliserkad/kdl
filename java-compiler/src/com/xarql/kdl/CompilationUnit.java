@@ -273,7 +273,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void enterClazz(final kdl.ClazzContext ctx) {
 		if(getPass() == 1) {
 			pkgName = nonNull(pkgName);
-			setClassName(pkgName, ctx.CLASSNAME().toString());
+			if(!pkgName.isEmpty())
+				setClassName(pkgName.substring(0, pkgName.lastIndexOf(".") + 1), ctx.CLASSNAME().getText());
+			else
+				setClassName(pkgName, ctx.CLASSNAME().getText());
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 			addDefaultConstructor(cw);
 		}
@@ -375,6 +378,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void consumeBlock(final kdl.BlockContext ctx, MethodVisitor lmv) throws Exception {
 		for (kdl.StatementContext statement : ctx.statement())
 			consumeStatement(statement, lmv);
+	}
+
+	@Override
+	public void enterPath(final kdl.PathContext ctx) {
+		if(pass == 1)
+			pkgName = ctx.getText().trim().substring(3).trim();
 	}
 
 	@Override

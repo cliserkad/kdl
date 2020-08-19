@@ -1,9 +1,14 @@
+ext test.kdl.sample.MakeFile;
+
 use java.io.File;
+use test.kdl.sample.FileUtil;
 
 type MakeFile {
   main {
     File f: File("test.txt");
     println(f);
     f.createNewFile();
+    FileUtil.writeOut(f, "Testing this out!");
   }
+
 }
