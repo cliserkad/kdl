@@ -79,12 +79,7 @@ public class Constant<Type> extends DefaultResolvable implements Resolvable {
 
 	@Override
 	public InternalName toInternalName() {
-		return InternalName.internalName(value.getClass());
-	}
-
-	@Override
-	public InternalObjectName toInternalObjectName() {
-		return toInternalName().toInternalObjectName();
+		return new InternalName(value.getClass());
 	}
 
 	@Override
@@ -97,4 +92,5 @@ public class Constant<Type> extends DefaultResolvable implements Resolvable {
 	public Resolvable calc(final MethodVisitor visitor) throws Exception {
 		return push(visitor);
 	}
+
 }

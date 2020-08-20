@@ -3,7 +3,6 @@ package com.xarql.kdl.calculable;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
 import org.objectweb.asm.MethodVisitor;
 
 /**
@@ -34,14 +33,6 @@ public class ArrayLength extends DefaultResolvable implements CommonText {
     @Override
     public InternalName toInternalName() {
         return InternalName.INT;
-    }
-
-    /**
-     * @return InternalObjectName.INT
-     */
-    @Override
-    public InternalObjectName toInternalObjectName() {
-        return InternalObjectName.INT;
     }
 
     /**

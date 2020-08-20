@@ -9,13 +9,16 @@ import static com.xarql.kdl.names.BaseType.BOOLEAN;
 import static com.xarql.kdl.names.BaseType.INT;
 
 public class Variable implements Resolvable, CommonText {
-	public final String             name;
-	public final InternalObjectName type;
-	public final int                localIndex;
+	public final String       name;
+	public final InternalName type;
+	public final int          localIndex;
 
-	public Variable(final String name, final InternalObjectName type, final int localIndex) {
+	public Variable(final String name, final InternalName type, final int localIndex) {
 		this.name = Text.nonNull(name);
-		this.type = InternalObjectName.checkNonNull(type);
+		if(type == null)
+			throw new NullPointerException();
+		else
+			this.type = type;
 		this.localIndex = localIndex;
 	}
 
@@ -46,21 +49,16 @@ public class Variable implements Resolvable, CommonText {
 
 	@Override
 	public InternalName toInternalName() {
-		return type.inName;
-	}
-
-	@Override
-	public InternalObjectName toInternalObjectName() {
 		return type;
 	}
 
 	public boolean isArray() {
-		return toInternalObjectName().isArray();
+		return type.isArray();
 	}
 
 	@Override
 	public Resolvable push(final MethodVisitor visitor) throws UnimplementedException {
-		if(type.isBaseType()) {
+		if(type.isBaseType() && !type.isArray()) {
 			switch(type.toBaseType()) {
 				case BOOLEAN:
 				case BYTE:
@@ -82,7 +80,7 @@ public class Variable implements Resolvable, CommonText {
 					visitor.visitVarInsn(ALOAD, localIndex);
 					break;
 				default:
-					throw new IllegalArgumentException(SWITCH_BASETYPE);
+					throw new UnimplementedException(SWITCH_BASETYPE);
 			}
 		}
 		else

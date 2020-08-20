@@ -4,7 +4,6 @@ import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
@@ -48,11 +47,6 @@ public class Expression implements Calculable {
     @Override
     public InternalName toInternalName() {
         return a.toInternalName();
-    }
-
-    @Override
-    public InternalObjectName toInternalObjectName() {
-        return a.toInternalObjectName();
     }
 
     @Override

@@ -1,8 +1,6 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.BestList;
 import com.xarql.kdl.JavaMethodDef;
-import com.xarql.kdl.calculable.Operator;
 import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.BestList.list;
@@ -23,8 +21,8 @@ public interface CommonText extends Opcodes {
 
 	String                       EMPTY_STRING = "";
 
-	JavaMethodDef      SB_APPEND            = new JavaMethodDef(InternalName.internalName(StringBuilder.class), "append", list(new InternalObjectName(String.class)), ReturnValue.returnValue(new InternalObjectName(StringBuilder.class)), ACC_PUBLIC);
-	JavaMethodDef      SB_TO_STRING         = new JavaMethodDef(InternalName.internalName(StringBuilder.class), "toString", null, ReturnValue.STRING_RETURN, ACC_PUBLIC);
+	JavaMethodDef      SB_APPEND     = new JavaMethodDef(new InternalName(StringBuilder.class), "append", list(new InternalName(String.class)), new ReturnValue(new InternalName(StringBuilder.class)), ACC_PUBLIC);
+	JavaMethodDef      SB_TO_STRING  = new JavaMethodDef(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 
 	// handled by ExternalMethodRouter
 	String PRINT   = "print";

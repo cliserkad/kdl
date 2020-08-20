@@ -51,11 +51,6 @@ public class Literal<Type> extends DefaultResolvable implements StringOutput, Co
 	}
 
 	@Override
-	public InternalObjectName toInternalObjectName() {
-		return toInternalName().toInternalObjectName();
-	}
-
-	@Override
 	public Resolvable push(MethodVisitor visitor) {
 		visitor.visitLdcInsn(value);
 		return this;

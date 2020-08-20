@@ -2,7 +2,6 @@ package com.xarql.kdl;
 
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ReturnValue;
 
 public class MethodDef extends JavaMethodDef implements CommonText {
@@ -19,7 +18,7 @@ public class MethodDef extends JavaMethodDef implements CommonText {
 	 * @param returnValue the type that is returned
 	 * @param access      access modifiers
 	 */
-	public MethodDef(InternalName owner, Type type, String methodName, BestList<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {
+	public MethodDef(InternalName owner, Type type, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access) {
 		super(owner, methodName, paramTypes, returnValue, access);
 		this.type = type;
 	}

@@ -11,10 +11,9 @@ import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.names.BaseType.STRING;
-import static com.xarql.kdl.names.InternalName.internalName;
 
 public interface ExpressionHandler extends CommonText {
-    JavaMethodDef INIT_STRING_BUILDER = new JavaMethodDef(internalName(StringBuilder.class), JavaMethodDef.INIT, null, null, ACC_PUBLIC);
+    JavaMethodDef INIT_STRING_BUILDER = new JavaMethodDef(new InternalName(StringBuilder.class), JavaMethodDef.INIT, null, null, ACC_PUBLIC);
 
     public static ToName compute(final Expression xpr, final MethodVisitor visitor) throws Exception {
         final Resolvable res = xpr.a;
@@ -46,7 +45,7 @@ public interface ExpressionHandler extends CommonText {
      * @param visitor
      */
     public static void stringBuilderInit(MethodVisitor visitor) {
-        visitor.visitTypeInsn(NEW, internalName(StringBuilder.class).stringOutput());
+        visitor.visitTypeInsn(NEW, new InternalName(StringBuilder.class).internalName());
         visitor.visitInsn(DUP);
         INIT_STRING_BUILDER.invoke(visitor);
     }
@@ -60,9 +59,9 @@ public interface ExpressionHandler extends CommonText {
                         res1.push(visitor);
                         visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
                         res2.calc(visitor);
-                        CompilationUnit.convertToString(res2.toBaseType().toInternalObjectName(), visitor);
+                        CompilationUnit.convertToString(res2.toBaseType().toInternalName(), visitor);
                         visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-                        visitor.visitMethodInsn(INVOKEVIRTUAL, InternalName.STRING_BUILDER.stringOutput(), SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
+                        visitor.visitMethodInsn(INVOKEVIRTUAL, InternalName.STRING_BUILDER.internalName(), SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
                         return STRING;
                     }
                     case STRING: {
@@ -71,7 +70,7 @@ public interface ExpressionHandler extends CommonText {
                         visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
                         res2.calc(visitor);
                         visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-                        visitor.visitMethodInsn(INVOKEVIRTUAL, InternalName.STRING_BUILDER.stringOutput(), SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
+                        visitor.visitMethodInsn(INVOKEVIRTUAL, InternalName.STRING_BUILDER.internalName(), SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
                         return STRING;
                     }
                 }

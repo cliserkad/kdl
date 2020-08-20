@@ -32,15 +32,15 @@ public class NewObject implements Calculable, Opcodes, Resolvable {
 
     @Override
     public ToName calc(MethodVisitor visitor) throws Exception {
-        final BestList<InternalObjectName> paramTypes = new BestList<>();
+        final BestList<InternalName> paramTypes = new BestList<>();
         for(Calculable arg : arguments)
-            paramTypes.add(arg.toInternalObjectName());
-        visitor.visitTypeInsn(NEW, type.toInternalName().stringOutput());
+            paramTypes.add(arg.toInternalName());
+        visitor.visitTypeInsn(NEW, type.toInternalName().internalName());
         visitor.visitInsn(DUP);
         for(int i = 0; i < arguments.size(); i++) {
             arguments.get(i).calc(visitor);
-            if(paramTypes.get(i) == InternalObjectName.STRING) {
-                CompilationUnit.convertToString(arguments.get(i).toInternalObjectName(), visitor);
+            if(paramTypes.get(i) == InternalName.STRING) {
+                CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
             }
         }
         new JavaMethodDef(type.toInternalName(), INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
@@ -50,11 +50,6 @@ public class NewObject implements Calculable, Opcodes, Resolvable {
     @Override
     public InternalName toInternalName() {
         return type.toInternalName();
-    }
-
-    @Override
-    public InternalObjectName toInternalObjectName() {
-        return type.toInternalObjectName();
     }
 
     @Override

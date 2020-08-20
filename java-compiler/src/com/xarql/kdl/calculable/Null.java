@@ -18,12 +18,7 @@ public class Null implements Resolvable, CommonText {
 
     @Override
     public InternalName toInternalName() {
-        return InternalName.internalName(Object.class);
-    }
-
-    @Override
-    public InternalObjectName toInternalObjectName() {
-        return toInternalName().toInternalObjectName();
+        return InternalName.OBJECT;
     }
 
     @Override

@@ -9,7 +9,6 @@ import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.ExternalMethodRouter.ERROR_MTD;
 import static com.xarql.kdl.ExternalMethodRouter.PRINT_MTD;
-import static com.xarql.kdl.names.BaseType.BOOLEAN;
 import static com.xarql.kdl.names.BaseType.INT;
 
 public class ConditionalHandler implements CommonText {
@@ -92,7 +91,7 @@ public class ConditionalHandler implements CommonText {
 			final kdl.For_loopContext loop = ctx.for_loop();
 
 			// set up values from within for declaration
-			Variable increment = unit.getCurrentScope().newVariable(ctx.for_loop().VARNAME().getText(), InternalObjectName.INT);
+			Variable increment = unit.getCurrentScope().newVariable(ctx.for_loop().VARNAME().getText(), InternalName.INT);
 			Range range = new Range(loop.range(), unit, visitor);
 			range.min.calc(visitor);
 			CompilationUnit.store(INT, increment, visitor);
@@ -201,7 +200,7 @@ public class ConditionalHandler implements CommonText {
 
 		// use isEmpty() on the second copy of the string
 		lmv.visitLabel(isEmpty);
-		new JavaMethodDef(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN_RETURN, ACC_PUBLIC + ACC_STATIC).invoke(lmv);
+		new JavaMethodDef(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).invoke(lmv);
 
 		// negative vs positive jump
 		if(positive)

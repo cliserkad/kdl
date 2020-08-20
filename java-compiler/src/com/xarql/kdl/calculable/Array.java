@@ -2,7 +2,6 @@ package com.xarql.kdl.calculable;
 
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
 import com.xarql.kdl.names.ToBaseType;
 
 public class Array implements ToBaseType {
@@ -13,8 +12,8 @@ public class Array implements ToBaseType {
 	public InternalName type;
 	public int          dimensions;
 
-	public Array(InternalObjectName ion) {
-		this(ion.inName, ion.arrayDimensions);
+	public Array(InternalName ion) {
+		this(ion, ion.arrayDimensions);
 	}
 
 	public Array(InternalName internalName, int dimensions) {

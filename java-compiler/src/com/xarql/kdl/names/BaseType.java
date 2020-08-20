@@ -3,8 +3,6 @@ package com.xarql.kdl.names;
 import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.calculable.Constant;
 
-import static com.xarql.kdl.names.InternalName.internalName;
-
 public enum BaseType implements StringOutput, ToName {
 	BOOLEAN('Z', new Constant<>(CommonText.DEFAULT, false)),
 	BYTE('B', new Constant<>(CommonText.DEFAULT, 0)),
@@ -64,11 +62,7 @@ public enum BaseType implements StringOutput, ToName {
 	}
 
 	public InternalName toInternalName() {
-		return InternalName.match(this);
-	}
-
-	public InternalObjectName toInternalObjectName() {
-		return toInternalName().toInternalObjectName();
+		return new InternalName(this);
 	}
 
 	public Constant<?> getDefaultValue() {

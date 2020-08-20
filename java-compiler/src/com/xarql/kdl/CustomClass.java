@@ -1,7 +1,7 @@
 package com.xarql.kdl;
 
-import static com.xarql.kdl.names.InternalObjectName.OBJECT_PREFIX;
-import static com.xarql.kdl.names.InternalObjectName.OBJECT_SUFFIX;
+import static com.xarql.kdl.names.InternalName.OBJECT_PREFIX;
+import static com.xarql.kdl.names.InternalName.OBJECT_SUFFIX;
 
 public class CustomClass {
 	public final String pkg;

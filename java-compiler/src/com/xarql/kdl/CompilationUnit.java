@@ -19,7 +19,6 @@ import java.nio.file.Files;
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.BaseType.*;
-import static com.xarql.kdl.names.InternalName.internalName;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
@@ -207,7 +206,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	public InternalName resolveAgainstImports(String src) {
 		for(InternalName in : imports) {
-			String str = in.stringOutput();
+			String str = in.internalName();
 			if(str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(src)) {
 				return in;
 			}
@@ -220,22 +219,22 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param name
 	 * @param visitor
 	 */
-	public static void convertToString(final InternalObjectName name, final MethodVisitor visitor) {
+	public static void convertToString(final InternalName name, final MethodVisitor visitor) {
 		JavaMethodDef stringValueOf;
 		if(name.isBaseType()) {
 			if(name.toBaseType() == STRING)
 				return;
 			else {
-				InternalObjectName actualName = name;
+				InternalName actualName = name;
 				if(name.toBaseType() == BYTE)
-					actualName = InternalObjectName.INT;
+					actualName = InternalName.INT;
 				else if(name.toBaseType() == SHORT)
-					actualName = InternalObjectName.INT;
-				stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
+					actualName = InternalName.INT;
+				stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 			}
 		}
 		else
-			stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(new InternalObjectName(Object.class)), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
+			stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
@@ -246,7 +245,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param lmv any MethodVisitor
 	 */
 	public static void store(ToName type, Variable target, MethodVisitor lmv) throws Exception {
-		if(!type.toInternalObjectName().compatibleWith(target.type.toInternalObjectName()))
+		if(!type.toInternalName().compatibleWith(target.type))
 			throw new IncompatibleTypeException(type + INCOMPATIBLE + target);
 		else {
 			if(type.isBaseType()) {
@@ -461,7 +460,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	public void addImport(Class<?> clazz) {
 		System.out.println(clazz);
-		imports.add(internalName(clazz));
+		imports.add(new InternalName(clazz));
 		for(Method method : clazz.getMethods()) {
 			methods.add(new JavaMethodDef(clazz, method));
 		}
@@ -476,7 +475,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				details = parseTypedVariable(ctx.typedVariable());
 			else
 				details = new NameAndType(ctx.VARNAME().getText(), null);
-			final ReturnValue rv = ReturnValue.returnValue(details.type);
+			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
 			final BestList<NameAndType> params = new BestList<>();
@@ -484,9 +483,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				params.add(parseTypedVariable(typedVar));
 
 			// create MethodDef
-			final BestList<InternalObjectName> paramTypes = new BestList<>();
+			final BestList<InternalName> paramTypes = new BestList<>();
 			for (NameAndType param : params)
-				paramTypes.add(param.type.toInternalObjectName());
+				paramTypes.add(param.type);
 			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
 
 			if(pass == 2) {
@@ -517,7 +516,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 		else if(getPass() == 3) {
 			final MethodVisitor mv = defineMethod(JavaMethodDef.MAIN);
-			getCurrentScope().newVariable("args", new InternalObjectName(String.class, 1));
+			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
 			try {
 				consumeBlock(ctx.block(), mv);
 			} catch (Exception e) {
@@ -577,7 +576,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			nameSet = true;
 
 			// give name to ClassWriter
-			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
+			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, clazz.internalNameString(), null, InternalName.OBJECT.internalName(), null);
 			cw.visitSource(clazz + ".kdl", null);
 
 			return true;
@@ -606,7 +605,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			return false;
 		FieldVisitor fv;
 		if(c.value instanceof String)
-			fv = cw.visitField(CONST_ACCESS, c.name, new InternalObjectName(String.class).toString(), null, c.value.toString());
+			fv = cw.visitField(CONST_ACCESS, c.name, new InternalName(String.class).internalObjectName(), null, c.value.toString());
 		else if(c.value instanceof Boolean)
 			fv = cw.visitField(CONST_ACCESS, c.name, BOOLEAN.stringOutput(), null, c.value);
 		else if(c.value instanceof Integer)

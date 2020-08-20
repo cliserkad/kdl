@@ -14,9 +14,9 @@ public class MethodCall implements CommonText, Resolvable {
         // parse methodCall alone
         final String methodName = ctx.VARNAME(ctx.VARNAME().size() - 1).getText();
         arguments = parseArguments(ctx.parameterSet(), unit);
-        final BestList<InternalObjectName> params = new BestList<>();
+        final BestList<InternalName> params = new BestList<>();
         for(Calculable arg : arguments)
-            params.add(arg.toInternalObjectName());
+            params.add(arg.toInternalName());
 
         // determine which class owns the method being called
         final InternalName owner;
@@ -67,8 +67,8 @@ public class MethodCall implements CommonText, Resolvable {
             source.push(visitor);
         for(int i = 0; i < arguments.size(); i++) {
             arguments.get(i).calc(visitor);
-            if(method.paramTypes.get(i) == InternalObjectName.STRING) {
-                CompilationUnit.convertToString(arguments.get(i).toInternalObjectName(), visitor);
+            if(method.paramTypes.get(i) == InternalName.STRING) {
+                CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
             }
         }
         method.invoke(visitor);
@@ -80,11 +80,6 @@ public class MethodCall implements CommonText, Resolvable {
         if(method.returnValue.returnType == null)
             return new InternalName();
         return method.returnValue.returnType.toInternalName();
-    }
-
-    @Override
-    public InternalObjectName toInternalObjectName() {
-        return method.returnValue.returnType.toInternalObjectName();
     }
 
     @Override

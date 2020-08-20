@@ -4,7 +4,6 @@ import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.InternalObjectName;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.names.BaseType.INT;
@@ -49,11 +48,6 @@ public class ArrayAccess extends DefaultResolvable implements CommonText {
 	@Override
 	public InternalName toInternalName() {
 		return array.toInternalName();
-	}
-
-	@Override
-	public InternalObjectName toInternalObjectName() {
-		return new InternalObjectName(toInternalName(), 0);
 	}
 
 	@Override
