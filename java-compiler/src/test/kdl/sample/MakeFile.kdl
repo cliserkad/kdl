@@ -8,7 +8,7 @@ type MakeFile {
     File f: File("test.txt");
     println(f);
     f.createNewFile();
-    FileUtil.writeOut(f, "Testing this out!");
+    println(FileUtil.writeOut(f, "Testing this out!"));
   }
 
 }

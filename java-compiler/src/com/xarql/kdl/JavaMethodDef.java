@@ -18,11 +18,11 @@ public class JavaMethodDef implements StringOutput, CommonText {
 	public static final String INIT           = "<init>";
 	public static final int    DEFAULT_ACCESS = ACC_PUBLIC + ACC_STATIC;
 
-	public final InternalName owner;
-	public final String                   methodName;
+	public final InternalName                 owner;
+	public final String                       methodName;
 	public final BestList<InternalObjectName> paramTypes;
-	public final ReturnValue returnValue;
-	public final int                      access;
+	public final ReturnValue                  returnValue;
+	public final int                          access;
 
 	public JavaMethodDef(InternalName owner, String methodName, BestList<InternalObjectName> paramTypes, ReturnValue returnValue, int access) {
 		this.owner = owner; // TODO: add check against primitives

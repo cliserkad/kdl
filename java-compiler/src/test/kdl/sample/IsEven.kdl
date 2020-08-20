@@ -1,6 +1,6 @@
 type IsEven {
   main {
-    if args size > 0 {
+    if args.size > 0 {
       int input : parseInt(args[0]);
       println(isEven(input));
     } else {

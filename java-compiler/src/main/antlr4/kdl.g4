@@ -8,7 +8,7 @@ options {
     tokenVocab = kdlLexer;
 }
 
-arrayLength: VARNAME SIZE;
+arrayLength: VARNAME DOT SIZE;
 
 // literals
 bool: TRUE | FALSE;
@@ -17,7 +17,7 @@ integer: DIGIT+;
 literal: bool | CHAR_LIT | STRING_LIT | integer | decimalNumber;
 
 statement: methodCallStatement | variableDeclaration | variableAssignment | returnStatement | conditional | newObject STATEMENT_END;
-methodCallStatement: ((VARNAME | CLASSNAME) DOT)? methodCall STATEMENT_END;
+methodCallStatement: methodCall STATEMENT_END;
 block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
@@ -49,7 +49,7 @@ typedVariable: type VARNAME;
 arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 
 // method calls
-methodCall: VARNAME parameterSet;
+methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet;
 parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions

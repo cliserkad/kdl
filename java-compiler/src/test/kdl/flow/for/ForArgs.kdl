@@ -1,6 +1,6 @@
 type ForArgs {
   main {
-    for i: ..args size {
+    for i: ..args.size {
       println(args[i]);
     }
   }

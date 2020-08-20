@@ -9,11 +9,10 @@ public class MethodCall implements CommonText, Resolvable {
     public final JavaMethodDef method;
     private final BestList<Calculable> arguments;
 
-    public MethodCall(kdl.MethodCallStatementContext ctx, CompilationUnit unit) throws Exception {
-
+    public MethodCall(kdl.MethodCallContext ctx, CompilationUnit unit) throws Exception {
         // parse methodCall alone
-        final String methodName = ctx.methodCall().VARNAME().getText();
-        arguments = parseArguments(ctx.methodCall().parameterSet(), unit);
+        final String methodName = ctx.VARNAME(ctx.VARNAME().size() - 1).getText();
+        arguments = parseArguments(ctx.parameterSet(), unit);
         final BestList<InternalObjectName> params = new BestList<>();
         for(Calculable arg : arguments)
             params.add(arg.toInternalObjectName());
@@ -25,8 +24,9 @@ public class MethodCall implements CommonText, Resolvable {
             owner = unit.resolveAgainstImports(ctx.CLASSNAME().getText());
             accessModifier += ACC_STATIC;
         }
-        else if(ctx.VARNAME() != null)
-            owner = unit.getLocalVariable(ctx.VARNAME().getText()).toInternalName();
+        else if(ctx.VARNAME().size() > 1) {
+            owner = unit.getLocalVariable(ctx.VARNAME(0).getText()).toInternalName();
+        }
         else {
             owner = new InternalName(unit.getClazz());
             accessModifier += ACC_STATIC;
@@ -36,15 +36,8 @@ public class MethodCall implements CommonText, Resolvable {
         method = known.resolve(unit);
     }
 
-    public MethodCall(kdl.MethodCallContext ctx, CompilationUnit unit) throws Exception {
-        final String methodName = ctx.VARNAME().getText();
-        arguments = parseArguments(ctx.parameterSet(), unit);
-        final BestList<InternalObjectName> params = new BestList<>();
-        for(Calculable arg : arguments)
-            params.add(arg.toInternalObjectName());
-
-        JavaMethodDef known = new JavaMethodDef(new InternalName(unit.getClazz()), methodName, params, null, ACC_PUBLIC + ACC_STATIC);
-        method = known.resolve(unit);
+    public MethodCall(kdl.MethodCallStatementContext ctx, CompilationUnit unit) throws Exception {
+        this(ctx.methodCall(), unit);
     }
 
     public static BestList<Calculable> parseArguments(kdl.ParameterSetContext ctx, CompilationUnit unit) throws Exception {

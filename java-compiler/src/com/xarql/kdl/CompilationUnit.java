@@ -56,6 +56,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		constants = new BestList<>();
 		imports = new BestList<>();
+		imports.add(internalName(String.class));
 		methods = new BestList<>();
 		cmpHandler = new ConditionalHandler(this);
 		id = unitCount++;
@@ -356,8 +357,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, MethodVisitor visitor) throws Exception {
-		if(ctx.VARNAME() != null)
-			getLocalVariable(ctx.VARNAME().getText()).push(visitor);
+		kdl.MethodCallContext mcc = ctx.methodCall();
+		if(mcc.VARNAME().size() > 1)
+			getLocalVariable(mcc.VARNAME(0).getText()).push(visitor);
 		new MethodCall(ctx, this).calc(visitor);
 	}
 

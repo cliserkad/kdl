@@ -4,7 +4,7 @@ type IfArgGiven {
 
   main {
     // if args has 0 or less arguments
-    if args size <= 0 {
+    if args.size <= 0 {
       println(NO_ARG);
     } else {
       // if the first argument is not empty
