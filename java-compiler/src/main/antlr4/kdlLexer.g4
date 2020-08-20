@@ -32,8 +32,14 @@ WHILE: 'while';
 FOR: 'for';
 
 // base types
-INT: 'int';
 BOOLEAN: 'boolean';
+BYTE: 'byte';
+SHORT: 'short';
+CHAR: 'char';
+INT: 'int';
+FLOAT: 'float';
+LONG: 'long';
+DOUBLE: 'double';
 STRING: 'string';
 
 // syntax

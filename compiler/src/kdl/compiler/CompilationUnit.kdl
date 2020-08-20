@@ -1,0 +1,6 @@
+path kdl.compiler.CompilationUnit;
+
+type CompilationUnit {
+    File input;
+
+}

@@ -59,7 +59,7 @@ parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_
 returnStatement: RETURN expression STATEMENT_END;
 
 type: basetype | CLASSNAME;
-basetype: BOOLEAN | INT | STRING;
+basetype: BOOLEAN | BYTE | SHORT | CHAR | INT | FLOAT | LONG | DOUBLE | STRING;
 
 source: path? use* clazz EOF;
 use: USE QUALIFIED_NAME STATEMENT_END;

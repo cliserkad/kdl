@@ -7,7 +7,8 @@
     <modules>
 		<module>java-compiler</module>
 		<module>kdl-maven-plugin</module>
-	</modules>
+        <module>compiler</module>
+    </modules>
     <name>cliserkad's language</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
