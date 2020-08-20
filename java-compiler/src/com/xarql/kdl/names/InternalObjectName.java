@@ -101,7 +101,9 @@ public class InternalObjectName implements StringOutput, ToName, CommonText {
 	}
 
 	public boolean compatibleWith(InternalObjectName receiver) {
-		if(toBaseType() == BaseType.STRING || receiver.toBaseType() == BaseType.STRING)
+		if(receiver.toBaseType() == BaseType.STRING)
+			return true;
+		else if(toBaseType() == BaseType.STRING && receiver.equals(new InternalObjectName(CharSequence.class)))
 			return true;
 		else if(receiver.isBaseType() && isBaseType())
 			return toBaseType().compatibleWith(receiver);

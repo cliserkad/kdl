@@ -116,7 +116,7 @@ public class JavaMethodDef implements StringOutput, CommonText {
 
 	public JavaMethodDef resolveAgainst(BestList<JavaMethodDef> methods) throws SymbolResolutionException {
 		for(JavaMethodDef def : methods) {
-			if (owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def.paramTypes))
+			if(owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def.paramTypes))
 				return def;
 		}
 		throw new SymbolResolutionException("Couldn't resolve given method " + this);
@@ -144,6 +144,10 @@ public class JavaMethodDef implements StringOutput, CommonText {
 			return invoke0(INVOKESPECIAL, visitor);
 		else
 			return invoke0(INVOKEVIRTUAL, visitor);
+	}
+
+	public boolean isStatic() {
+		return (access & ACC_STATIC) == ACC_STATIC;
 	}
 
 }

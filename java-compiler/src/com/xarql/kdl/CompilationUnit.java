@@ -56,10 +56,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		constants = new BestList<>();
 		imports = new BestList<>();
-		imports.add(internalName(String.class));
 		methods = new BestList<>();
 		cmpHandler = new ConditionalHandler(this);
 		id = unitCount++;
+		addImport(String.class);
 	}
 
 	public CompilationUnit(File sourceFile, File outputFile) {
@@ -446,16 +446,24 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterUse(final kdl.UseContext ctx) {
 		if(pass == 1) {
-			try {
-				final Class<?> jvmClass = Class.forName(ctx.getText().substring(3, ctx.getText().length() - 1));
-				imports.add(internalName(jvmClass));
-				for(Method method : jvmClass.getMethods()) {
-					methods.add(new JavaMethodDef(jvmClass, method));
-				}
-			} catch (Exception e) {
-				System.err.println("From unit: " + unitName());
-				e.printStackTrace();
-			}
+			addImport(ctx.getText().substring(3, ctx.getText().length() - 1));
+		}
+	}
+
+	public void addImport(String text) {
+		try {
+			final Class<?> jvmClass = Class.forName(text);
+			addImport(jvmClass);
+		} catch(Exception e) {
+			printException(e);
+		}
+	}
+
+	public void addImport(Class<?> clazz) {
+		System.out.println(clazz);
+		imports.add(internalName(clazz));
+		for(Method method : clazz.getMethods()) {
+			methods.add(new JavaMethodDef(clazz, method));
 		}
 	}
 

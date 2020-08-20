@@ -7,6 +7,7 @@ import org.objectweb.asm.MethodVisitor;
 
 public class MethodCall implements CommonText, Resolvable {
     public final JavaMethodDef method;
+    public final Resolvable    source;
     private final BestList<Calculable> arguments;
 
     public MethodCall(kdl.MethodCallContext ctx, CompilationUnit unit) throws Exception {
@@ -23,13 +24,16 @@ public class MethodCall implements CommonText, Resolvable {
         if(ctx.CLASSNAME() != null) {
             owner = unit.resolveAgainstImports(ctx.CLASSNAME().getText());
             accessModifier += ACC_STATIC;
+            source = null;
         }
         else if(ctx.VARNAME().size() > 1) {
-            owner = unit.getLocalVariable(ctx.VARNAME(0).getText()).toInternalName();
+            source = unit.getLocalVariable(ctx.VARNAME(0).getText());
+            owner = source.toInternalName();
         }
         else {
             owner = new InternalName(unit.getClazz());
             accessModifier += ACC_STATIC;
+            source = null;
         }
 
         JavaMethodDef known = new JavaMethodDef(owner, methodName, params, null, ACC_PUBLIC + accessModifier);
@@ -59,6 +63,8 @@ public class MethodCall implements CommonText, Resolvable {
 
     @Override
     public ToName calc(final MethodVisitor visitor) throws Exception {
+        if(source != null)
+            source.push(visitor);
         for(int i = 0; i < arguments.size(); i++) {
             arguments.get(i).calc(visitor);
             if(method.paramTypes.get(i) == InternalObjectName.STRING) {
@@ -103,5 +109,4 @@ public class MethodCall implements CommonText, Resolvable {
         out += "\n\t}";
         return out;
     }
-
 }
