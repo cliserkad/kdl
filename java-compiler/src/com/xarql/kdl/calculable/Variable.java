@@ -60,13 +60,30 @@ public class Variable implements Resolvable, CommonText {
 
 	@Override
 	public Resolvable push(final MethodVisitor visitor) throws UnimplementedException {
-		if(type.isBaseType() && type.toBaseType() != BaseType.STRING) {
-			if(type.toBaseType() == INT)
-				visitor.visitVarInsn(ILOAD, localIndex);
-			else if(type.toBaseType() == BOOLEAN)
-				visitor.visitVarInsn(ILOAD, localIndex);
-			else
-				throw new UnimplementedException(SWITCH_BASETYPE);
+		if(type.isBaseType()) {
+			switch(type.toBaseType()) {
+				case BOOLEAN:
+				case BYTE:
+				case SHORT:
+				case CHAR:
+				case INT:
+					visitor.visitVarInsn(ILOAD, localIndex);
+					break;
+				case FLOAT:
+					visitor.visitVarInsn(FLOAD, localIndex);
+					break;
+				case LONG:
+					visitor.visitVarInsn(LLOAD, localIndex);
+					break;
+				case DOUBLE:
+					visitor.visitVarInsn(DLOAD, localIndex);
+					break;
+				case STRING:
+					visitor.visitVarInsn(ALOAD, localIndex);
+					break;
+				default:
+					throw new IllegalArgumentException(SWITCH_BASETYPE);
+			}
 		}
 		else
 			visitor.visitVarInsn(ALOAD, localIndex);

@@ -5,8 +5,14 @@ import com.xarql.kdl.StringOutput;
 import com.xarql.kdl.UnimplementedException;
 
 public class InternalName implements StringOutput, ToName, CommonText {
-	public static final InternalName INT     = new InternalName(BaseType.INT);
 	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN);
+	public static final InternalName BYTE    = new InternalName(BaseType.BYTE);
+	public static final InternalName SHORT   = new InternalName(BaseType.SHORT);
+	public static final InternalName CHAR    = new InternalName(BaseType.CHAR);
+	public static final InternalName INT     = new InternalName(BaseType.INT);
+	public static final InternalName FLOAT   = new InternalName(BaseType.FLOAT);
+	public static final InternalName LONG    = new InternalName(BaseType.LONG);
+	public static final InternalName DOUBLE  = new InternalName(BaseType.DOUBLE);
 	public static final InternalName STRING  = new InternalName(BaseType.STRING);
 
 	public static final InternalName STRING_BUILDER  = new InternalName(StringBuilder.class);
@@ -43,17 +49,7 @@ public class InternalName implements StringOutput, ToName, CommonText {
 
 	public static InternalName internalName(Class<?> c) {
 		if(BaseType.matchClass(c) != null) {
-			switch(BaseType.matchClass(c)) {
-				case INT:
-					return INT;
-				case BOOLEAN:
-					return BOOLEAN;
-				case STRING:
-					return STRING;
-				default:
-					new UnimplementedException(SWITCH_BASETYPE).printStackTrace();
-					return BOOLEAN;
-			}
+			return match(BaseType.matchClass(c));
 		}
 		else
 			return new InternalName(c);
@@ -61,14 +57,26 @@ public class InternalName implements StringOutput, ToName, CommonText {
 
 	public static InternalName match(BaseType base) {
 		switch(base) {
-			case INT:
-				return INT;
 			case BOOLEAN:
 				return BOOLEAN;
+			case BYTE:
+				return BYTE;
+			case SHORT:
+				return SHORT;
+			case CHAR:
+				return CHAR;
+			case INT:
+				return INT;
+			case FLOAT:
+				return FLOAT;
+			case LONG:
+				return LONG;
+			case DOUBLE:
+				return DOUBLE;
 			case STRING:
 				return STRING;
 			default:
-				throw new IllegalStateException("A BaseType to InternalName conversion is missing");
+				throw new IllegalStateException(SWITCH_BASETYPE);
 		}
 	}
 

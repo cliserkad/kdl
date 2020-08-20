@@ -174,15 +174,26 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 		InternalName type = null;
 		if(ctx.type().basetype() != null) {
-			if (ctx.type().basetype().BOOLEAN() != null) {
+			if(ctx.type().basetype().BOOLEAN() != null)
 				type = InternalName.BOOLEAN;
-			} else if (ctx.type().basetype().INT() != null) {
+			else if(ctx.type().basetype().BYTE() != null)
+				type = InternalName.BYTE;
+			else if(ctx.type().basetype().SHORT() != null)
+				type = InternalName.SHORT;
+			else if(ctx.type().basetype().CHAR() != null)
+				type = InternalName.CHAR;
+			else if(ctx.type().basetype().INT() != null)
 				type = InternalName.INT;
-			} else if (ctx.type().basetype().STRING() != null) {
+			else if(ctx.type().basetype().FLOAT() != null)
+				type = InternalName.FLOAT;
+			else if(ctx.type().basetype().LONG() != null)
+				type = InternalName.LONG;
+			else if(ctx.type().basetype().DOUBLE() != null)
+				type = InternalName.DOUBLE;
+			else if (ctx.type().basetype().STRING() != null)
 				type = InternalName.STRING;
-			} else {
+			else
 				throw new UnimplementedException(SWITCH_BASETYPE);
-			}
 		}
 		else {
 			type = resolveAgainstImports(ctx.type().getText());
@@ -208,13 +219,20 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param name
 	 * @param visitor
 	 */
-	public static void convertToString(InternalObjectName name, MethodVisitor visitor) {
+	public static void convertToString(final InternalObjectName name, final MethodVisitor visitor) {
 		JavaMethodDef stringValueOf;
-		if(name.isBaseType())
+		if(name.isBaseType()) {
 			if(name.toBaseType() == STRING)
 				return;
-			else
-				stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(name), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
+			else {
+				InternalObjectName actualName = name;
+				if(name.toBaseType() == BYTE)
+					actualName = InternalObjectName.INT;
+				else if(name.toBaseType() == SHORT)
+					actualName = InternalObjectName.INT;
+				stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
+			}
+		}
 		else
 			stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(new InternalObjectName(Object.class)), ReturnValue.STRING_RETURN, ACC_PUBLIC + ACC_STATIC);
 		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
@@ -227,11 +245,43 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param lmv any MethodVisitor
 	 */
 	public static void store(ToName type, Variable target, MethodVisitor lmv) throws Exception {
-		if(!type.toInternalName().equals(target.toInternalName()))
+		if(!type.toInternalObjectName().compatibleWith(target.type.toInternalObjectName()))
 			throw new IncompatibleTypeException(type + INCOMPATIBLE + target);
 		else {
-			if(type.toBaseType() == INT || type.toBaseType() == BOOLEAN)
-				lmv.visitVarInsn(ISTORE, target.localIndex);
+			if(type.isBaseType()) {
+				// convert integer to long
+				if(target.toBaseType() == BaseType.LONG && type.toBaseType() == BaseType.INT)
+					lmv.visitInsn(I2L);
+				// convert float to double
+				if(target.toBaseType() == BaseType.DOUBLE && type.toBaseType() == BaseType.FLOAT)
+					lmv.visitInsn(F2D);
+			}
+
+			if(target.isBaseType()) {
+				switch (target.toBaseType()) {
+					case BOOLEAN:
+					case BYTE:
+					case SHORT:
+					case CHAR:
+					case INT:
+						lmv.visitVarInsn(ISTORE, target.localIndex);
+						break;
+					case FLOAT:
+						lmv.visitVarInsn(FSTORE, target.localIndex);
+						break;
+					case LONG:
+						lmv.visitVarInsn(LSTORE, target.localIndex);
+						break;
+					case DOUBLE:
+						lmv.visitVarInsn(DSTORE, target.localIndex);
+						break;
+					case STRING:
+						lmv.visitVarInsn(ASTORE, target.localIndex);
+						break;
+					default:
+						throw new UnimplementedException(SWITCH_BASETYPE);
+				}
+			}
 			else
 				lmv.visitVarInsn(ASTORE, target.localIndex);
 		}
@@ -296,8 +346,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			final String name = ctx.CONSTNAME().getText();
 			if(!constantNames.contains(name))
 				throw new IllegalArgumentException("The const named " + name + " was not registered in the first pass.");
-			final Literal lit = Literal.parseLiteral(ctx.literal());
-			addConstant(new Constant(name, lit.value));
+			try {
+				final Literal lit = Literal.parseLiteral(ctx.literal());
+				addConstant(new Constant(name, lit.value));
+			} catch(Exception e) {
+				printException(e);
+			}
 		}
 	}
 
@@ -315,8 +369,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		final NameAndType details = parseTypedVariable(ctx.typedVariable());
 		Variable var = getCurrentScope().newVariable(details.name, details.type);
 
-		if(ctx.ASSIGN() != null)
+		if(ctx.ASSIGN() != null) {
 			store(new Expression(ctx.expression(), this).calc(lmv), var, lmv);
+		}
 		else
 			storeDefault(var, lmv);
 	}
@@ -512,7 +567,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			nameSet = true;
 
 			// give name to ClassWriter
-			cw.visit(V1_8, ACC_PUBLIC + ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
+			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, clazz.internalNameString(), null, internalName(Object.class).toString(), null);
 			cw.visitSource(clazz + ".kdl", null);
 
 			return true;

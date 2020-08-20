@@ -26,7 +26,7 @@ public class ArrayAccess extends DefaultResolvable implements CommonText {
 		lmv.visitVarInsn(ALOAD, array.localIndex);
 
 		// throw error if value within [ ] isn't an int
-		if(index.toBaseType() != INT)
+		if(index.toBaseType().ordinal() > INT.ordinal())
 			throw new IncompatibleTypeException("The input for an array access must be an integer");
 		else
 			index.push(lmv);

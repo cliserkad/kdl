@@ -100,13 +100,13 @@ public class InternalObjectName implements StringOutput, ToName, CommonText {
 		return this;
 	}
 
-	public boolean compatibleWith(InternalObjectName other) {
-		if(other.isBaseType() && other.toBaseType() == BaseType.STRING)
+	public boolean compatibleWith(InternalObjectName receiver) {
+		if(toBaseType() == BaseType.STRING || receiver.toBaseType() == BaseType.STRING)
 			return true;
-		if(other.isBaseType() && isBaseType())
-			return toBaseType().ordinal() <= other.toBaseType().ordinal();
+		else if(receiver.isBaseType() && isBaseType())
+			return toBaseType().compatibleWith(receiver);
 		else
-			return equals(other);
+			return equals(receiver);
 	}
 
 }

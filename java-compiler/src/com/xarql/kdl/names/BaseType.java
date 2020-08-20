@@ -7,7 +7,13 @@ import static com.xarql.kdl.names.InternalName.internalName;
 
 public enum BaseType implements StringOutput, ToName {
 	BOOLEAN('Z', new Constant<>(CommonText.DEFAULT, false)),
+	BYTE('B', new Constant<>(CommonText.DEFAULT, 0)),
+	SHORT('S', new Constant<>(CommonText.DEFAULT, 0)),
+	CHAR('C', new Constant<>(CommonText.DEFAULT, ' ')),
 	INT('I', new Constant<>(CommonText.DEFAULT, 0)),
+	FLOAT('F', new Constant<>(CommonText.DEFAULT, 0.0F)),
+	LONG('J', new Constant<>(CommonText.DEFAULT, 0L)),
+	DOUBLE('D', new Constant<>(CommonText.DEFAULT, 0.0D)),
 	STRING("Ljava/lang/String;", new Constant<>(CommonText.DEFAULT, ""));
 
 	String      rep;
@@ -31,10 +37,22 @@ public enum BaseType implements StringOutput, ToName {
 	}
 
 	public static BaseType matchClass(Class<?> clazz) {
-		if(clazz.equals(int.class) || clazz.equals(Integer.class))
-			return INT;
-		else if(clazz.equals(boolean.class) || clazz.equals(Boolean.class))
+		if(clazz.equals(boolean.class) || clazz.equals(Boolean.class))
 			return BOOLEAN;
+		else if(clazz.equals(byte.class) || clazz.equals(Byte.class))
+			return BYTE;
+		else if(clazz.equals(short.class) || clazz.equals(Short.class))
+			return SHORT;
+		else if(clazz.equals(char.class) || clazz.equals(Character.class))
+			return CHAR;
+		else if(clazz.equals(int.class) || clazz.equals(Integer.class))
+			return INT;
+		else if(clazz.equals(float.class) || clazz.equals(Float.class))
+			return FLOAT;
+		else if(clazz.equals(long.class) || clazz.equals(Long.class))
+			return LONG;
+		else if(clazz.equals(double.class) || clazz.equals(Double.class))
+			return DOUBLE;
 		else if(clazz.equals(String.class))
 			return STRING;
 		else
@@ -42,14 +60,7 @@ public enum BaseType implements StringOutput, ToName {
 	}
 
 	public static BaseType matchValue(Object value) {
-		if(value instanceof Integer)
-			return INT;
-		else if(value instanceof Boolean)
-			return BOOLEAN;
-		else if(value instanceof String)
-			return STRING;
-		else
-			return null;
+		return matchClass(value.getClass());
 	}
 
 	public InternalName toInternalName() {
@@ -62,6 +73,28 @@ public enum BaseType implements StringOutput, ToName {
 
 	public Constant<?> getDefaultValue() {
 		return defaultValue;
+	}
+
+	public boolean compatibleNoDirection(ToName other) {
+		if(!other.isBaseType())
+			return false;
+		else
+			return compatibleNoDirection(other.toBaseType());
+	}
+
+	public boolean compatibleNoDirection(BaseType other) {
+		return this.compatibleWith(other) || other.compatibleWith(this);
+	}
+
+	public boolean compatibleWith(ToName receiver) {
+		if(!receiver.isBaseType())
+			return false;
+		else
+			return compatibleWith(receiver.toBaseType());
+	}
+
+	public boolean compatibleWith(BaseType receiver) {
+		return ordinal() <= receiver.ordinal();
 	}
 
 	@Override

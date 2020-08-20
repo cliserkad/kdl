@@ -61,17 +61,33 @@ public class Literal<Type> extends DefaultResolvable implements StringOutput, Co
 		return this;
 	}
 
-	public static Literal<?> parseLiteral(final kdl.LiteralContext ctx) {
+	public static Literal<?> parseLiteral(final kdl.LiteralContext ctx) throws Exception {
 		if(ctx.bool() != null)
 			return new Literal<Boolean>(ctx.bool().TRUE() != null);
-		else if(ctx.number() != null)
-			return new Literal<Integer>(Integer.parseInt(ctx.number().getText()));
+		else if(ctx.CHAR_LIT() != null)
+			return new Literal<Character>(ctx.CHAR_LIT().getText().charAt(1));
+		else if(ctx.integer() != null) {
+			final long val = Long.parseLong(ctx.integer().getText());
+			if(val < Byte.MAX_VALUE && val > Byte.MIN_VALUE)
+				return new Literal<Byte>((byte) val);
+			else if(val < Short.MAX_VALUE && val > Short.MIN_VALUE)
+				return new Literal<Short>((short) val);
+			else if (val < Integer.MAX_VALUE && val > Integer.MIN_VALUE)
+				return new Literal<Integer>((int) val);
+			else
+				return new Literal<Long>(val);
+		}
+		else if(ctx.decimalNumber() != null) {
+			final double val = Double.parseDouble(ctx.decimalNumber().getText());
+			if(val < Float.MAX_VALUE && val > Float.MIN_VALUE)
+				return new Literal<Float>((float) val);
+			else
+				return new Literal<Double>(val);
+		}
 		else if(ctx.STRING_LIT() != null)
 			return new Literal<String>(crush(ctx.STRING_LIT().getText()));
-		else {
-			System.err.println(new UnimplementedException(SWITCH_BASETYPE));
-			return null;
-		}
+		else
+			throw new UnimplementedException(SWITCH_BASETYPE);
 	}
 
 	public static String crush(final String s) {

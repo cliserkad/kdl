@@ -44,15 +44,22 @@ public class ConditionalHandler implements CommonText {
 			final BaseType bType = xpr2.toBaseType();
 
 			// check type compatibility
-			if(aType != bType)
+			if(!aType.compatibleNoDirection(bType))
 				throw new IncompatibleTypeException("The type " + aType + " is not compatible with " + bType);
 
-			if(aType == BOOLEAN)
-				testBooleans(visitor, cls, cmp, positive);
-			else if(aType == INT)
-				testIntegers(visitor, cls, cmp, positive);
-			else
-				throw new UnimplementedException("Conditions are not complete");
+			switch(aType) {
+				case BOOLEAN:
+					testBooleans(visitor, cls, cmp, positive);
+					break;
+				case BYTE:
+				case SHORT:
+				case CHAR:
+				case INT:
+					testIntegers(visitor, cls, cmp, positive);
+					break;
+				default:
+					throw new UnimplementedException(SWITCH_BASETYPE);
+			}
 		}
 		else {
 			switch(aType) {

@@ -12,8 +12,9 @@ arrayLength: VARNAME SIZE;
 
 // literals
 bool: TRUE | FALSE;
-number: DIGIT+;
-literal: bool | STRING_LIT | number;
+decimalNumber: DIGIT+ DOT DIGIT+;
+integer: DIGIT+;
+literal: bool | CHAR_LIT | STRING_LIT | integer | decimalNumber;
 
 statement: methodCallStatement | variableDeclaration | variableAssignment | returnStatement | conditional | newObject STATEMENT_END;
 methodCallStatement: ((VARNAME | CLASSNAME) DOT)? methodCall STATEMENT_END;
