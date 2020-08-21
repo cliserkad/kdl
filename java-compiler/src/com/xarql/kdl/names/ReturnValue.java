@@ -65,7 +65,7 @@ public class ReturnValue implements StringOutput, ToName {
 		if(returnType == null)
 			return "" + VOID_REP;
 		else
-			return returnType.internalName();
+			return returnType.internalObjectName();
 	}
 
 	@Override

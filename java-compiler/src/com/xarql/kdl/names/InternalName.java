@@ -41,8 +41,14 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName(final Class<?> c, final int arrayDimensions) {
-		this.clazz = c;
-		base = null;
+		if(BaseType.matchClassStrict(c) != null) {
+			base = BaseType.matchClass(c);
+			clazz = null;
+		}
+		else {
+			clazz = c;
+			base = null;
+		}
 		qualifiedName = null;
 		this.arrayDimensions = arrayDimensions;
 	}
@@ -103,14 +109,14 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public String internalName() {
-		if(clazz != null)
-			return clazz.getName().replace('.', '/');
-		else if(isBaseType()) {
+		if(isBaseType()) {
 			if(toBaseType() == BaseType.STRING)
 				return String.class.getName().replace('.', '/');
 			else
 				return toBaseType().rep;
 		}
+		else if(clazz != null)
+			return clazz.getName().replace('.', '/');
 		else if(isCustom()) {
 			return qualifiedName;
 		}

@@ -34,24 +34,57 @@ public enum BaseType implements StringOutput, ToName {
 		return matchValue(value) != null;
 	}
 
-	public static BaseType matchClass(Class<?> clazz) {
-		if(clazz.equals(boolean.class) || clazz.equals(Boolean.class))
+	/**
+	 * Matches a primitive or wrapper class to a BaseType
+	 * @param c any Class
+	 * @return BaseType on match, null otherwise
+	 */
+	public static BaseType matchClass(Class<?> c) {
+		if(c.equals(boolean.class) || c.equals(Boolean.class))
 			return BOOLEAN;
-		else if(clazz.equals(byte.class) || clazz.equals(Byte.class))
+		else if(c.equals(byte.class) || c.equals(Byte.class))
 			return BYTE;
-		else if(clazz.equals(short.class) || clazz.equals(Short.class))
+		else if(c.equals(short.class) || c.equals(Short.class))
 			return SHORT;
-		else if(clazz.equals(char.class) || clazz.equals(Character.class))
+		else if(c.equals(char.class) || c.equals(Character.class))
 			return CHAR;
-		else if(clazz.equals(int.class) || clazz.equals(Integer.class))
+		else if(c.equals(int.class) || c.equals(Integer.class))
 			return INT;
-		else if(clazz.equals(float.class) || clazz.equals(Float.class))
+		else if(c.equals(float.class) || c.equals(Float.class))
 			return FLOAT;
-		else if(clazz.equals(long.class) || clazz.equals(Long.class))
+		else if(c.equals(long.class) || c.equals(Long.class))
 			return LONG;
-		else if(clazz.equals(double.class) || clazz.equals(Double.class))
+		else if(c.equals(double.class) || c.equals(Double.class))
 			return DOUBLE;
-		else if(clazz.equals(String.class))
+		else if(c.equals(String.class))
+			return STRING;
+		else
+			return null;
+	}
+
+	/**
+	 * Match only primitive classes, not their wrappers
+	 * @param c any Class
+	 * @return BaseType on match, null otherwise
+	 */
+	public static BaseType matchClassStrict(final Class<?> c) {
+		if(c.equals(boolean.class))
+			return BOOLEAN;
+		else if(c.equals(byte.class))
+			return BYTE;
+		else if(c.equals(short.class))
+			return SHORT;
+		else if(c.equals(char.class))
+			return CHAR;
+		else if(c.equals(int.class))
+			return INT;
+		else if(c.equals(float.class))
+			return FLOAT;
+		else if(c.equals(long.class))
+			return LONG;
+		else if(c.equals(double.class))
+			return DOUBLE;
+		else if(c.equals(String.class))
 			return STRING;
 		else
 			return null;

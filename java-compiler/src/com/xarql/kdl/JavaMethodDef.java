@@ -38,8 +38,9 @@ public class JavaMethodDef implements StringOutput, CommonText {
 		this.methodName = method.getName();
 		this.paramTypes = new BestList<>();
 		if(method.getParameterTypes().length > 0) {
-			for(Class<?> c : method.getParameterTypes())
+			for(Class<?> c : method.getParameterTypes()) {
 				paramTypes.add(new InternalName(c));
+			}
 		}
 		this.returnValue = new ReturnValue(method.getReturnType());
 		this.access = method.getModifiers();

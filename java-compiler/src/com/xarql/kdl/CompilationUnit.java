@@ -459,7 +459,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void addImport(Class<?> clazz) {
-		System.out.println(clazz);
 		imports.add(new InternalName(clazz));
 		for(Method method : clazz.getMethods()) {
 			methods.add(new JavaMethodDef(clazz, method));
