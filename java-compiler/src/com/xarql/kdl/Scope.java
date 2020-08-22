@@ -1,6 +1,7 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.calculable.Variable;
+import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.ReturnValue;
 import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Label;
@@ -10,6 +11,7 @@ import org.objectweb.asm.Opcodes;
 public class Scope implements Opcodes {
 	public final  String             name;
 	private final BestList<Variable> variables;
+	private int index = 0;
 
 	private final Label start;
 	private final Label end;
@@ -31,7 +33,11 @@ public class Scope implements Opcodes {
 	}
 
 	public Variable newVariable(final String name, final ToName type) {
-		return addLocalVariable(new Variable(name, type.toInternalName(), nextIndex()));
+		Variable var =  addLocalVariable(new Variable(name, type.toInternalName(), nextIndex()));
+		// increment it again to reserve a second slot if its a 64-bit number
+		if(type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
+			index++;
+		return var;
 	}
 
 	public Variable addLocalVariable(Variable lv) {
@@ -75,7 +81,7 @@ public class Scope implements Opcodes {
 	}
 
 	public int nextIndex() {
-		return variables.size();
+		return index++;
 	}
 
 	public BestList<Variable> getVariables() {
