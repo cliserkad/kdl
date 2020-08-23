@@ -169,7 +169,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return write(new File(sourceFile.toPath().resolveSibling(clazz.name + ".class").toString()));
 	}
 
-	private NameAndType parseTypedVariable(kdl.TypedVariableContext ctx) throws Exception {
+	private Details parseTypedVariable(kdl.TypedVariableContext ctx) throws Exception {
 		String name = ctx.VARNAME().getText();
 
 		InternalName type = null;
@@ -201,7 +201,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				throw new IllegalArgumentException("Couldn't recognize type");
 		}
 
-		return new NameAndType(name, type);
+		return new Details(name, type, ctx.MUTABLE() != null);
 	}
 
 	public InternalName resolveAgainstImports(String src) {
@@ -245,7 +245,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param lmv any MethodVisitor
 	 */
 	public static void store(ToName type, Variable target, MethodVisitor lmv) throws Exception {
-		if(!type.toInternalName().compatibleWith(target.type))
+		if(!target.mutable && target.isInit()) {
+			throw new IllegalArgumentException(target + " is not mutable and has been set.");
+		}
+		else if(!type.toInternalName().compatibleWith(target.type))
 			throw new IncompatibleTypeException(type + INCOMPATIBLE + target);
 		else {
 			if(type.isBaseType()) {
@@ -281,6 +284,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					default:
 						throw new UnimplementedException(SWITCH_BASETYPE);
 				}
+
+				target.init();
 			}
 			else
 				lmv.visitVarInsn(ASTORE, target.localIndex);
@@ -367,12 +372,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, MethodVisitor lmv) throws Exception {
-		final NameAndType details = parseTypedVariable(ctx.typedVariable());
-		Variable var = getCurrentScope().newVariable(details.name, details.type);
+		final Details details = parseTypedVariable(ctx.typedVariable());
+		Variable var = getCurrentScope().newVariable(details.name, details.type, details.mutable);
 
-		if(ctx.ASSIGN() != null) {
+		if(ctx.ASSIGN() != null)
 			store(new Expression(ctx.expression(), this).calc(lmv), var, lmv);
-		}
 		else
 			storeDefault(var, lmv);
 	}
@@ -469,21 +473,21 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void enterMethodDefinition(final kdl.MethodDefinitionContext ctx) {
 		try {
 			// parse name and return type
-			final NameAndType details;
+			final Details details;
 			if (ctx.typedVariable() != null)
 				details = parseTypedVariable(ctx.typedVariable());
 			else
-				details = new NameAndType(ctx.VARNAME().getText(), null);
+				details = new Details(ctx.VARNAME().getText(), null, false);
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
-			final BestList<NameAndType> params = new BestList<>();
+			final BestList<Details> params = new BestList<>();
 			for (kdl.TypedVariableContext typedVar : ctx.parameterDefinition().typedVariable())
 				params.add(parseTypedVariable(typedVar));
 
 			// create MethodDef
 			final BestList<InternalName> paramTypes = new BestList<>();
-			for (NameAndType param : params)
+			for (Details param : params)
 				paramTypes.add(param.type);
 			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
 
@@ -492,7 +496,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			} else if(pass == 3) {
 				Label methodStart = new Label();
 				final MethodVisitor visitor = defineMethod(def);
-				for(NameAndType param : params)
+				for(Details param : params)
 					getCurrentScope().newVariable(param.name, param.type);
 				consumeBlock(ctx.block(), visitor);
 

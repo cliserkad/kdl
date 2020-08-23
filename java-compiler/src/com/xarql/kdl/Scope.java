@@ -32,12 +32,16 @@ public class Scope implements Opcodes {
 		return start;
 	}
 
-	public Variable newVariable(final String name, final ToName type) {
-		Variable var =  addLocalVariable(new Variable(name, type.toInternalName(), nextIndex()));
+	public Variable newVariable(final String name, final ToName type, final boolean mutable) {
+		Variable var =  addLocalVariable(new Variable(name, type.toInternalName(), nextIndex(), mutable));
 		// increment it again to reserve a second slot if its a 64-bit number
 		if(type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
 			index++;
 		return var;
+	}
+
+	public Variable newVariable(final String name, final ToName type) {
+		return newVariable(name, type, Variable.DEFAULT_MUTABLE);
 	}
 
 	public Variable addLocalVariable(Variable lv) {

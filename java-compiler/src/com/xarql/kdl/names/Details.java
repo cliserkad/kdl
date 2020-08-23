@@ -1,12 +1,14 @@
 package com.xarql.kdl.names;
 
-public class NameAndType implements ToBaseType {
+public class Details implements ToBaseType {
 	public final String       name;
 	public final InternalName type;
+	public final boolean      mutable;
 
-	public NameAndType(String name, InternalName type) {
+	public Details(final String name, final InternalName type, final boolean mutable) {
 		this.name = name;
 		this.type = type;
+		this.mutable = mutable;
 	}
 
 	@Override

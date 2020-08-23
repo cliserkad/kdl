@@ -1,6 +1,6 @@
 type StringOperators {
   main {
-    string msg : "hello from ";
+    string~ msg : "hello from ";
     msg +: "StringOperators";
     println(msg);
   }

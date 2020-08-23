@@ -45,7 +45,7 @@ variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STA
 variableAssignment: VARNAME assignment STATEMENT_END;
 assignment: (ASSIGN expression) | operatorAssign;
 operatorAssign: operator ASSIGN value;
-typedVariable: type VARNAME;
+typedVariable: type MUTABLE? VARNAME;
 arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 
 // method calls

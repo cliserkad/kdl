@@ -1,7 +1,7 @@
 type AssignmentOperators {
   main {
     // set a to 0
-    int a;
+    int~ a;
 
     // add, same as a : a + 3
     a +: 3;

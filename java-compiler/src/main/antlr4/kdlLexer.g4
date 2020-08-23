@@ -53,12 +53,13 @@ DOT: '.';
 SEPARATOR: ',';
 STATEMENT_END: ';';
 ASSIGN: ':';
+MUTABLE: '~';
 
 // comparator
 NOT_EQUAL: '!=';
 EQUAL: '=';
 REF_NOT_EQUAL: '!?';
-REF_EQUAL: '?';
+REF_EQUAL: '?=';
 LESS_THAN: '<';
 MORE_THAN: '>';
 LESS_OR_EQUAL: '<=';

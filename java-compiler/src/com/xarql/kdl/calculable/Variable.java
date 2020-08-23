@@ -9,17 +9,36 @@ import static com.xarql.kdl.names.BaseType.BOOLEAN;
 import static com.xarql.kdl.names.BaseType.INT;
 
 public class Variable implements Resolvable, CommonText {
+	public static final boolean DEFAULT_MUTABLE = false;
+
 	public final String       name;
 	public final InternalName type;
 	public final int          localIndex;
+	public final boolean      mutable;
 
-	public Variable(final String name, final InternalName type, final int localIndex) {
+	// track if it's been set
+	private boolean            init = false;
+
+	public Variable(final String name, final InternalName type, final int localIndex, final boolean mutable) {
 		this.name = Text.nonNull(name);
 		if(type == null)
 			throw new NullPointerException();
 		else
 			this.type = type;
 		this.localIndex = localIndex;
+		this.mutable = mutable;
+	}
+
+	public Variable(final String name, final InternalName type, final int localIndex) {
+		this(name, type, localIndex, DEFAULT_MUTABLE);
+	}
+
+	public boolean isInit() {
+		return init;
+	}
+
+	public void init() {
+		init = true;
 	}
 
 	@Override

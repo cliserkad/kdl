@@ -1,16 +1,16 @@
 type ComplexVariables {
   main {
-    string s : "hi";
+    string~ s : "hi";
     string s2 : "hello from ComplexVariables";
     s : s2;
     println(s);
 
-    int i : 0;
+    int~ i : 0;
     int i2 : 1;
     i : i2;
     println(i);
 
-    boolean b : false;
+    boolean~ b : false;
     boolean b2 : true;
     b : b2;
     println(b);

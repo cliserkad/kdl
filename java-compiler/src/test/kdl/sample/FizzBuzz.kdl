@@ -1,7 +1,7 @@
 // author: Bryan Johnson
 type FizzBuzz {
   main {
-    int input : parseInt(args[0]);
+    int input: parseInt(args[0]);
 
     if input % 3 = 0 {
       print("Fizz");

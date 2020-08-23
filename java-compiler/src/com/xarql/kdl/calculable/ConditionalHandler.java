@@ -91,7 +91,7 @@ public class ConditionalHandler implements CommonText {
 			final kdl.For_loopContext loop = ctx.for_loop();
 
 			// set up values from within for declaration
-			Variable increment = unit.getCurrentScope().newVariable(ctx.for_loop().VARNAME().getText(), InternalName.INT);
+			Variable increment = unit.getCurrentScope().newVariable(ctx.for_loop().VARNAME().getText(), InternalName.INT, true);
 			Range range = new Range(loop.range(), unit, visitor);
 			range.min.calc(visitor);
 			CompilationUnit.store(INT, increment, visitor);
