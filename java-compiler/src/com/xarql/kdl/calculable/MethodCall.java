@@ -66,9 +66,9 @@ public class MethodCall implements CommonText, Resolvable {
         if(source != null)
             source.push(visitor);
         for(int i = 0; i < arguments.size(); i++) {
-            arguments.get(i).calc(visitor);
+            ToName argType = arguments.get(i).calc(visitor);
             if(method.paramTypes.get(i) == InternalName.STRING) {
-                CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
+                CompilationUnit.convertToString(argType.toInternalName(), visitor);
             }
         }
         method.invoke(visitor);

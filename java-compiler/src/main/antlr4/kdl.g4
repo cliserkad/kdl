@@ -31,7 +31,7 @@ r_else: R_ELSE (block | statement);
 assertion: ASSERT condition STATEMENT_END;
 r_while: WHILE condition block;
 
-value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | arrayAccess | R_NULL | newObject;
+value: methodCall | arrayLength| literal | VARNAME | CONSTNAME | indexAccess | R_NULL | newObject;
 newObject: CLASSNAME + parameterSet;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 expression: value (operator expression)?;
@@ -46,7 +46,7 @@ variableAssignment: VARNAME assignment STATEMENT_END;
 assignment: (ASSIGN expression) | operatorAssign;
 operatorAssign: operator ASSIGN value;
 typedVariable: type MUTABLE? VARNAME;
-arrayAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
+indexAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 
 // method calls
 methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet;

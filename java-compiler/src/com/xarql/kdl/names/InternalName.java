@@ -75,6 +75,13 @@ public class InternalName implements ToName, CommonText {
 		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
 	}
 
+	private InternalName(String name) {
+		this.qualifiedName = name;
+		this.clazz = null;
+		base = null;
+		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
+	}
+
 	public boolean isCustom() {
 		return qualifiedName != null && !qualifiedName.equals("" + ReturnValue.VOID_REP);
 	}
@@ -166,6 +173,15 @@ public class InternalName implements ToName, CommonText {
 		if(!isArray())
 			throw new IllegalArgumentException("This InternalName isn't an array");
 		return new Array(this, arrayDimensions);
+	}
+
+	public InternalName withoutArray() {
+		if(clazz != null)
+			return new InternalName(clazz);
+		else if(base != null)
+			return new InternalName(base);
+		else
+			return new InternalName(qualifiedName);
 	}
 
 }

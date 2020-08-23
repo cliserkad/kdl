@@ -21,8 +21,7 @@ public interface ExpressionHandler extends CommonText {
         final Operator opr = xpr.opr;
 
         if(xpr.isSingleValue()) {
-            res.push(visitor);
-            return res;
+            return res.calc(visitor);
         }
         else {
             switch(res.toBaseType()) {

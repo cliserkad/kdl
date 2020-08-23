@@ -35,8 +35,8 @@ public interface Resolvable extends Calculable {
             return unit.getConstant(val.CONSTNAME().getText());
         else if(val.VARNAME() != null)
             return unit.getLocalVariable(val.VARNAME().getText());
-        else if(val.arrayAccess() != null)
-            return new ArrayAccess(unit.getLocalVariable(val.arrayAccess().VARNAME().getText()), parse(unit, val.arrayAccess().expression().value()));
+        else if(val.indexAccess() != null)
+            return new IndexAccess(unit.getLocalVariable(val.indexAccess().VARNAME().getText()), new Expression(val.indexAccess().expression(), unit));
         else if(val.arrayLength() != null)
             return new ArrayLength(unit.getLocalVariable(val.arrayLength().VARNAME().getText()));
         else if(val.R_NULL() != null)

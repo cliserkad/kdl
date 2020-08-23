@@ -1,0 +1,6 @@
+type StringIndex {
+  main {
+    string s: "hello world";
+    println(s[3]);
+  }
+}
