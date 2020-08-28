@@ -60,7 +60,7 @@ parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_
 
 returnStatement: RETURN expression STATEMENT_END;
 
-type: basetype | CLASSNAME;
+type: (basetype | CLASSNAME) (BRACE_OPEN BRACE_CLOSE)*;
 basetype: BOOLEAN | BYTE | SHORT | CHAR | INT | FLOAT | LONG | DOUBLE | STRING;
 
 source: path? use* clazz EOF;

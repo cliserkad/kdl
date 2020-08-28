@@ -201,6 +201,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				throw new IllegalArgumentException("Couldn't recognize type");
 		}
 
+		if(ctx.type().BRACE_OPEN() != null) {
+			int dimensions = 0;
+			for(int i = 0; i < ctx.type().BRACE_OPEN().size(); i++)
+				dimensions++;
+			type = type.toArray(dimensions);
+		}
+
 		return new Details(name, type, ctx.MUTABLE() != null);
 	}
 
@@ -412,7 +419,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			}
 
 			ToName returnType = ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), this), visitor);
-			if(returnType.isBaseType()) {
+			if(returnType.isBaseType() && !returnType.toInternalName().isArray()) {
 				switch(returnType.toBaseType()) {
 					case BOOLEAN:
 					case INT:

@@ -1,0 +1,15 @@
+type BranchedInit {
+  main {
+    string s: arg0(args);
+    println(s);
+  }
+
+  string arg0(string[] args) {
+    if args.size > 0 {
+      return args[0];
+    } else {
+      return "No arg given";
+    }
+  }
+
+}

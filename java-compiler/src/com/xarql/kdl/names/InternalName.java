@@ -1,9 +1,6 @@
 package com.xarql.kdl.names;
 
 import com.xarql.kdl.CustomClass;
-import com.xarql.kdl.StringOutput;
-import com.xarql.kdl.UnimplementedException;
-import com.xarql.kdl.calculable.Array;
 
 public class InternalName implements ToName, CommonText {
 	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN);
@@ -26,6 +23,8 @@ public class InternalName implements ToName, CommonText {
 	public static final String OBJECT_PREFIX            = "L";
 	public static final String ARRAY_PREFIX             = "[";
 	public static final int    DEFAULT_ARRAY_DIMENSIONS = 0;
+	public static final int    MIN_DIMENSIONS = 1;
+	public static final int    MAX_DIMENSIONS = 255;
 
 	public final Class<?> clazz;
 	public final BaseType base;
@@ -166,13 +165,16 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public boolean isArray() {
-		return arrayDimensions >= Array.MIN_DIMENSIONS;
+		return arrayDimensions >= MIN_DIMENSIONS;
 	}
 
-	public Array toArray() {
-		if(!isArray())
-			throw new IllegalArgumentException("This InternalName isn't an array");
-		return new Array(this, arrayDimensions);
+	public InternalName toArray(final int dimensions) {
+		if(clazz != null)
+			return new InternalName(clazz, dimensions);
+		else if(base != null)
+			return new InternalName(base, dimensions);
+		else
+			return new InternalName(qualifiedName);
 	}
 
 	public InternalName withoutArray() {
