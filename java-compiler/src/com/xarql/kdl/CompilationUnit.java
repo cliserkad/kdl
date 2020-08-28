@@ -169,7 +169,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return write(new File(sourceFile.toPath().resolveSibling(clazz.name + ".class").toString()));
 	}
 
-	private Details parseTypedVariable(kdl.TypedVariableContext ctx) throws Exception {
+	public Details parseTypedVariable(kdl.TypedVariableContext ctx) throws Exception {
 		String name = ctx.VARNAME().getText();
 
 		InternalName type = null;
@@ -336,9 +336,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(getPass() == 1) {
 			pkgName = nonNull(pkgName);
 			if(!pkgName.isEmpty())
-				setClassName(pkgName.substring(0, pkgName.lastIndexOf(".") + 1), ctx.CLASSNAME().getText());
+				setClassName(pkgName.substring(0, pkgName.lastIndexOf(".") + 1), ctx.CLASSNAME(0).getText());
 			else
-				setClassName(pkgName, ctx.CLASSNAME().getText());
+				setClassName(pkgName, ctx.CLASSNAME(0).getText());
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 			addDefaultConstructor(cw);
 		}
@@ -379,13 +379,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, MethodVisitor lmv) throws Exception {
-		final Details details = parseTypedVariable(ctx.typedVariable());
-		Variable var = getCurrentScope().newVariable(details.name, details.type, details.mutable);
-
-		if(ctx.ASSIGN() != null)
-			store(new Expression(ctx.expression(), this).calc(lmv), var, lmv);
-		else
-			storeDefault(var, lmv);
+		new VariableDeclaration(ctx, this).store(lmv);
 	}
 
 	private void consumeVariableAssignment(kdl.VariableAssignmentContext ctx, MethodVisitor lmv) throws Exception {
@@ -481,15 +475,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		try {
 			// parse name and return type
 			final Details details;
-			if (ctx.typedVariable() != null)
-				details = parseTypedVariable(ctx.typedVariable());
+			if (ctx.methodHeader().typedVariable() != null)
+				details = parseTypedVariable(ctx.methodHeader().typedVariable());
 			else
-				details = new Details(ctx.VARNAME().getText(), null, false);
+				details = new Details(ctx.methodHeader().VARNAME().getText(), null, false);
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
 			final BestList<Details> params = new BestList<>();
-			for (kdl.TypedVariableContext typedVar : ctx.parameterDefinition().typedVariable())
+			for (kdl.TypedVariableContext typedVar : ctx.methodHeader().parameterDefinition().typedVariable())
 				params.add(parseTypedVariable(typedVar));
 
 			// create MethodDef

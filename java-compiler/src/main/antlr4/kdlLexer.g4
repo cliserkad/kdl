@@ -16,8 +16,7 @@ WS : [ \t\r]+ -> channel(HIDDEN);
 TYPE: 'type';
 CONST: 'const';
 MAIN: 'main';
-METHOD: 'mtd';
-FUNCTION: 'fnc';
+
 TRUE: 'true';
 FALSE: 'false';
 RETURN: 'return';

@@ -22,10 +22,11 @@ block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
 for_loop: FOR VARNAME ASSIGN range block;
+for_each_loop: FOR VARNAME ASSIGN expression block;
 range: expression? DOT DOT expression;
 
 // conditionals
-conditional: r_if | assertion | r_while | for_loop;
+conditional: r_if | assertion | r_while | for_loop | for_each_loop;
 r_if: R_IF condition block r_else?;
 r_else: R_ELSE (block | statement);
 assertion: ASSERT condition STATEMENT_END;
@@ -54,8 +55,8 @@ methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet;
 parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
-methodDefinition: methodType (typedVariable | VARNAME) parameterDefinition block;
-methodType: (METHOD | FUNCTION)?;
+methodDefinition: methodHeader block;
+methodHeader: (typedVariable | VARNAME MUTABLE?) parameterDefinition;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 
 returnStatement: RETURN expression STATEMENT_END;
@@ -66,6 +67,6 @@ basetype: BOOLEAN | BYTE | SHORT | CHAR | INT | FLOAT | LONG | DOUBLE | STRING;
 source: path? use* clazz EOF;
 use: USE QUALIFIED_NAME STATEMENT_END;
 path: PATH QUALIFIED_NAME STATEMENT_END;
-clazz: TYPE CLASSNAME BODY_OPEN (constant | main | variableDeclaration | methodDefinition)* BODY_CLOSE;
+clazz: TYPE CLASSNAME (ASSIGN CLASSNAME*)? BODY_OPEN (constant | main | variableDeclaration | methodDefinition)* BODY_CLOSE;
 constant: CONST CONSTNAME ASSIGN literal STATEMENT_END;
 main: MAIN block;
