@@ -92,7 +92,7 @@ public class ConditionalHandler implements CommonText {
 
 			// set up values from within for declaration
 			Variable increment = unit.getCurrentScope().newVariable(ctx.for_loop().VARNAME().getText(), InternalName.INT, true);
-			Range range = new Range(loop.range(), unit, visitor);
+			Range range = new Range(loop.range(), unit);
 			range.min.calc(visitor);
 			CompilationUnit.store(INT, increment, visitor);
 

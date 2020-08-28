@@ -1,0 +1,6 @@
+type SubString {
+  main {
+    string helloWorld: "hello world";
+    println(helloWorld[0..5]);
+  }
+}

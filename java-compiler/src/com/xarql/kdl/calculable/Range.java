@@ -1,5 +1,6 @@
-package com.xarql.kdl;
+package com.xarql.kdl.calculable;
 
+import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.calculable.*;
 import com.xarql.kdl.names.ToName;
@@ -11,7 +12,7 @@ public class Range {
     public final Calculable min;
     public final Calculable max;
 
-    public Range(kdl.RangeContext ctx, CompilationUnit unit, MethodVisitor visitor) throws Exception {
+    public Range(kdl.RangeContext ctx, CompilationUnit unit) throws Exception {
         if(ctx.expression().size() > 1)
             min = new Expression(ctx.expression(0), unit);
         else
