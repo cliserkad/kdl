@@ -1,4 +1,4 @@
-package com.xarql.kdl.calculable;
+package com.xarql.kdl.ir;
 
 public class Condition {
 	public final Resolvable a;

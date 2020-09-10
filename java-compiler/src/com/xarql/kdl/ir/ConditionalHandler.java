@@ -1,7 +1,9 @@
-package com.xarql.kdl.calculable;
+package com.xarql.kdl.ir;
 
-import com.xarql.kdl.*;
 import com.xarql.kdl.CompilationUnit;
+import com.xarql.kdl.IncompatibleTypeException;
+import com.xarql.kdl.JavaMethodDef;
+import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.*;
 import org.objectweb.asm.Label;
@@ -97,7 +99,7 @@ public class ConditionalHandler implements CommonText {
 			CompilationUnit.store(INT, increment, visitor);
 
 			// if the check is positive, then we should jump to the false clause when no previous jump has been triggered
-			if (checkPositive)
+			if(checkPositive)
 				visitor.visitJumpInsn(GOTO, cls.onFalse);
 			visitor.visitLabel(cls.onTrue);
 
@@ -123,34 +125,35 @@ public class ConditionalHandler implements CommonText {
 		}
 		else {
 			visitor.visitLabel(cls.intro);
-			for (kdl.SingleConditionContext sc : cnd.singleCondition())
+			for(kdl.SingleConditionContext sc : cnd.singleCondition())
 				handleSingleCondition(sc, cls, visitor, checkPositive);
 
 			// if the check is positive, then we should jump to the false clause when no previous jump has been triggered
-			if (checkPositive)
+			if(checkPositive)
 				visitor.visitJumpInsn(GOTO, cls.onFalse);
 			visitor.visitLabel(cls.onTrue);
 
 			// write instructions that correspond with the conditional's desired flow
 			// always write out the true flow first
-			if (ctx.r_if() != null) {
+			if(ctx.r_if() != null) {
 				// label and write out instructions within the if clause
 				owner.consumeBlock(ctx.r_if().block(), visitor);
 				visitor.visitJumpInsn(GOTO, cls.exit); // jump over the else instructions
 
 				// label and write out the instructions within the else clause
 				visitor.visitLabel(cls.onFalse);
-				if (ctx.r_if().r_else() != null) {
-					if (ctx.r_if().r_else().block() != null)
+				if(ctx.r_if().r_else() != null) {
+					if(ctx.r_if().r_else().block() != null)
 						owner.consumeBlock(ctx.r_if().r_else().block(), visitor);
 					else
 						throw new IllegalArgumentException("Missing block for else clause of if statement");
 				}
 				// no need to jump to the end since we're already there
 				visitor.visitLabel(cls.exit);
-			} else if (ctx.assertion() != null) {
+			}
+			else if(ctx.assertion() != null) {
 				// label and write out instructions for printing a constant when the assertion passes
-				if (owner.hasConstant("ASSERTION_PASS")) {
+				if(owner.hasConstant("ASSERTION_PASS")) {
 					owner.getConstant("ASSERTION_PASS").push(visitor);
 					PRINT_MTD.withOwner(owner.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC).invoke(visitor);
 				}
@@ -160,16 +163,17 @@ public class ConditionalHandler implements CommonText {
 				visitor.visitLabel(cls.onFalse);
 				// push the text of the assertion condition
 				String msg;
-				if (ctx.assertion().condition().getText().equals(KEYWORD_FALSE))
+				if(ctx.assertion().condition().getText().equals(KEYWORD_FALSE))
 					msg = "Failed assertion of false. Thus, this message was shown in error.";
 				else
 					msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
-				new Literal<String>(msg).push(visitor);
+				new Literal<>(msg).push(visitor);
 				// print the text of the assertion condition to the error stream
 				ERROR_MTD.withOwner(owner.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC).invoke(visitor);
 
 				visitor.visitLabel(cls.exit);
-			} else if (ctx.r_while() != null) {
+			}
+			else if(ctx.r_while() != null) {
 				// label and write out the instructions for when the while loop continues
 				owner.consumeBlock(ctx.r_while().block(), visitor);
 				visitor.visitJumpInsn(GOTO, cls.intro);
@@ -180,7 +184,8 @@ public class ConditionalHandler implements CommonText {
 
 				// label end
 				visitor.visitLabel(cls.exit);
-			} else
+			}
+			else
 				throw new UnimplementedException("A type of conditional");
 		}
 	}

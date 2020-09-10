@@ -1,4 +1,4 @@
-package com.xarql.kdl.calculable;
+package com.xarql.kdl.ir;
 
 import org.objectweb.asm.Label;
 

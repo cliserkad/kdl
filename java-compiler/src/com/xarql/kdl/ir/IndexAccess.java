@@ -1,4 +1,4 @@
-package com.xarql.kdl.calculable;
+package com.xarql.kdl.ir;
 
 import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.JavaMethodDef;
@@ -15,7 +15,7 @@ import static com.xarql.kdl.names.BaseType.INT;
 public class IndexAccess implements CommonText, Resolvable {
 	public static final JavaMethodDef STRING_CHAR_AT = new JavaMethodDef(InternalName.STRING, "charAt", list(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
 
-	public final Variable variable;
+	public final Variable   variable;
 	public final Calculable index;
 
 	public IndexAccess(final Variable variable, final Calculable index) {
@@ -39,8 +39,8 @@ public class IndexAccess implements CommonText, Resolvable {
 			index.calc(visitor);
 
 		if(variable.isArray()) {
-			if (variable.type.isBaseType()) {
-				switch (variable.type.toBaseType()) {
+			if(variable.type.isBaseType()) {
+				switch(variable.type.toBaseType()) {
 					case INT:
 					case BOOLEAN:
 						visitor.visitInsn(IALOAD);
@@ -51,7 +51,8 @@ public class IndexAccess implements CommonText, Resolvable {
 					default:
 						throw new UnimplementedException(SWITCH_BASETYPE);
 				}
-			} else
+			}
+			else
 				visitor.visitInsn(AALOAD);
 
 			return variable.type.withoutArray();

@@ -1,15 +1,18 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.antlr.kdlBaseListener;
 import com.xarql.kdl.antlr.kdlLexer;
-import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.calculable.*;
+import com.xarql.kdl.ir.*;
 import com.xarql.kdl.names.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +24,7 @@ import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.BaseType.*;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
-	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
+	public static final int    CONST_ACCESS        = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
 
 	private static int unitCount = 0;
@@ -37,9 +40,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private       Scope                   currentScope;
 	private       CustomClass             clazz;
 	private       boolean                 nameSet;
-	private       int                     id;
+	private final int                     id;
 
-	public final BestList<Constant>  constants;
+	public final  BestList<Constant> constants;
 	private final ConditionalHandler cmpHandler;
 	private final BestList<String>   constantNames = new BestList<>();
 
@@ -79,11 +82,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void runSilent() throws Exception {
 		try {
 			// load source code
-			if (sourceCode == null)
+			if(sourceCode == null)
 				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 			compile();
 			write();
-		} catch (Exception e) {
+		} catch(Exception e) {
 			throw e;
 		}
 	}
@@ -92,7 +95,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void run() {
 		try {
 			// load source code
-			if (sourceCode == null)
+			if(sourceCode == null)
 				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 			compile();
 			if(outputFile != null)
@@ -100,7 +103,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			else
 				write();
 			System.out.println("Compiled " + clazz.name);
-		} catch (Exception e) {
+		} catch(Exception e) {
 			System.err.println("CompilationUnit " + unitName() + " aborted.");
 			e.printStackTrace();
 		}
@@ -190,7 +193,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				type = InternalName.LONG;
 			else if(ctx.type().basetype().DOUBLE() != null)
 				type = InternalName.DOUBLE;
-			else if (ctx.type().basetype().STRING() != null)
+			else if(ctx.type().basetype().STRING() != null)
 				type = InternalName.STRING;
 			else
 				throw new UnimplementedException(SWITCH_BASETYPE);
@@ -247,9 +250,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	/**
 	 * Store the value that is at the top of the stack in the target variable
-	 * @param type the type of the data on top of the stack
+	 * @param type   the type of the data on top of the stack
 	 * @param target variable in which data will be stored
-	 * @param lmv any MethodVisitor
+	 * @param lmv    any MethodVisitor
 	 */
 	public static void store(ToName type, Variable target, MethodVisitor lmv) throws Exception {
 		if(!target.mutable && target.isInit()) {
@@ -268,7 +271,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			}
 
 			if(target.isBaseType()) {
-				switch (target.toBaseType()) {
+				switch(target.toBaseType()) {
 					case BOOLEAN:
 					case BYTE:
 					case SHORT:
@@ -437,7 +440,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void consumeBlock(final kdl.BlockContext ctx, MethodVisitor lmv) throws Exception {
-		for (kdl.StatementContext statement : ctx.statement())
+		for(kdl.StatementContext statement : ctx.statement())
 			consumeStatement(statement, lmv);
 	}
 
@@ -475,7 +478,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		try {
 			// parse name and return type
 			final Details details;
-			if (ctx.methodHeader().typedVariable() != null)
+			if(ctx.methodHeader().typedVariable() != null)
 				details = parseTypedVariable(ctx.methodHeader().typedVariable());
 			else
 				details = new Details(ctx.methodHeader().VARNAME().getText(), null, false);
@@ -483,18 +486,19 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 			// parse parameters
 			final BestList<Details> params = new BestList<>();
-			for (kdl.TypedVariableContext typedVar : ctx.methodHeader().parameterDefinition().typedVariable())
+			for(kdl.TypedVariableContext typedVar : ctx.methodHeader().parameterDefinition().typedVariable())
 				params.add(parseTypedVariable(typedVar));
 
 			// create MethodDef
 			final BestList<InternalName> paramTypes = new BestList<>();
-			for (Details param : params)
+			for(Details param : params)
 				paramTypes.add(param.type);
 			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
 
 			if(pass == 2) {
 				addMethodDef(def);
-			} else if(pass == 3) {
+			}
+			else if(pass == 3) {
 				Label methodStart = new Label();
 				final MethodVisitor visitor = defineMethod(def);
 				for(Details param : params)
@@ -523,7 +527,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
 			try {
 				consumeBlock(ctx.block(), mv);
-			} catch (Exception e) {
+			} catch(Exception e) {
 				printException(e);
 			}
 			getCurrentScope().end(ctx.stop.getLine(), mv, ReturnValue.VOID);

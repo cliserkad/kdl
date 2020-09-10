@@ -1,12 +1,11 @@
-package com.xarql.kdl.calculable;
+package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Text;
 import com.xarql.kdl.UnimplementedException;
-import com.xarql.kdl.names.*;
+import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
-
-import static com.xarql.kdl.names.BaseType.BOOLEAN;
-import static com.xarql.kdl.names.BaseType.INT;
 
 public class Variable implements Resolvable, CommonText {
 	public static final boolean DEFAULT_MUTABLE = false;
@@ -17,7 +16,7 @@ public class Variable implements Resolvable, CommonText {
 	public final boolean      mutable;
 
 	// track if it's been set
-	private boolean            init = false;
+	private boolean init = false;
 
 	public Variable(final String name, final InternalName type, final int localIndex, final boolean mutable) {
 		this.name = Text.nonNull(name);

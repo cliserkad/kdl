@@ -1,17 +1,11 @@
 package com.xarql.kdl.names;
 
 import com.xarql.kdl.StringOutput;
-import com.xarql.kdl.calculable.Constant;
+import com.xarql.kdl.ir.Constant;
 
 public enum BaseType implements StringOutput, ToName {
-	BOOLEAN('Z', new Constant<>(CommonText.DEFAULT, false)),
-	BYTE('B', new Constant<>(CommonText.DEFAULT, 0)),
-	SHORT('S', new Constant<>(CommonText.DEFAULT, 0)),
-	CHAR('C', new Constant<>(CommonText.DEFAULT, ' ')),
-	INT('I', new Constant<>(CommonText.DEFAULT, 0)),
-	FLOAT('F', new Constant<>(CommonText.DEFAULT, 0.0F)),
-	LONG('J', new Constant<>(CommonText.DEFAULT, 0L)),
-	DOUBLE('D', new Constant<>(CommonText.DEFAULT, 0.0D)),
+	BOOLEAN('Z', new Constant<>(CommonText.DEFAULT, false)), BYTE('B', new Constant<>(CommonText.DEFAULT, 0)), SHORT('S', new Constant<>(CommonText.DEFAULT, 0)), CHAR('C', new Constant<>(CommonText.DEFAULT, ' ')),
+	INT('I', new Constant<>(CommonText.DEFAULT, 0)), FLOAT('F', new Constant<>(CommonText.DEFAULT, 0.0F)), LONG('J', new Constant<>(CommonText.DEFAULT, 0L)), DOUBLE('D', new Constant<>(CommonText.DEFAULT, 0.0D)),
 	STRING("Ljava/lang/String;", new Constant<>(CommonText.DEFAULT, ""));
 
 	String      rep;
@@ -94,6 +88,7 @@ public enum BaseType implements StringOutput, ToName {
 		return matchClass(value.getClass());
 	}
 
+	@Override
 	public InternalName toInternalName() {
 		return new InternalName(this);
 	}

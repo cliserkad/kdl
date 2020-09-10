@@ -1,7 +1,8 @@
-package com.xarql.kdl.calculable;
+package com.xarql.kdl.ir;
 
 import com.xarql.kdl.BestList;
-import com.xarql.kdl.names.*;
+import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.BestList.list;
