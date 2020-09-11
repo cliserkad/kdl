@@ -7,25 +7,25 @@ import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
 public class VariableDeclaration {
-	Details    details;
-	Calculable calculable;
-	Variable   variable;
+	Details  details;
+	Pushable pushable;
+	Variable variable;
 
 	public VariableDeclaration(final kdl.VariableDeclarationContext ctx, final CompilationUnit unit) throws Exception {
 		this(unit.parseTypedVariable(ctx.typedVariable()), ctxExpression(ctx, unit), unit);
 	}
 
-	public VariableDeclaration(final Details details, final Calculable calculable, CompilationUnit unit) {
+	public VariableDeclaration(final Details details, final Pushable calculable, CompilationUnit unit) {
 		if(details == null)
 			throw new NullPointerException();
 		this.details = details;
-		this.calculable = calculable;
+		this.pushable = calculable;
 		variable = unit.getCurrentScope().newVariable(details.name, details.type, details.mutable);
 	}
 
 	public Variable store(final MethodVisitor visitor) throws Exception {
-		if(calculable != null) {
-			ToName type = calculable.calc(visitor);
+		if(pushable != null) {
+			ToName type = pushable.push(visitor);
 			CompilationUnit.store(type, variable, visitor);
 		}
 		else {

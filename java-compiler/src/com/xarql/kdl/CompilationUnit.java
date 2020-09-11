@@ -374,11 +374,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		kdl.MethodCallContext mcc = ctx.methodCall();
 		if(mcc.VARNAME().size() > 1)
 			getLocalVariable(mcc.VARNAME(0).getText()).push(visitor);
-		new MethodCall(ctx, this).calc(visitor);
+		new MethodCall(ctx, this).push(visitor);
 	}
 
 	private void consumeNewObject(kdl.NewObjectContext ctx, MethodVisitor visitor) throws Exception {
-		new NewObject(ctx, this).calc(visitor);
+		new NewObject(ctx, this).push(visitor);
 	}
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, MethodVisitor lmv) throws Exception {
@@ -389,7 +389,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		Variable target = getLocalVariable(ctx.VARNAME().getText());
 		final ToName resultType;
 		if(ctx.assignment().operatorAssign() != null)
-			resultType = ExpressionHandler.compute(new Expression(getLocalVariable(ctx.VARNAME().getText()), Resolvable.parse(this, ctx.assignment().operatorAssign().value()), Operator.match(ctx.assignment().operatorAssign().operator().getText())), lmv);
+			resultType = ExpressionHandler.compute(new Expression(getLocalVariable(ctx.VARNAME().getText()), Pushable.parse(this, ctx.assignment().operatorAssign().value()), Operator.match(ctx.assignment().operatorAssign().operator().getText())), lmv);
 		else
 			resultType = ExpressionHandler.compute(new Expression(ctx.assignment().expression(), this), lmv);
 		store(resultType, target, lmv);

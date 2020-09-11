@@ -7,7 +7,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.BestList.list;
 
-public class Constant<Type> extends DefaultResolvable implements Resolvable {
+public class Constant<Type> extends DefaultPushable implements Pushable {
 	public static final BestList<Class<?>> ACCEPTABLE_TYPES = list(String.class, Integer.class, Boolean.class);
 
 	public final String name;
@@ -84,14 +84,9 @@ public class Constant<Type> extends DefaultResolvable implements Resolvable {
 	}
 
 	@Override
-	public Resolvable push(final MethodVisitor visitor) throws Exception {
+	public Pushable push(final MethodVisitor visitor) {
 		visitor.visitLdcInsn(value);
 		return this;
-	}
-
-	@Override
-	public Resolvable calc(final MethodVisitor visitor) throws Exception {
-		return push(visitor);
 	}
 
 }

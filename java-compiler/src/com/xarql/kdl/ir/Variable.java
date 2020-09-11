@@ -7,7 +7,7 @@ import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
-public class Variable implements Resolvable, CommonText {
+public class Variable extends DefaultPushable implements CommonText {
 	public static final boolean DEFAULT_MUTABLE = false;
 
 	public final String       name;
@@ -75,7 +75,7 @@ public class Variable implements Resolvable, CommonText {
 	}
 
 	@Override
-	public Resolvable push(final MethodVisitor visitor) throws UnimplementedException {
+	public Pushable push(final MethodVisitor visitor) throws UnimplementedException {
 		if(type.isBaseType() && !type.isArray()) {
 			switch(type.toBaseType()) {
 				case BOOLEAN:
@@ -103,12 +103,6 @@ public class Variable implements Resolvable, CommonText {
 		}
 		else
 			visitor.visitVarInsn(ALOAD, localIndex);
-		return this;
-	}
-
-	@Override
-	public Resolvable calc(final MethodVisitor visitor) throws Exception {
-		push(visitor);
 		return this;
 	}
 }

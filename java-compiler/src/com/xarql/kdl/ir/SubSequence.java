@@ -7,13 +7,12 @@ import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
-import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.BestList.list;
 
-public class SubSequence implements Resolvable {
+public class SubSequence extends DefaultPushable {
 	JavaMethodDef SUB_STRING = new JavaMethodDef(InternalName.STRING, "substring", list(InternalName.INT, InternalName.INT), ReturnValue.STRING, Opcodes.ACC_PUBLIC);
 
 	public final Variable variable;
@@ -29,23 +28,17 @@ public class SubSequence implements Resolvable {
 	}
 
 	@Override
-	public Resolvable push(MethodVisitor visitor) throws Exception {
-		calc(visitor);
-		return this;
-	}
-
-	@Override
-	public ToName calc(MethodVisitor visitor) throws Exception {
+	public SubSequence push(MethodVisitor visitor) throws Exception {
 		if(!variable.isArray() && variable.toBaseType() == BaseType.STRING) {
 			variable.push(visitor);
-			range.min.calc(visitor);
-			range.max.calc(visitor);
+			range.min.push(visitor);
+			range.max.push(visitor);
 			SUB_STRING.invoke(visitor);
 		}
 		else {
 			throw new UnimplementedException("Subsequence only implemented for strings");
 		}
-		return InternalName.STRING;
+		return this;
 	}
 
 	@Override

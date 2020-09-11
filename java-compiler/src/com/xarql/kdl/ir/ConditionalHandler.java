@@ -95,7 +95,7 @@ public class ConditionalHandler implements CommonText {
 			// set up values from within for declaration
 			Variable increment = unit.getCurrentScope().newVariable(ctx.for_loop().VARNAME().getText(), InternalName.INT, true);
 			Range range = new Range(loop.range(), unit);
-			range.min.calc(visitor);
+			range.min.push(visitor);
 			CompilationUnit.store(INT, increment, visitor);
 
 			// if the check is positive, then we should jump to the false clause when no previous jump has been triggered
@@ -106,13 +106,13 @@ public class ConditionalHandler implements CommonText {
 			visitor.visitLabel(cls.intro);
 			// make comparison
 			increment.push(visitor);
-			range.max.calc(visitor);
+			range.max.push(visitor);
 			testIntegers(visitor, cls, Comparator.LESS_THAN, checkPositive);
 
 			// label and write out the instructions for when the for loop continues
 			owner.consumeBlock(loop.block(), visitor);
 			// add increment instruction at end of block
-			new Expression(increment, new Literal<>(1), Operator.PLUS).calc(visitor);
+			new Expression(increment, new Literal<>(1), Operator.PLUS).push(visitor);
 			CompilationUnit.store(INT, increment, visitor);
 			visitor.visitJumpInsn(GOTO, cls.intro);
 

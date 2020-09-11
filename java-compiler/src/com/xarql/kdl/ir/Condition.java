@@ -1,11 +1,11 @@
 package com.xarql.kdl.ir;
 
 public class Condition {
-	public final Resolvable a;
-	public final Resolvable b;
+	public final Pushable   a;
+	public final Pushable   b;
 	public final Comparator cmp;
 
-	public Condition(Resolvable a, Resolvable b, Comparator cmp) {
+	public Condition(Pushable a, Pushable b, Comparator cmp) {
 		this.a = a;
 		this.b = b;
 		this.cmp = cmp;

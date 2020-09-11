@@ -3,7 +3,10 @@ package com.xarql.kdl.ir;
 import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.JavaMethodDef;
 import com.xarql.kdl.UnimplementedException;
-import com.xarql.kdl.names.*;
+import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.BestList.list;
@@ -12,31 +15,25 @@ import static com.xarql.kdl.names.BaseType.INT;
 /**
  * Represents the access of an array's element
  */
-public class IndexAccess implements CommonText, Resolvable {
+public class IndexAccess extends DefaultPushable implements CommonText {
 	public static final JavaMethodDef STRING_CHAR_AT = new JavaMethodDef(InternalName.STRING, "charAt", list(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
 
-	public final Variable   variable;
-	public final Calculable index;
+	public final Variable variable;
+	public final Pushable index;
 
-	public IndexAccess(final Variable variable, final Calculable index) {
+	public IndexAccess(final Variable variable, final Pushable index) {
 		this.variable = variable;
 		this.index = index;
 	}
 
 	@Override
-	public Resolvable push(MethodVisitor visitor) throws Exception {
-		calc(visitor);
-		return this;
-	}
-
-	@Override
-	public ToName calc(MethodVisitor visitor) throws Exception {
+	public IndexAccess push(final MethodVisitor visitor) throws Exception {
 		visitor.visitVarInsn(ALOAD, variable.localIndex);
 		// throw error if value within [ ] isn't an int
 		if(index.toBaseType().ordinal() > INT.ordinal())
 			throw new IncompatibleTypeException("The input for an array access must be an integer");
 		else
-			index.calc(visitor);
+			index.push(visitor);
 
 		if(variable.isArray()) {
 			if(variable.type.isBaseType()) {
@@ -54,20 +51,20 @@ public class IndexAccess implements CommonText, Resolvable {
 			}
 			else
 				visitor.visitInsn(AALOAD);
-
-			return variable.type.withoutArray();
 		}
-		else if(variable.toBaseType() == BaseType.STRING && !variable.isArray()) {
+		else if(variable.toBaseType() == BaseType.STRING)
 			STRING_CHAR_AT.invoke(visitor);
-			return BaseType.CHAR;
-		}
 		else
 			throw new IllegalArgumentException(variable + " is not an array nor a string");
+		return this;
 	}
 
 	@Override
 	public InternalName toInternalName() {
-		return variable.toInternalName();
+		if(!variable.isArray() && variable.toInternalName().equals(InternalName.STRING))
+			return InternalName.CHAR;
+		else
+			return variable.toInternalName();
 	}
 
 	@Override

@@ -8,7 +8,7 @@ import org.objectweb.asm.MethodVisitor;
 /**
  * Represents the access of an array's length.
  */
-public class ArrayLength extends DefaultResolvable implements CommonText {
+public class ArrayLength extends DefaultPushable implements CommonText {
 	public final Variable array;
 
 	public ArrayLength(final Variable array) {
@@ -21,7 +21,7 @@ public class ArrayLength extends DefaultResolvable implements CommonText {
 	 * @throws Exception unused
 	 */
 	@Override
-	public Resolvable push(MethodVisitor visitor) throws Exception {
+	public Pushable push(MethodVisitor visitor) throws Exception {
 		array.push(visitor);
 		visitor.visitInsn(ARRAYLENGTH);
 		return this;

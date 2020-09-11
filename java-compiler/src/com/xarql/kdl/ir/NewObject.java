@@ -13,9 +13,9 @@ import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.JavaMethodDef.INIT;
 
-public class NewObject implements Calculable, Opcodes, Resolvable {
-	public final  ToName               type;
-	private final BestList<Calculable> arguments;
+public class NewObject extends DefaultPushable implements Opcodes {
+	public final  ToName             type;
+	private final BestList<Pushable> arguments;
 
 	public NewObject(final kdl.NewObjectContext ctx, CompilationUnit unit) throws Exception {
 		type = unit.resolveAgainstImports(ctx.CLASSNAME(0).getText());
@@ -31,22 +31,21 @@ public class NewObject implements Calculable, Opcodes, Resolvable {
 		}
 	}
 
-
 	@Override
-	public ToName calc(MethodVisitor visitor) throws Exception {
+	public NewObject push(MethodVisitor visitor) throws Exception {
 		final BestList<InternalName> paramTypes = new BestList<>();
-		for(Calculable arg : arguments)
+		for(Pushable arg : arguments)
 			paramTypes.add(arg.toInternalName());
 		visitor.visitTypeInsn(NEW, type.toInternalName().internalName());
 		visitor.visitInsn(DUP);
 		for(int i = 0; i < arguments.size(); i++) {
-			arguments.get(i).calc(visitor);
+			arguments.get(i).push(visitor);
 			if(paramTypes.get(i) == InternalName.STRING) {
 				CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
 			}
 		}
 		new JavaMethodDef(type.toInternalName(), INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
-		return type;
+		return this;
 	}
 
 	@Override
@@ -64,9 +63,5 @@ public class NewObject implements Calculable, Opcodes, Resolvable {
 		return type.toBaseType();
 	}
 
-	@Override
-	public Resolvable push(MethodVisitor visitor) throws Exception {
-		calc(visitor);
-		return this;
-	}
+
 }

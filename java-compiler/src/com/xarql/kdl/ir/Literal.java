@@ -8,7 +8,7 @@ import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
-public class Literal<Type> extends DefaultResolvable implements StringOutput, CommonText {
+public class Literal<Type> extends DefaultPushable implements StringOutput, CommonText {
 	public Type value;
 
 	public Literal(Type value) {
@@ -53,7 +53,7 @@ public class Literal<Type> extends DefaultResolvable implements StringOutput, Co
 	}
 
 	@Override
-	public Resolvable push(MethodVisitor visitor) {
+	public Pushable push(MethodVisitor visitor) {
 		visitor.visitLdcInsn(value);
 		return this;
 	}

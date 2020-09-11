@@ -6,8 +6,8 @@ import com.xarql.kdl.antlr.kdl;
 public class Range {
 	public static final int DEFAULT_MIN = 0;
 
-	public final Calculable min;
-	public final Calculable max;
+	public final Pushable min;
+	public final Pushable max;
 
 	public Range(kdl.RangeContext ctx, CompilationUnit unit) throws Exception {
 		if(ctx.expression().size() > 1)

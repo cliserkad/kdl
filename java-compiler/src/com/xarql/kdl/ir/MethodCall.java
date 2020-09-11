@@ -10,17 +10,17 @@ import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
-public class MethodCall implements CommonText, Resolvable {
-	public final  JavaMethodDef        method;
-	public final  Resolvable           source;
-	private final BestList<Calculable> arguments;
+public class MethodCall extends DefaultPushable implements CommonText {
+	public final  JavaMethodDef      method;
+	public final  Pushable           source;
+	private final BestList<Pushable> arguments;
 
 	public MethodCall(kdl.MethodCallContext ctx, CompilationUnit unit) throws Exception {
 		// parse methodCall alone
 		final String methodName = ctx.VARNAME(ctx.VARNAME().size() - 1).getText();
 		arguments = parseArguments(ctx.parameterSet(), unit);
 		final BestList<InternalName> params = new BestList<>();
-		for(Calculable arg : arguments)
+		for(Pushable arg : arguments)
 			params.add(arg.toInternalName());
 
 		// determine which class owns the method being called
@@ -49,8 +49,8 @@ public class MethodCall implements CommonText, Resolvable {
 		this(ctx.methodCall(), unit);
 	}
 
-	public static BestList<Calculable> parseArguments(kdl.ParameterSetContext ctx, CompilationUnit unit) throws Exception {
-		final BestList<Calculable> arguments = new BestList<>();
+	public static BestList<Pushable> parseArguments(kdl.ParameterSetContext ctx, CompilationUnit unit) throws Exception {
+		final BestList<Pushable> arguments = new BestList<>();
 		if(ctx != null && ctx.expression().size() > 0) {
 			for(kdl.ExpressionContext xpr : ctx.expression()) {
 				Expression xpr1 = new Expression(xpr, unit);
@@ -61,17 +61,11 @@ public class MethodCall implements CommonText, Resolvable {
 	}
 
 	@Override
-	public Resolvable push(final MethodVisitor visitor) throws Exception {
-		calc(visitor);
-		return this;
-	}
-
-	@Override
-	public ToName calc(final MethodVisitor visitor) throws Exception {
+	public MethodCall push(final MethodVisitor visitor) throws Exception {
 		if(source != null)
 			source.push(visitor);
 		for(int i = 0; i < arguments.size(); i++) {
-			ToName argType = arguments.get(i).calc(visitor);
+			ToName argType = arguments.get(i).push(visitor);
 			if(method.paramTypes.get(i) == InternalName.STRING) {
 				CompilationUnit.convertToString(argType.toInternalName(), visitor);
 			}
@@ -104,7 +98,7 @@ public class MethodCall implements CommonText, Resolvable {
 
 	private String arguments() {
 		String out = "\n\tCalculable --> {";
-		for(Calculable arg : arguments)
+		for(Pushable arg : arguments)
 			out += "\n\t\t" + arg.toString().replace("\n", "\n\t\t");
 		out += "\n\t}";
 		return out;

@@ -3,20 +3,13 @@ package com.xarql.kdl.ir;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
-public class Null implements Resolvable, CommonText {
+public class Null extends DefaultPushable implements CommonText {
 	@Override
-	public Resolvable push(final MethodVisitor visitor) throws Exception {
+	public Pushable push(final MethodVisitor visitor) throws Exception {
 		visitor.visitInsn(ACONST_NULL);
 		return this;
-	}
-
-	@Override
-	public ToName calc(final MethodVisitor visitor) throws Exception {
-		push(visitor);
-		return toInternalName();
 	}
 
 	@Override
