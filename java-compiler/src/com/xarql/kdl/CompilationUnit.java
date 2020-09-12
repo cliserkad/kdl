@@ -42,7 +42,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private       boolean                 nameSet;
 	private final int                     id;
 
-	public final  BestList<Constant> constants;
+	public final  BestList<Constant<?>> constants;
 	private final ConditionalHandler cmpHandler;
 	private final BestList<String>   constantNames = new BestList<>();
 
@@ -80,15 +80,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void runSilent() throws Exception {
-		try {
-			// load source code
-			if(sourceCode == null)
-				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
-			compile();
-			write();
-		} catch(Exception e) {
-			throw e;
-		}
+		// load source code
+		if(sourceCode == null)
+			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
+		compile();
+		write();
 	}
 
 	@Override
@@ -382,16 +378,17 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, MethodVisitor lmv) throws Exception {
-		new VariableDeclaration(ctx, this).store(lmv);
+		new VariableDeclaration(ctx, this).push(lmv);
 	}
 
 	private void consumeVariableAssignment(kdl.VariableAssignmentContext ctx, MethodVisitor lmv) throws Exception {
+
 		Variable target = getLocalVariable(ctx.VARNAME().getText());
 		final ToName resultType;
 		if(ctx.assignment().operatorAssign() != null)
 			resultType = ExpressionHandler.compute(new Expression(getLocalVariable(ctx.VARNAME().getText()), Pushable.parse(this, ctx.assignment().operatorAssign().value()), Operator.match(ctx.assignment().operatorAssign().operator().getText())), lmv);
 		else
-			resultType = ExpressionHandler.compute(new Expression(ctx.assignment().expression(), this), lmv);
+			resultType = new VariableAssignment(new Expression(ctx.assignment().expression(), this), target).push(lmv);
 		store(resultType, target, lmv);
 	}
 
