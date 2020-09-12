@@ -171,7 +171,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public Details parseTypedVariable(kdl.TypedVariableContext ctx) throws Exception {
 		String name = ctx.VARNAME().getText();
 
-		InternalName type = null;
+		InternalName type;
 		if(ctx.type().basetype() != null) {
 			if(ctx.type().basetype().BOOLEAN() != null)
 				type = InternalName.BOOLEAN;
@@ -222,8 +222,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	/**
 	 * Converts the top item of the stack in to a string
-	 * @param name
-	 * @param visitor
+	 * @param name The type of the element on the stack
+	 * @param visitor Any MethodVisitor
 	 */
 	public static void convertToString(final InternalName name, final MethodVisitor visitor) {
 		JavaMethodDef stringValueOf;
@@ -318,10 +318,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private static Operator parseOperator(kdl.OperatorContext ctx) {
-		return Operator.match(ctx.getText());
-	}
-
 	public int getPass() {
 		return pass;
 	}
@@ -358,7 +354,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(!constantNames.contains(name))
 				throw new IllegalArgumentException("The const named " + name + " was not registered in the first pass.");
 			try {
-				final Literal lit = Literal.parseLiteral(ctx.literal());
+				final Literal<?> lit = Literal.parseLiteral(ctx.literal());
 				addConstant(new Constant(name, lit.value));
 			} catch(Exception e) {
 				printException(e);
@@ -496,7 +492,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				addMethodDef(def);
 			}
 			else if(pass == 3) {
-				Label methodStart = new Label();
 				final MethodVisitor visitor = defineMethod(def);
 				for(Details param : params)
 					getCurrentScope().newVariable(param.name, param.type);
@@ -548,15 +543,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public boolean hasConstant(final String name) {
-		for(Constant c : constants) {
+		for(Constant<?> c : constants) {
 			if(c.name.equals(name))
 				return true;
 		}
 		return false;
 	}
 
-	public Constant getConstant(final String name) {
-		for(Constant c : constants) {
+	public Constant<?> getConstant(final String name) {
+		for(Constant<?> c : constants) {
 			if(c.name.equals(name))
 				return c;
 		}
@@ -564,7 +559,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public boolean isConstantsSet() {
-		for(Constant c : constants)
+		for(Constant<?> c : constants)
 			if(!c.isEvaluated())
 				return false;
 		return true;
