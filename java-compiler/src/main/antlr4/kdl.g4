@@ -37,8 +37,7 @@ newObject: CLASSNAME + parameterSet;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 expression: value (operator expression)?;
 
-condition: singleCondition (appender singleCondition)?;
-singleCondition: expression (comparator expression)?;
+condition: expression (comparator expression)?;
 comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 appender: AND | OR;
 

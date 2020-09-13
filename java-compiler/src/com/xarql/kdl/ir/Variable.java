@@ -1,8 +1,6 @@
 package com.xarql.kdl.ir;
 
-import com.xarql.kdl.Text;
 import com.xarql.kdl.UnimplementedException;
-import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
@@ -90,4 +88,5 @@ public class Variable extends Details implements Pushable, CommonText {
 	public InternalName pushType(final MethodVisitor visitor) throws Exception {
 		return push(visitor).toInternalName();
 	}
+
 }

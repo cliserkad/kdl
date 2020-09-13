@@ -388,53 +388,53 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		store(resultType, target, lmv);
 	}
 
-	public void consumeStatement(final kdl.StatementContext ctx, MethodVisitor visitor) throws Exception {
+	public void consumeStatement(final kdl.StatementContext ctx, Actor actor) throws Exception {
 		if(ctx.variableDeclaration() != null) {
-			consumeVariableDeclaration(ctx.variableDeclaration(), visitor);
+			consumeVariableDeclaration(ctx.variableDeclaration(), actor);
 		}
 		else if(ctx.variableAssignment() != null) {
-			consumeVariableAssignment(ctx.variableAssignment(), visitor);
+			consumeVariableAssignment(ctx.variableAssignment(), actor);
 		}
 		else if(ctx.methodCallStatement() != null) {
-			consumeMethodCallStatement(ctx.methodCallStatement(), visitor);
+			consumeMethodCallStatement(ctx.methodCallStatement(), actor);
 		}
 		else if(ctx.conditional() != null) {
 			// forward to the handler to partition code
-			cmpHandler.handle(ctx.conditional(), visitor, this);
+			cmpHandler.handle(ctx.conditional(), actor);
 		}
 		else if(ctx.returnStatement() != null) {
 			if(ctx.returnStatement().expression() == null) {
-				visitor.visitInsn(RETURN);
+				actor.visitInsn(RETURN);
 				return;
 			}
 
-			ToName returnType = ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), this), visitor);
+			ToName returnType = ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), this), actor);
 			if(returnType.isBaseType() && !returnType.toInternalName().isArray()) {
 				switch(returnType.toBaseType()) {
 					case BOOLEAN:
 					case INT:
-						visitor.visitInsn(IRETURN);
+						actor.visitInsn(IRETURN);
 						break;
 					case STRING:
-						visitor.visitInsn(ARETURN);
+						actor.visitInsn(ARETURN);
 						break;
 					default:
 						throw new UnimplementedException(SWITCH_BASETYPE);
 				}
 			}
 			else
-				visitor.visitInsn(ARETURN);
+				actor.visitInsn(ARETURN);
 		}
 		else if(ctx.newObject() != null) {
-			consumeNewObject(ctx.newObject(), visitor);
+			consumeNewObject(ctx.newObject(), actor);
 		}
 		else
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
 	}
 
-	public void consumeBlock(final kdl.BlockContext ctx, MethodVisitor lmv) throws Exception {
+	public void consumeBlock(final kdl.BlockContext ctx, Actor actor) throws Exception {
 		for(kdl.StatementContext statement : ctx.statement())
-			consumeStatement(statement, lmv);
+			consumeStatement(statement, actor);
 	}
 
 	@Override
@@ -492,12 +492,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				addMethodDef(def);
 			}
 			else if(pass == 3) {
-				final MethodVisitor visitor = defineMethod(def);
+				final Actor actor = new Actor(defineMethod(def), this);
 				for(Details param : params)
 					getCurrentScope().newVariable(param.name, param.type);
-				consumeBlock(ctx.block(), visitor);
+				consumeBlock(ctx.block(), actor);
 
-				getCurrentScope().end(ctx.stop.getLine(), visitor, rv);
+				getCurrentScope().end(ctx.stop.getLine(), actor, rv);
 			}
 		} catch(Exception e) {
 			printException(e);
@@ -515,14 +515,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			addMethodDef(JavaMethodDef.MAIN.withOwner(clazz));
 		}
 		else if(getPass() == 3) {
-			final MethodVisitor mv = defineMethod(JavaMethodDef.MAIN);
+			final Actor actor = new Actor(defineMethod(JavaMethodDef.MAIN), this);
 			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
 			try {
-				consumeBlock(ctx.block(), mv);
+				consumeBlock(ctx.block(), actor);
 			} catch(Exception e) {
 				printException(e);
 			}
-			getCurrentScope().end(ctx.stop.getLine(), mv, ReturnValue.VOID);
+			getCurrentScope().end(ctx.stop.getLine(), actor, ReturnValue.VOID);
 		}
 	}
 

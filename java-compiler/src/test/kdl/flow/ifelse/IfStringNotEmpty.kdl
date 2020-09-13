@@ -1,17 +1,17 @@
 // author: Bryan Johnson
 type IfStringNotEmpty {
-  const GOOD : "hello from IfStringNotEmpty";
-  const FAIL : "This message was shown in error";
+  const GOOD: "hello from IfStringNotEmpty";
+  const FAIL: "This message was shown in error";
 
   main {
     // set string to ""
-    string s2;
+    string s;
     // if s is not empty
-    if s2 {
+    if s {
       println(FAIL);
     }
 
-    s2 : "testing";
+    string s2: "testing";
     // if s is not empty
     // should yield true as s is "testing"
     if s2 {

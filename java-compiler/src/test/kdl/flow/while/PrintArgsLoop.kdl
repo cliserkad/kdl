@@ -1,7 +1,7 @@
 // author: Bryan Johnson
 type PrintArgsLoop {
   main {
-    int a;
+    int~ a;
     while a < args.size {
       println(args[a]);
       a +: 1;

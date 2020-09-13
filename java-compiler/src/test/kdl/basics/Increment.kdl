@@ -1,6 +1,6 @@
 type Increment {
   main {
-    int a;
+    int~ a;
     print("a is ");
     println(a);
     a : a + 1;

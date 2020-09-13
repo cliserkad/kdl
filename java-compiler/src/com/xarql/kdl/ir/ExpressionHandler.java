@@ -72,6 +72,7 @@ public interface ExpressionHandler extends CommonText {
 					}
 				}
 			}
+			break;
 			default: {
 				throw new UnimplementedException(SWITCH_OPERATOR);
 			}

@@ -9,7 +9,7 @@ public class Range {
 	public final Pushable min;
 	public final Pushable max;
 
-	public Range(kdl.RangeContext ctx, CompilationUnit unit) throws Exception {
+	public Range(final kdl.RangeContext ctx, final CompilationUnit unit) throws Exception {
 		if(ctx.expression().size() > 1)
 			min = new Expression(ctx.expression(0), unit);
 		else
