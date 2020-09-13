@@ -8,7 +8,7 @@ import org.objectweb.asm.MethodVisitor;
 /**
  * Represents the access of an array's length.
  */
-public class ArrayLength extends DefaultPushable implements CommonText {
+public class ArrayLength extends BasePushable implements CommonText {
 	public final Variable array;
 
 	public ArrayLength(final Variable array) {

@@ -5,7 +5,7 @@ import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
-public class Null extends DefaultPushable implements CommonText {
+public class Null extends BasePushable implements CommonText {
 	@Override
 	public Pushable push(final MethodVisitor visitor) throws Exception {
 		visitor.visitInsn(ACONST_NULL);

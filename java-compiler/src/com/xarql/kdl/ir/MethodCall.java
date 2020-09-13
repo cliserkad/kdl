@@ -10,7 +10,7 @@ import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
-public class MethodCall extends DefaultPushable implements CommonText {
+public class MethodCall extends BasePushable implements CommonText {
 	public final  JavaMethodDef      method;
 	public final  Pushable           source;
 	private final BestList<Pushable> arguments;

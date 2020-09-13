@@ -7,7 +7,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.BestList.list;
 
-public class Constant<Type> extends DefaultPushable implements Pushable {
+public class Constant<Type> extends BasePushable implements Pushable {
 	public static final BestList<Class<?>> ACCEPTABLE_TYPES = list(String.class, Integer.class, Boolean.class);
 
 	public final String name;

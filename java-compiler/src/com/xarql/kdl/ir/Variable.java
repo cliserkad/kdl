@@ -4,28 +4,23 @@ import com.xarql.kdl.Text;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
-public class Variable extends DefaultPushable implements CommonText {
+public class Variable extends Details implements Pushable, CommonText {
 	public static final boolean DEFAULT_MUTABLE = false;
 
-	public final String       name;
-	public final InternalName type;
 	public final int          localIndex;
-	public final boolean      mutable;
 
 	// track if it's been set
 	private boolean init = false;
 
 	public Variable(final String name, final InternalName type, final int localIndex, final boolean mutable) {
-		this.name = Text.nonNull(name);
+		super(name, type, mutable);
 		if(type == null)
 			throw new NullPointerException();
-		else
-			this.type = type;
 		this.localIndex = localIndex;
-		this.mutable = mutable;
 	}
 
 	public Variable(final String name, final InternalName type, final int localIndex) {
@@ -55,27 +50,12 @@ public class Variable extends DefaultPushable implements CommonText {
 		return "LocalVariable: " + name + " --> " + type + " @ " + localIndex;
 	}
 
-	@Override
-	public boolean isBaseType() {
-		return type.isBaseType();
-	}
-
-	@Override
-	public BaseType toBaseType() {
-		return type.toBaseType();
-	}
-
-	@Override
-	public InternalName toInternalName() {
-		return type;
-	}
-
 	public boolean isArray() {
 		return type.isArray();
 	}
 
 	@Override
-	public Pushable push(final MethodVisitor visitor) throws UnimplementedException {
+	public Variable push(final MethodVisitor visitor) throws UnimplementedException {
 		if(type.isBaseType() && !type.isArray()) {
 			switch(type.toBaseType()) {
 				case BOOLEAN:
@@ -104,5 +84,10 @@ public class Variable extends DefaultPushable implements CommonText {
 		else
 			visitor.visitVarInsn(ALOAD, localIndex);
 		return this;
+	}
+
+	@Override
+	public InternalName pushType(final MethodVisitor visitor) throws Exception {
+		return push(visitor).toInternalName();
 	}
 }

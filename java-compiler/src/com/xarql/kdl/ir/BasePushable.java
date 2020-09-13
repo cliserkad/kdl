@@ -3,7 +3,7 @@ package com.xarql.kdl.ir;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
-public abstract class DefaultPushable implements Pushable {
+public abstract class BasePushable implements Pushable {
 
 	@Override
 	public abstract Pushable push(final MethodVisitor visitor) throws Exception;

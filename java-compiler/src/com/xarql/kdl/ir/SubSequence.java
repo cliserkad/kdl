@@ -12,7 +12,7 @@ import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.BestList.list;
 
-public class SubSequence extends DefaultPushable {
+public class SubSequence extends BasePushable {
 	JavaMethodDef SUB_STRING = new JavaMethodDef(InternalName.STRING, "substring", list(InternalName.INT, InternalName.INT), ReturnValue.STRING, Opcodes.ACC_PUBLIC);
 
 	public final Variable variable;

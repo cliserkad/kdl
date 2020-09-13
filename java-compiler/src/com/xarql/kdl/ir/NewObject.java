@@ -13,7 +13,7 @@ import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.JavaMethodDef.INIT;
 
-public class NewObject extends DefaultPushable implements Opcodes {
+public class NewObject extends BasePushable implements Opcodes {
 	public final  ToName             type;
 	private final BestList<Pushable> arguments;
 

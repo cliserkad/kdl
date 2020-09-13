@@ -8,7 +8,7 @@ import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
-public class Literal<Type> extends DefaultPushable implements StringOutput, CommonText {
+public class Literal<Type> extends BasePushable implements StringOutput, CommonText {
 	public Type value;
 
 	public Literal(Type value) {

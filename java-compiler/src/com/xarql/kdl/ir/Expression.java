@@ -6,7 +6,7 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
-public class Expression extends DefaultPushable {
+public class Expression extends BasePushable {
 	Pushable a;
 	Pushable b;
 	Operator opr;
