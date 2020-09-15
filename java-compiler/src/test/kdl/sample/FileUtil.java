@@ -6,13 +6,13 @@ import java.nio.file.Files;
 
 public class FileUtil {
 
-    public static boolean writeOut(final File f, final String s) {
-        try {
-            Files.write(f.toPath(), s.getBytes());
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
+	public static boolean writeOut(final File f, final String s) {
+		try {
+			Files.write(f.toPath(), s.getBytes());
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
+	}
 
 }

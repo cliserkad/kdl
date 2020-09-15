@@ -9,9 +9,10 @@ import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.InternalName.INT_WRAPPER;
 
 public class ExternalMethodRouter implements CommonText {
+
 	public static final JavaMethodDef PRINTLN_MTD = new JavaMethodDef(new InternalName(PrintStream.class), PRINTLN, list(InternalName.STRING), VOID, ACC_PUBLIC);
-	public static final JavaMethodDef PRINT_MTD   = new JavaMethodDef(new InternalName(PrintStream.class), PRINT, list(InternalName.STRING), VOID, ACC_PUBLIC);
-	public static final JavaMethodDef ERROR_MTD   = new JavaMethodDef(new InternalName(PrintStream.class), ERROR, list(InternalName.STRING), VOID, ACC_PUBLIC);
+	public static final JavaMethodDef PRINT_MTD = new JavaMethodDef(new InternalName(PrintStream.class), PRINT, list(InternalName.STRING), VOID, ACC_PUBLIC);
+	public static final JavaMethodDef ERROR_MTD = new JavaMethodDef(new InternalName(PrintStream.class), ERROR, list(InternalName.STRING), VOID, ACC_PUBLIC);
 	public static final JavaMethodDef PARSE_INT_MTD = new JavaMethodDef(INT_WRAPPER, "parseInt", list(InternalName.STRING), ReturnValue.INT, ACC_PUBLIC + ACC_STATIC);
 
 	public static void writeMethods(final CompilationUnit unit, int line) {
@@ -51,4 +52,5 @@ public class ExternalMethodRouter implements CommonText {
 		visitor.visitInsn(IRETURN); // return int
 		unit.getCurrentScope().end(1, visitor, ReturnValue.INT);
 	}
+
 }

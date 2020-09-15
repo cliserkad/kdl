@@ -3,32 +3,33 @@ package com.xarql.kdl.names;
 import com.xarql.kdl.CustomClass;
 
 public class InternalName implements ToName, CommonText {
-	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN);
-	public static final InternalName BYTE    = new InternalName(BaseType.BYTE);
-	public static final InternalName SHORT   = new InternalName(BaseType.SHORT);
-	public static final InternalName CHAR    = new InternalName(BaseType.CHAR);
-	public static final InternalName INT     = new InternalName(BaseType.INT);
-	public static final InternalName FLOAT   = new InternalName(BaseType.FLOAT);
-	public static final InternalName LONG    = new InternalName(BaseType.LONG);
-	public static final InternalName DOUBLE  = new InternalName(BaseType.DOUBLE);
-	public static final InternalName STRING  = new InternalName(BaseType.STRING);
 
-	public static final InternalName STRING_BUILDER  = new InternalName(StringBuilder.class);
-	public static final InternalName INT_WRAPPER     = new InternalName(Integer.class);
+	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN);
+	public static final InternalName BYTE = new InternalName(BaseType.BYTE);
+	public static final InternalName SHORT = new InternalName(BaseType.SHORT);
+	public static final InternalName CHAR = new InternalName(BaseType.CHAR);
+	public static final InternalName INT = new InternalName(BaseType.INT);
+	public static final InternalName FLOAT = new InternalName(BaseType.FLOAT);
+	public static final InternalName LONG = new InternalName(BaseType.LONG);
+	public static final InternalName DOUBLE = new InternalName(BaseType.DOUBLE);
+	public static final InternalName STRING = new InternalName(BaseType.STRING);
+
+	public static final InternalName STRING_BUILDER = new InternalName(StringBuilder.class);
+	public static final InternalName INT_WRAPPER = new InternalName(Integer.class);
 	public static final InternalName BOOLEAN_WRAPPER = new InternalName(Boolean.class);
 
 	public static final InternalName OBJECT = new InternalName(Object.class);
 
-	public static final String OBJECT_SUFFIX            = ";";
-	public static final String OBJECT_PREFIX            = "L";
-	public static final String ARRAY_PREFIX             = "[";
-	public static final int    DEFAULT_ARRAY_DIMENSIONS = 0;
-	public static final int    MIN_DIMENSIONS = 1;
-	public static final int    MAX_DIMENSIONS = 255;
+	public static final String OBJECT_SUFFIX = ";";
+	public static final String OBJECT_PREFIX = "L";
+	public static final String ARRAY_PREFIX = "[";
+	public static final int DEFAULT_ARRAY_DIMENSIONS = 0;
+	public static final int MIN_DIMENSIONS = 1;
+	public static final int MAX_DIMENSIONS = 255;
 
 	public final Class<?> clazz;
 	public final BaseType base;
-	public final String   qualifiedName;
+	public final String qualifiedName;
 
 	public final int arrayDimensions;
 
@@ -40,11 +41,10 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName(final Class<?> c, final int arrayDimensions) {
-		if(BaseType.matchClassStrict(c) != null) {
+		if (BaseType.matchClassStrict(c) != null) {
 			base = BaseType.matchClass(c);
 			clazz = null;
-		}
-		else {
+		} else {
 			clazz = c;
 			base = null;
 		}
@@ -105,28 +105,26 @@ public class InternalName implements ToName, CommonText {
 
 	public String internalObjectName() {
 		String dims = "";
-		for(int i = 0; i < arrayDimensions; i++)
+		for (int i = 0; i < arrayDimensions; i++)
 			dims += ARRAY_PREFIX;
 
-		if(isBaseType() && toBaseType() != BaseType.STRING)
+		if (isBaseType() && toBaseType() != BaseType.STRING)
 			return dims + internalName();
 		else
 			return dims + objectInstance();
 	}
 
 	public String internalName() {
-		if(isBaseType()) {
-			if(toBaseType() == BaseType.STRING)
+		if (isBaseType()) {
+			if (toBaseType() == BaseType.STRING)
 				return String.class.getName().replace('.', '/');
 			else
 				return toBaseType().rep;
-		}
-		else if(clazz != null)
+		} else if (clazz != null)
 			return clazz.getName().replace('.', '/');
-		else if(isCustom()) {
+		else if (isCustom()) {
 			return qualifiedName;
-		}
-		else
+		} else
 			throw new IllegalStateException("Both clazz and base can not be null in an instance of InternalName");
 	}
 
@@ -137,11 +135,10 @@ public class InternalName implements ToName, CommonText {
 
 	@Override
 	public boolean equals(Object o) {
-		if(o instanceof InternalName) {
+		if (o instanceof InternalName) {
 			InternalName in = (InternalName) o;
 			return in.internalName().equals(internalName());
-		}
-		else if(o instanceof BaseType) {
+		} else if (o instanceof BaseType) {
 			BaseType bt = (BaseType) o;
 			return bt == this.base;
 		}
@@ -154,11 +151,11 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public boolean compatibleWith(InternalName receiver) {
-		if(receiver.toBaseType() == BaseType.STRING)
+		if (receiver.toBaseType() == BaseType.STRING)
 			return true;
-		else if(toBaseType() == BaseType.STRING && receiver.equals(new InternalName(CharSequence.class)))
+		else if (toBaseType() == BaseType.STRING && receiver.equals(new InternalName(CharSequence.class)))
 			return true;
-		else if(receiver.isBaseType() && isBaseType())
+		else if (receiver.isBaseType() && isBaseType())
 			return toBaseType().compatibleWith(receiver);
 		else
 			return equals(receiver);
@@ -169,18 +166,18 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName toArray(final int dimensions) {
-		if(clazz != null)
+		if (clazz != null)
 			return new InternalName(clazz, dimensions);
-		else if(base != null)
+		else if (base != null)
 			return new InternalName(base, dimensions);
 		else
 			return new InternalName(qualifiedName);
 	}
 
 	public InternalName withoutArray() {
-		if(clazz != null)
+		if (clazz != null)
 			return new InternalName(clazz);
-		else if(base != null)
+		else if (base != null)
 			return new InternalName(base);
 		else
 			return new InternalName(qualifiedName);

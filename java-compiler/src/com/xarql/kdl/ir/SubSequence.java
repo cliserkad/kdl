@@ -13,10 +13,11 @@ import org.objectweb.asm.Opcodes;
 import static com.xarql.kdl.BestList.list;
 
 public class SubSequence extends BasePushable {
+
 	JavaMethodDef SUB_STRING = new JavaMethodDef(InternalName.STRING, "substring", list(InternalName.INT, InternalName.INT), ReturnValue.STRING, Opcodes.ACC_PUBLIC);
 
 	public final Variable variable;
-	public final Range    range;
+	public final Range range;
 
 	public SubSequence(final kdl.SubSequenceContext ctx, final CompilationUnit unit) throws Exception {
 		this(unit.getLocalVariable(ctx.VARNAME().getText()), new Range(ctx.range(), unit));
@@ -29,13 +30,12 @@ public class SubSequence extends BasePushable {
 
 	@Override
 	public SubSequence push(MethodVisitor visitor) throws Exception {
-		if(!variable.isArray() && variable.toBaseType() == BaseType.STRING) {
+		if (!variable.isArray() && variable.toBaseType() == BaseType.STRING) {
 			variable.push(visitor);
 			range.min.push(visitor);
 			range.max.push(visitor);
 			SUB_STRING.invoke(visitor);
-		}
-		else {
+		} else {
 			throw new UnimplementedException("Subsequence only implemented for strings");
 		}
 		return this;
@@ -55,4 +55,5 @@ public class SubSequence extends BasePushable {
 	public BaseType toBaseType() {
 		return variable.toBaseType();
 	}
+
 }

@@ -7,16 +7,17 @@ import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
 public class Variable extends Details implements Pushable, CommonText {
+
 	public static final boolean DEFAULT_MUTABLE = false;
 
-	public final int          localIndex;
+	public final int localIndex;
 
 	// track if it's been set
 	private boolean init = false;
 
 	public Variable(final String name, final InternalName type, final int localIndex, final boolean mutable) {
 		super(name, type, mutable);
-		if(type == null)
+		if (type == null)
 			throw new NullPointerException();
 		this.localIndex = localIndex;
 	}
@@ -35,11 +36,10 @@ public class Variable extends Details implements Pushable, CommonText {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof Variable) {
+		if (obj instanceof Variable) {
 			Variable other = (Variable) obj;
 			return other.name.equals(name);
-		}
-		else
+		} else
 			return false;
 	}
 
@@ -54,8 +54,8 @@ public class Variable extends Details implements Pushable, CommonText {
 
 	@Override
 	public Variable push(final MethodVisitor visitor) throws UnimplementedException {
-		if(type.isBaseType() && !type.isArray()) {
-			switch(type.toBaseType()) {
+		if (type.isBaseType() && !type.isArray()) {
+			switch (type.toBaseType()) {
 				case BOOLEAN:
 				case BYTE:
 				case SHORT:
@@ -78,8 +78,7 @@ public class Variable extends Details implements Pushable, CommonText {
 				default:
 					throw new UnimplementedException(SWITCH_BASETYPE);
 			}
-		}
-		else
+		} else
 			visitor.visitVarInsn(ALOAD, localIndex);
 		return this;
 	}

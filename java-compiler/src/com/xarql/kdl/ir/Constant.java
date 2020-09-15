@@ -8,15 +8,16 @@ import org.objectweb.asm.MethodVisitor;
 import static com.xarql.kdl.BestList.list;
 
 public class Constant<Type> extends BasePushable implements Pushable {
+
 	public static final BestList<Class<?>> ACCEPTABLE_TYPES = list(String.class, Integer.class, Boolean.class);
 
 	public final String name;
-	public final Type   value;
+	public final Type value;
 
 	private boolean evaluated;
 
 	public Constant(final String name, final Type value) {
-		if(name == null || name.isEmpty())
+		if (name == null || name.isEmpty())
 			throw new IllegalArgumentException("Constant name may not be empty");
 		this.name = name;
 		this.value = value;
@@ -27,7 +28,7 @@ public class Constant<Type> extends BasePushable implements Pushable {
 	}
 
 	public static <Any> Any checkValueType(Any value) {
-		if(!ACCEPTABLE_TYPES.contains(value.getClass()))
+		if (!ACCEPTABLE_TYPES.contains(value.getClass()))
 			throw new IllegalStateException("Constant may not have the Type of " + value.getClass() + ". Acceptable types are " + ACCEPTABLE_TYPES);
 		return value;
 	}
@@ -53,7 +54,7 @@ public class Constant<Type> extends BasePushable implements Pushable {
 
 	@Override
 	public boolean equals(Object o) {
-		if(o instanceof Constant) {
+		if (o instanceof Constant) {
 			Constant<?> other = (Constant<?>) o;
 			return other.name.equals(name);
 		}
@@ -62,6 +63,7 @@ public class Constant<Type> extends BasePushable implements Pushable {
 
 	/**
 	 * Changes the evaluated field of this constant to true
+	 * 
 	 * @return true if a change was made
 	 */
 	public boolean markAsEvaluated() {
@@ -72,6 +74,7 @@ public class Constant<Type> extends BasePushable implements Pushable {
 
 	/**
 	 * Provides read access to the evaluated field
+	 * 
 	 * @return evaluated
 	 */
 	public boolean isEvaluated() {

@@ -14,17 +14,18 @@ import org.objectweb.asm.Opcodes;
 import static com.xarql.kdl.JavaMethodDef.INIT;
 
 public class NewObject extends BasePushable implements Opcodes {
-	public final  ToName             type;
+
+	public final ToName type;
 	private final BestList<Pushable> arguments;
 
 	public NewObject(final kdl.NewObjectContext ctx, CompilationUnit unit) throws Exception {
 		type = unit.resolveAgainstImports(ctx.CLASSNAME(0).getText());
-		if(type.isBaseType())
+		if (type.isBaseType())
 			throw new IllegalArgumentException("Can't instantiate a base type with a constructor. Use a literal instead");
 
 		arguments = new BestList<>();
-		if(ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
-			for(kdl.ExpressionContext xpr : ctx.parameterSet().expression()) {
+		if (ctx.parameterSet() != null && ctx.parameterSet().expression().size() > 0) {
+			for (kdl.ExpressionContext xpr : ctx.parameterSet().expression()) {
 				Expression xpr1 = new Expression(xpr, unit);
 				arguments.add(xpr1);
 			}
@@ -34,13 +35,13 @@ public class NewObject extends BasePushable implements Opcodes {
 	@Override
 	public NewObject push(MethodVisitor visitor) throws Exception {
 		final BestList<InternalName> paramTypes = new BestList<>();
-		for(Pushable arg : arguments)
+		for (Pushable arg : arguments)
 			paramTypes.add(arg.toInternalName());
 		visitor.visitTypeInsn(NEW, type.toInternalName().internalName());
 		visitor.visitInsn(DUP);
-		for(int i = 0; i < arguments.size(); i++) {
+		for (int i = 0; i < arguments.size(); i++) {
 			arguments.get(i).push(visitor);
-			if(paramTypes.get(i) == InternalName.STRING) {
+			if (paramTypes.get(i) == InternalName.STRING) {
 				CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
 			}
 		}
@@ -62,6 +63,5 @@ public class NewObject extends BasePushable implements Opcodes {
 	public BaseType toBaseType() {
 		return type.toBaseType();
 	}
-
 
 }

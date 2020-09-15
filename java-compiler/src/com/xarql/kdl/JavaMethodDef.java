@@ -10,22 +10,23 @@ import java.lang.reflect.Method;
 import static com.xarql.kdl.BestList.list;
 
 public class JavaMethodDef implements StringOutput, CommonText {
-	public static final JavaMethodDef MAIN      = new JavaMethodDef(new InternalName(Object.class), "main", list(new InternalName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
+
+	public static final JavaMethodDef MAIN = new JavaMethodDef(new InternalName(Object.class), "main", list(new InternalName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
 	public static final JavaMethodDef TO_STRING = new JavaMethodDef(new InternalName(Object.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 
-	public static final String INIT           = "<init>";
-	public static final int    DEFAULT_ACCESS = ACC_PUBLIC + ACC_STATIC;
+	public static final String INIT = "<init>";
+	public static final int DEFAULT_ACCESS = ACC_PUBLIC + ACC_STATIC;
 
-	public final InternalName           owner;
-	public final String                 methodName;
+	public final InternalName owner;
+	public final String methodName;
 	public final BestList<InternalName> paramTypes;
-	public final ReturnValue            returnValue;
-	public final int                    access;
+	public final ReturnValue returnValue;
+	public final int access;
 
 	public JavaMethodDef(InternalName owner, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access) {
 		this.owner = owner; // TODO: add check against primitives
 		this.methodName = Text.checkNotEmpty(methodName);
-		if(paramTypes == null)
+		if (paramTypes == null)
 			this.paramTypes = new BestList<>();
 		else
 			this.paramTypes = paramTypes;
@@ -37,8 +38,8 @@ public class JavaMethodDef implements StringOutput, CommonText {
 		this.owner = new InternalName(jvmClass);
 		this.methodName = method.getName();
 		this.paramTypes = new BestList<>();
-		if(method.getParameterTypes().length > 0) {
-			for(Class<?> c : method.getParameterTypes()) {
+		if (method.getParameterTypes().length > 0) {
+			for (Class<?> c : method.getParameterTypes()) {
 				paramTypes.add(new InternalName(c));
 			}
 		}
@@ -65,7 +66,7 @@ public class JavaMethodDef implements StringOutput, CommonText {
 	public String descriptor() {
 		String out = "";
 		out += "(";
-		for(InternalName in : paramTypes)
+		for (InternalName in : paramTypes)
 			out += in.internalObjectName();
 		out += ")";
 		out += returnValue.stringOutput();
@@ -83,7 +84,7 @@ public class JavaMethodDef implements StringOutput, CommonText {
 
 	@Override
 	public String toString() {
-		if(descriptor() != null)
+		if (descriptor() != null)
 			return owner + "." + methodName + descriptor();
 		else
 			return owner + "." + methodName;
@@ -91,14 +92,13 @@ public class JavaMethodDef implements StringOutput, CommonText {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof JavaMethodDef) {
+		if (obj instanceof JavaMethodDef) {
 			JavaMethodDef md = (JavaMethodDef) obj;
-			if(obj == this)
+			if (obj == this)
 				return true;
 			else
 				return methodName.equals(md.methodName) && returnValue.equals(md.returnValue) && paramTypes.equals(md.paramTypes);
-		}
-		else
+		} else
 			return false;
 	}
 
@@ -107,18 +107,18 @@ public class JavaMethodDef implements StringOutput, CommonText {
 	}
 
 	public JavaMethodDef resolveAgainst(BestList<JavaMethodDef> methods) throws SymbolResolutionException {
-		for(JavaMethodDef def : methods) {
-			if(owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def.paramTypes))
+		for (JavaMethodDef def : methods) {
+			if (owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def.paramTypes))
 				return def;
 		}
 		throw new SymbolResolutionException("Couldn't resolve given method " + this);
 	}
 
 	public boolean paramsCompatible(BestList<InternalName> others) {
-		if(paramTypes.size() != others.size())
+		if (paramTypes.size() != others.size())
 			return false;
-		for(int i = 0; i < paramTypes.size(); i++) {
-			if(!paramTypes.get(i).compatibleWith(others.get(i)))
+		for (int i = 0; i < paramTypes.size(); i++) {
+			if (!paramTypes.get(i).compatibleWith(others.get(i)))
 				return false;
 		}
 		return true;
@@ -130,9 +130,9 @@ public class JavaMethodDef implements StringOutput, CommonText {
 	}
 
 	public JavaMethodDef invoke(MethodVisitor visitor) {
-		if((access & ACC_STATIC) == ACC_STATIC)
+		if ((access & ACC_STATIC) == ACC_STATIC)
 			return invoke0(INVOKESTATIC, visitor);
-		else if((access & ACC_PRIVATE) == ACC_PRIVATE || methodName.equals(INIT))
+		else if ((access & ACC_PRIVATE) == ACC_PRIVATE || methodName.equals(INIT))
 			return invoke0(INVOKESPECIAL, visitor);
 		else
 			return invoke0(INVOKEVIRTUAL, visitor);

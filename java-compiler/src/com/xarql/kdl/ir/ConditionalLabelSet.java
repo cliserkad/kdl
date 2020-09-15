@@ -3,6 +3,7 @@ package com.xarql.kdl.ir;
 import org.objectweb.asm.Label;
 
 public class ConditionalLabelSet {
+
 	public final Label check;
 	public final Label onTrue;
 	public final Label onFalse;
@@ -14,4 +15,5 @@ public class ConditionalLabelSet {
 		onFalse = new Label();
 		exit = new Label();
 	}
+
 }

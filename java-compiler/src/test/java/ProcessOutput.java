@@ -11,10 +11,11 @@ import java.io.InputStreamReader;
  * Holds the data from running a process via runProcess()
  */
 public class ProcessOutput {
-	private final String           command;
+
+	private final String command;
 	private final BestList<String> output;
 	private final BestList<String> errors;
-	private final int              exitValue;
+	private final int exitValue;
 
 	private ProcessOutput(String command, BestList<String> output, BestList<String> errors, int exitValue) {
 		this.output = output;
@@ -39,7 +40,7 @@ public class ProcessOutput {
 		String line = null;
 		BestList<String> output = new BestList<>();
 		BufferedReader in = new BufferedReader(new InputStreamReader(ins));
-		while((line = in.readLine()) != null) {
+		while ((line = in.readLine()) != null) {
 			output.add(line);
 		}
 		return output;
@@ -47,6 +48,7 @@ public class ProcessOutput {
 
 	/**
 	 * Returns the command used to invoke the process
+	 * 
 	 * @return command
 	 */
 	public String getCommand() {
@@ -55,6 +57,7 @@ public class ProcessOutput {
 
 	/**
 	 * Copies the strings in output to a new list and returns that list
+	 * 
 	 * @return copy of output
 	 */
 	public BestList<String> getOutput() {
@@ -63,6 +66,7 @@ public class ProcessOutput {
 
 	/**
 	 * Copies the strings in errors to a new list and returns that list
+	 * 
 	 * @return copy of errors
 	 */
 	public BestList<String> getErrors() {
@@ -71,9 +75,11 @@ public class ProcessOutput {
 
 	/**
 	 * Returns the exit value from the process
+	 * 
 	 * @return exitValue
 	 */
 	public int getExitValue() {
 		return exitValue;
 	}
+
 }

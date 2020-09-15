@@ -1,6 +1,7 @@
 package com.xarql.kdl.ir;
 
 public enum Operator {
+
 	PLUS('+'), MINUS('-'), MULTIPLY('*'), DIVIDE('/'), MODULUS('%');
 
 	char rep;
@@ -10,17 +11,17 @@ public enum Operator {
 	}
 
 	public static Operator match(char rep) {
-		for(Operator op : Operator.values())
-			if(op.rep == rep)
+		for (Operator op : Operator.values())
+			if (op.rep == rep)
 				return op;
 		return null;
 	}
 
 	public static Operator match(String s) {
-		if(s != null && !s.isEmpty()) {
+		if (s != null && !s.isEmpty()) {
 			return match(s.charAt(0));
-		}
-		else
+		} else
 			return null;
 	}
+
 }

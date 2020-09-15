@@ -12,6 +12,7 @@ import org.objectweb.asm.MethodVisitor;
 import static com.xarql.kdl.names.BaseType.STRING;
 
 public interface ExpressionHandler extends CommonText {
+
 	JavaMethodDef INIT_STRING_BUILDER = new JavaMethodDef(new InternalName(StringBuilder.class), JavaMethodDef.INIT, null, null, ACC_PUBLIC);
 
 	public static InternalName compute(final Expression xpr, final MethodVisitor visitor) throws Exception {
@@ -19,11 +20,10 @@ public interface ExpressionHandler extends CommonText {
 		final Pushable calc = xpr.b;
 		final Operator opr = xpr.opr;
 
-		if(xpr.isSingleValue()) {
+		if (xpr.isSingleValue()) {
 			return res.pushType(visitor);
-		}
-		else {
-			switch(res.toBaseType()) {
+		} else {
+			switch (res.toBaseType()) {
 				case INT:
 				case BOOLEAN: {
 					computeInt(res, calc, opr, visitor);
@@ -41,6 +41,7 @@ public interface ExpressionHandler extends CommonText {
 
 	/**
 	 * Puts two new StringBuilders on the stack
+	 * 
 	 * @param visitor
 	 */
 	public static void stringBuilderInit(MethodVisitor visitor) {
@@ -50,9 +51,9 @@ public interface ExpressionHandler extends CommonText {
 	}
 
 	public static void computeString(Pushable res1, Pushable res2, Operator opr, MethodVisitor visitor) throws Exception {
-		switch(opr) {
+		switch (opr) {
 			case PLUS: {
-				switch(res2.toBaseType()) {
+				switch (res2.toBaseType()) {
 					case INT: {
 						stringBuilderInit(visitor);
 						res1.push(visitor);
@@ -72,7 +73,7 @@ public interface ExpressionHandler extends CommonText {
 					}
 				}
 			}
-			break;
+				break;
 			default: {
 				throw new UnimplementedException(SWITCH_OPERATOR);
 			}
@@ -80,13 +81,13 @@ public interface ExpressionHandler extends CommonText {
 	}
 
 	public static BaseType computeInt(Pushable res1, Pushable res2, Operator opr, MethodVisitor visitor) throws Exception {
-		if(res2.toBaseType() == STRING)
+		if (res2.toBaseType() == STRING)
 			throw new IncompatibleTypeException(BaseType.INT + INCOMPATIBLE + STRING);
-			// under the hood booleans should be either 0 or 1
+		// under the hood booleans should be either 0 or 1
 		else {
 			res1.push(visitor);
 			res2.push(visitor);
-			switch(opr) {
+			switch (opr) {
 				case PLUS:
 					visitor.visitInsn(IADD);
 					break;

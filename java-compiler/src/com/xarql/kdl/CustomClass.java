@@ -4,6 +4,7 @@ import static com.xarql.kdl.names.InternalName.OBJECT_PREFIX;
 import static com.xarql.kdl.names.InternalName.OBJECT_SUFFIX;
 
 public class CustomClass {
+
 	public final String pkg;
 	public final String name;
 
@@ -28,4 +29,5 @@ public class CustomClass {
 	public String toString() {
 		return internalNameString();
 	}
+
 }

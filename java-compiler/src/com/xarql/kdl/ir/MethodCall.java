@@ -11,8 +11,9 @@ import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
 public class MethodCall extends BasePushable implements CommonText {
-	public final  JavaMethodDef      method;
-	public final  Pushable           source;
+
+	public final JavaMethodDef method;
+	public final Pushable source;
 	private final BestList<Pushable> arguments;
 
 	public MethodCall(kdl.MethodCallContext ctx, CompilationUnit unit) throws Exception {
@@ -20,22 +21,20 @@ public class MethodCall extends BasePushable implements CommonText {
 		final String methodName = ctx.VARNAME(ctx.VARNAME().size() - 1).getText();
 		arguments = parseArguments(ctx.parameterSet(), unit);
 		final BestList<InternalName> params = new BestList<>();
-		for(Pushable arg : arguments)
+		for (Pushable arg : arguments)
 			params.add(arg.toInternalName());
 
 		// determine which class owns the method being called
 		final InternalName owner;
 		int accessModifier = 0;
-		if(ctx.CLASSNAME() != null) {
+		if (ctx.CLASSNAME() != null) {
 			owner = unit.resolveAgainstImports(ctx.CLASSNAME().getText());
 			accessModifier += ACC_STATIC;
 			source = null;
-		}
-		else if(ctx.VARNAME().size() > 1) {
+		} else if (ctx.VARNAME().size() > 1) {
 			source = unit.getLocalVariable(ctx.VARNAME(0).getText());
 			owner = source.toInternalName();
-		}
-		else {
+		} else {
 			owner = new InternalName(unit.getClazz());
 			accessModifier += ACC_STATIC;
 			source = null;
@@ -51,8 +50,8 @@ public class MethodCall extends BasePushable implements CommonText {
 
 	public static BestList<Pushable> parseArguments(kdl.ParameterSetContext ctx, CompilationUnit unit) throws Exception {
 		final BestList<Pushable> arguments = new BestList<>();
-		if(ctx != null && ctx.expression().size() > 0) {
-			for(kdl.ExpressionContext xpr : ctx.expression()) {
+		if (ctx != null && ctx.expression().size() > 0) {
+			for (kdl.ExpressionContext xpr : ctx.expression()) {
 				Expression xpr1 = new Expression(xpr, unit);
 				arguments.add(xpr1);
 			}
@@ -62,11 +61,11 @@ public class MethodCall extends BasePushable implements CommonText {
 
 	@Override
 	public MethodCall push(final MethodVisitor visitor) throws Exception {
-		if(source != null)
+		if (source != null)
 			source.push(visitor);
-		for(int i = 0; i < arguments.size(); i++) {
+		for (int i = 0; i < arguments.size(); i++) {
 			ToName argType = arguments.get(i).push(visitor);
-			if(method.paramTypes.get(i) == InternalName.STRING) {
+			if (method.paramTypes.get(i) == InternalName.STRING) {
 				CompilationUnit.convertToString(argType.toInternalName(), visitor);
 			}
 		}
@@ -76,7 +75,7 @@ public class MethodCall extends BasePushable implements CommonText {
 
 	@Override
 	public InternalName toInternalName() {
-		if(method.returnValue.returnType == null)
+		if (method.returnValue.returnType == null)
 			return new InternalName();
 		return method.returnValue.returnType.toInternalName();
 	}
@@ -98,9 +97,10 @@ public class MethodCall extends BasePushable implements CommonText {
 
 	private String arguments() {
 		String out = "\n\tCalculable --> {";
-		for(Pushable arg : arguments)
+		for (Pushable arg : arguments)
 			out += "\n\t\t" + arg.toString().replace("\n", "\n\t\t");
 		out += "\n\t}";
 		return out;
 	}
+
 }

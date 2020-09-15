@@ -17,9 +17,10 @@ public class VariableDeclaration extends VariableAssignment {
 	}
 
 	public static Expression ctxExpression(final kdl.VariableDeclarationContext ctx, final CompilationUnit unit) throws Exception {
-		if(ctx.ASSIGN() != null)
+		if (ctx.ASSIGN() != null)
 			return new Expression(ctx.expression(), unit);
 		else
 			return null;
 	}
+
 }

@@ -12,4 +12,5 @@ public abstract class BasePushable implements Pushable {
 	public InternalName pushType(final MethodVisitor visitor) throws Exception {
 		return push(visitor).toInternalName();
 	}
+
 }

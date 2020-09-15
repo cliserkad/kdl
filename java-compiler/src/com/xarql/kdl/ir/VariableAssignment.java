@@ -7,41 +7,42 @@ import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.MethodVisitor;
 
 public class VariableAssignment extends BasePushable {
-    public final Pushable pushable;
-    public final Variable variable;
 
-    public VariableAssignment(final Pushable pushable, final Variable variable) {
-        this.pushable = pushable;
-        this.variable = variable;
-    }
+	public final Pushable pushable;
+	public final Variable variable;
 
-    @Override
-    /**
-     * assigns variable to pushable
-     */
-    public VariableAssignment push(final MethodVisitor visitor) throws Exception {
-        if(pushable != null) {
-            ToName type = pushable.push(visitor);
-            CompilationUnit.store(type, variable, visitor);
-        }
-        else {
-            CompilationUnit.storeDefault(variable, visitor);
-        }
-        return this;
-    }
+	public VariableAssignment(final Pushable pushable, final Variable variable) {
+		this.pushable = pushable;
+		this.variable = variable;
+	}
 
-    @Override
-    public InternalName toInternalName() {
-        return variable.type;
-    }
+	@Override
+	/**
+	 * assigns variable to pushable
+	 */
+	public VariableAssignment push(final MethodVisitor visitor) throws Exception {
+		if (pushable != null) {
+			ToName type = pushable.push(visitor);
+			CompilationUnit.store(type, variable, visitor);
+		} else {
+			CompilationUnit.storeDefault(variable, visitor);
+		}
+		return this;
+	}
 
-    @Override
-    public boolean isBaseType() {
-        return variable.isBaseType();
-    }
+	@Override
+	public InternalName toInternalName() {
+		return variable.type;
+	}
 
-    @Override
-    public BaseType toBaseType() {
-        return variable.toBaseType();
-    }
+	@Override
+	public boolean isBaseType() {
+		return variable.isBaseType();
+	}
+
+	@Override
+	public BaseType toBaseType() {
+		return variable.toBaseType();
+	}
+
 }

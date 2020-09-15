@@ -6,6 +6,7 @@ import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
 public class Null extends BasePushable implements CommonText {
+
 	@Override
 	public Pushable push(final MethodVisitor visitor) throws Exception {
 		visitor.visitInsn(ACONST_NULL);
@@ -26,4 +27,5 @@ public class Null extends BasePushable implements CommonText {
 	public BaseType toBaseType() {
 		return null;
 	}
+
 }

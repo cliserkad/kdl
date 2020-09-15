@@ -9,10 +9,11 @@ import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.MethodVisitor;
 
 public class Literal<Type> extends BasePushable implements StringOutput, CommonText {
+
 	public Type value;
 
 	public Literal(Type value) {
-		if(!BaseType.isBaseType(value))
+		if (!BaseType.isBaseType(value))
 			throw new IllegalArgumentException("Literal may only have Types defined in the BaseType enum, but the type was " + value.getClass());
 		else
 			this.value = value;
@@ -30,7 +31,7 @@ public class Literal<Type> extends BasePushable implements StringOutput, CommonT
 
 	@Override
 	public String stringOutput() {
-		switch(toBaseType()) {
+		switch (toBaseType()) {
 			case INT:
 			case BOOLEAN:
 				return value + "";
@@ -59,29 +60,27 @@ public class Literal<Type> extends BasePushable implements StringOutput, CommonT
 	}
 
 	public static Literal<?> parseLiteral(final kdl.LiteralContext ctx) throws Exception {
-		if(ctx.bool() != null)
+		if (ctx.bool() != null)
 			return new Literal<>(ctx.bool().TRUE() != null);
-		else if(ctx.CHAR_LIT() != null)
+		else if (ctx.CHAR_LIT() != null)
 			return new Literal<>(ctx.CHAR_LIT().getText().charAt(1));
-		else if(ctx.integer() != null) {
+		else if (ctx.integer() != null) {
 			final long val = Long.parseLong(ctx.integer().getText());
-			if(val < Byte.MAX_VALUE && val > Byte.MIN_VALUE)
+			if (val < Byte.MAX_VALUE && val > Byte.MIN_VALUE)
 				return new Literal<>((byte) val);
-			else if(val < Short.MAX_VALUE && val > Short.MIN_VALUE)
+			else if (val < Short.MAX_VALUE && val > Short.MIN_VALUE)
 				return new Literal<>((short) val);
-			else if(val < Integer.MAX_VALUE && val > Integer.MIN_VALUE)
+			else if (val < Integer.MAX_VALUE && val > Integer.MIN_VALUE)
 				return new Literal<>((int) val);
 			else
 				return new Literal<>(val);
-		}
-		else if(ctx.decimalNumber() != null) {
+		} else if (ctx.decimalNumber() != null) {
 			final double val = Double.parseDouble(ctx.decimalNumber().getText());
-			if(val < Float.MAX_VALUE && val > Float.MIN_VALUE)
+			if (val < Float.MAX_VALUE && val > Float.MIN_VALUE)
 				return new Literal<>((float) val);
 			else
 				return new Literal<>(val);
-		}
-		else if(ctx.STRING_LIT() != null)
+		} else if (ctx.STRING_LIT() != null)
 			return new Literal<>(crush(ctx.STRING_LIT().getText()));
 		else
 			throw new UnimplementedException(SWITCH_BASETYPE);
@@ -90,4 +89,5 @@ public class Literal<Type> extends BasePushable implements StringOutput, CommonT
 	public static String crush(final String s) {
 		return s.substring(1, s.length() - 1);
 	}
+
 }

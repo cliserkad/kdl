@@ -3,18 +3,19 @@ package com.xarql.kdl.names;
 import com.xarql.kdl.StringOutput;
 
 public class ReturnValue implements StringOutput, ToName {
+
 	public static final ReturnValue BOOLEAN = new ReturnValue(BaseType.BOOLEAN);
-	public static final ReturnValue BYTE    = new ReturnValue(BaseType.BYTE);
-	public static final ReturnValue SHORT   = new ReturnValue(BaseType.SHORT);
-	public static final ReturnValue CHAR    = new ReturnValue(BaseType.CHAR);
-	public static final ReturnValue INT     = new ReturnValue(BaseType.INT);
-	public static final ReturnValue FLOAT   = new ReturnValue(BaseType.FLOAT);
-	public static final ReturnValue LONG    = new ReturnValue(BaseType.LONG);
-	public static final ReturnValue DOUBLE  = new ReturnValue(BaseType.DOUBLE);
-	public static final ReturnValue STRING  = new ReturnValue(BaseType.STRING);
+	public static final ReturnValue BYTE = new ReturnValue(BaseType.BYTE);
+	public static final ReturnValue SHORT = new ReturnValue(BaseType.SHORT);
+	public static final ReturnValue CHAR = new ReturnValue(BaseType.CHAR);
+	public static final ReturnValue INT = new ReturnValue(BaseType.INT);
+	public static final ReturnValue FLOAT = new ReturnValue(BaseType.FLOAT);
+	public static final ReturnValue LONG = new ReturnValue(BaseType.LONG);
+	public static final ReturnValue DOUBLE = new ReturnValue(BaseType.DOUBLE);
+	public static final ReturnValue STRING = new ReturnValue(BaseType.STRING);
 
 	public static final ReturnValue VOID = new ReturnValue();
-	public static final char        VOID_REP    = 'V';
+	public static final char VOID_REP = 'V';
 
 	public final InternalName returnType;
 
@@ -23,7 +24,7 @@ public class ReturnValue implements StringOutput, ToName {
 	}
 
 	public ReturnValue(ToName internalName) {
-		if(internalName == null)
+		if (internalName == null)
 			this.returnType = null;
 		else
 			this.returnType = internalName.toInternalName();
@@ -34,7 +35,7 @@ public class ReturnValue implements StringOutput, ToName {
 	}
 
 	public static ReturnValue nonNull(ReturnValue returnValue) {
-		if(returnValue == null)
+		if (returnValue == null)
 			return VOID;
 		else
 			return returnValue;
@@ -46,23 +47,21 @@ public class ReturnValue implements StringOutput, ToName {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj == null && isVoid())
+		if (obj == null && isVoid())
 			return true;
-		else if(obj instanceof ReturnValue) {
+		else if (obj instanceof ReturnValue) {
 			ReturnValue rv = (ReturnValue) obj;
-			if(isVoid()) {
+			if (isVoid()) {
 				return rv.isVoid();
-			}
-			else
+			} else
 				return rv.returnType.equals(returnType);
-		}
-		else
+		} else
 			return false;
 	}
 
 	@Override
 	public String stringOutput() {
-		if(returnType == null)
+		if (returnType == null)
 			return "" + VOID_REP;
 		else
 			return returnType.internalObjectName();
@@ -70,7 +69,7 @@ public class ReturnValue implements StringOutput, ToName {
 
 	@Override
 	public InternalName toInternalName() {
-		if(returnType == null)
+		if (returnType == null)
 			return new InternalName();
 		else
 			return returnType.toInternalName();
@@ -78,11 +77,12 @@ public class ReturnValue implements StringOutput, ToName {
 
 	@Override
 	public boolean isBaseType() {
-		return  returnType.isBaseType();
+		return returnType.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
 		return returnType.toBaseType();
 	}
+
 }
