@@ -11,7 +11,6 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -114,13 +113,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			// load source code
 			if(sourceCode == null)
 				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
-			compile(;
+			compile();
 			if(outputFile != null)
 				write(outputFile);
 			else
 				write();
 			System.out.println("Compiled " + clazz.name);
-		} catch (Exception e) {
+		} catch(Exception e) {
 			System.err.println("CompilationUnit " + unitName() + " aborted.");
 			e.printStackTrace();
 		}
@@ -217,21 +216,24 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		} else {
 			type = resolveAgainstImports(ctx.type().getText());
 			if(type == null)
-				thrownew IllegalArgumentException("Couldn't recognize type");
+
+				throw new IllegalArgumentException("Couldn't recognize type");
 		}
 
-		if(ctx.type().BRACE_OPEN() != null) {
+		if(ctx.type().BRACE_OPEN() != null)
+
+		{
 			int dimensions = 0;
-			for (int i = 0; i < ctx.type().BRACE_OPEN().size(); i++)
+			for(int i = 0; i < ctx.type().BRACE_OPEN().size(); i++)
 				dimensions++;
-			type = type.toArray(dimensions)
+			type = type.toArray(dimensions);
 		}
 
 		return new Details(name, type, ctx.MUTABLE() != null);
 	}
 
 	public InternalName resolveAgainstImports(String src) {
-		for (InternalName in : imports) {
+		for(InternalName in : imports) {
 			String str = in.nameString();
 			if(str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(src)) {
 				return in;
@@ -282,12 +284,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				if(target.toBaseType() == BaseType.LONG && type.toBaseType() == BaseType.INT)
 					lmv.visitInsn(I2L);
 				// convert float to double
-				if(target.toBaseType) == BaseType.DOUBLE && type.toBaseType() == BaseType.FLOAT)
+				if(target.toBaseType() == BaseType.DOUBLE && type.toBaseType() == BaseType.FLOAT)
 					lmv.visitInsn(F2D);
 			}
 
 			if(target.isBaseType()) {
-				switch (target.toBaseType()) {
+				switch(target.toBaseType()) {
 					case BOOLEAN:
 					case BYTE:
 					case SHORT:
@@ -313,13 +315,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 				target.init();
 			} else
-				lmv.visitVarInsn(ASTORE, taget.localIndex);
+				lmv.visitVarInsn(ASTORE, target.localIndex);
 		}
 	}
 
 	public static void storeDefault(Variable lv, MethodVisitor lmv) {
 		if(lv.type.isBaseType()) {
-			switch (lv.type.toBaseType()) {
+			switch(lv.type.toBaseType()) {
 				case INT:
 				case BOOLEAN:
 					lmv.visitLdcInsn(DEFAULT_INT);
@@ -359,11 +361,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			addMethodDef(staticInit);
 			Actor actor = new Actor(defineMethod(staticInit), this);
 
-			for (String name : constantNames) {
+			for(String name : constantNames) {
 				try {
 					final Literal<?> lit = Literal.parseLiteral(constantContexts.get(name).literal(), actor);
 					addConstant(new Constant(name, lit.value));
-				} catch (Exception e) {
+				} catch(Exception e) {
 					printException(e);
 				}
 			}
@@ -379,9 +381,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(!constantNames.contains(name)) {
 				constantNames.add(name);
 				constantContexts.put(name, ctx);
-			}
-			else
-				throw new IllegalArgumentExeption("The const named " + name + " was already declared");
+			} else
+				throw new IllegalArgumentException("The const named " + name + " was already declared");
 		}
 	}
 
@@ -428,8 +429,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			}
 
 			ToName returnType = ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), actor), actor);
-			if(returnType.isBaseType() && !returnType.toInternalName().isArray() {
-				switch (returnType.toBaseType()) {
+			if(returnType.isBaseType() && !returnType.toInternalName().isArray()) {
+				switch(returnType.toBaseType()) {
 					case BOOLEAN:
 					case INT:
 						actor.visitInsn(IRETURN);
@@ -442,14 +443,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				}
 			} else
 				actor.visitInsn(ARETURN);
+
 		} else if(ctx.newObject() != null) {
 			consumeNewObject(ctx.newObject(), actor);
 		} else
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
 	}
 
-	public void consumeBlock(final kdl.BlockContext ctx, Actor actor) throws Excption {
-		for (kdl.StatementContext statement : ctx.statement())
+	public void consumeBlock(final kdl.BlockContext ctx, Actor actor) throws Exception {
+		for(kdl.StatementContext statement : ctx.statement())
 			consumeStatement(statement, actor);
 	}
 
@@ -469,15 +471,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void addImport(String text) {
 		try {
 			final Class<?> jvmClass = Class.forName(text);
-			addImport(jvmClas);
-		} catch (Exception e) {
+			addImport(jvmClass);
+		} catch(Exception e) {
 			printException(e);
 		}
 	}
 
 	public void addImport(Class<?> clazz) {
-		imports.add(new InternalName(lazz));
-		for (Method method : clazz.getMethods()) {
+		imports.add(new InternalName(clazz));
+		for(Method method : clazz.getMethods()) {
 			methods.add(new JavaMethodDef(clazz, method));
 		}
 	}
@@ -494,27 +496,27 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
-			final BestList<Details> params = new BestLit<>();
-			for (kdl.TypedVariableContext typedVar : ctx.methodHeader().parameterDefinition().typedVariable())
+			final BestList<Details> params = new BestList<>();
+			for(kdl.TypedVariableContext typedVar : ctx.methodHeader().parameterDefinition().typedVariable())
 				params.add(parseTypedVariable(typedVar));
 
 			// create MethodDef
-			final BestList<InternalName> paramTypes = new BestLit<>();
-			for (Details param : params)
+			final BestList<InternalName> paramTypes = new BestList<>();
+			for(Details param : params)
 				paramTypes.add(param.type);
 			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
 
 			if(getPass() == 2) {
 				addMethodDef(def);
 			} else if(getPass() == 3) {
-				final Actor actor = new Actor(defineMethod(def), his);
-				for (Details param : params)
+				final Actor actor = new Actor(defineMethod(def), this);
+				for(Details param : params)
 					getCurrentScope().newVariable(param.name, param.type);
 				consumeBlock(ctx.block(), actor);
 
 				getCurrentScope().end(ctx.stop.getLine(), actor, rv);
-		}
-		} catch (Exception e) {
+			}
+		} catch(Exception e) {
 			printException(e);
 		}
 	}
@@ -532,8 +534,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			final Actor actor = new Actor(defineMethod(JavaMethodDef.MAIN), this);
 			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
 			try {
-				consumeBlock(ctx.block(), acto);
-			} catch (Exception e) {
+				consumeBlock(ctx.block(), actor);
+			} catch(Exception e) {
 				printException(e);
 			}
 			getCurrentScope().end(ctx.stop.getLine(), actor, ReturnValue.VOID);
@@ -556,16 +558,16 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return methods;
 	}
 
-	public boolean hasConstant(final Stringname) {
-		for (Constant<?> c : constants) {
+	public boolean hasConstant(final String name) {
+		for(Constant<?> c : constants) {
 			if(c.name.equals(name))
 				return true;
 		}
 		return false;
 	}
 
-	public Constant<?> getConstant(final Stringname) {
-		for (Constant<?> c : constants) {
+	public Constant<?> getConstant(final String name) {
+		for(Constant<?> c : constants) {
 			if(c.name.equals(name))
 				return c;
 		}
@@ -573,7 +575,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public boolean isConstantSet() {
-		for (Constant<?> c : constants)
+		for(Constant<?> c : constants)
 			if(!c.isEvaluated())
 				return false;
 		return true;
