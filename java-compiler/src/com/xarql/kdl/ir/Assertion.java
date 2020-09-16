@@ -1,10 +1,10 @@
 package com.xarql.kdl.ir;
 
-import com.xarql.kdl.Actor;
-
 import static com.xarql.kdl.ExternalMethodRouter.ERROR_MTD;
 import static com.xarql.kdl.ExternalMethodRouter.PRINT_MTD;
 import static com.xarql.kdl.names.CommonText.KEYWORD_FALSE;
+import com.xarql.kdl.Actor;
+import com.xarql.kdl.antlr.kdl;
 
 public class Assertion extends Conditional {
 
@@ -13,9 +13,9 @@ public class Assertion extends Conditional {
 	}
 
 	@Override
-	public void defineOnTrue(com.xarql.kdl.antlr.kdl.ConditionalContext ctx, Actor actor) throws Exception {
+	public void defineOnTrue(kdl.ConditionalContext ctx, Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onTrue);
-		if (actor.unit.hasConstant("ASSERTION_PASS")) {
+		if(actor.unit.hasConstant("ASSERTION_PASS")) {
 			actor.unit.getConstant("ASSERTION_PASS").push(actor);
 			PRINT_MTD.withOwner(actor.unit.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC).invoke(actor);
 		}
@@ -23,11 +23,11 @@ public class Assertion extends Conditional {
 	}
 
 	@Override
-	public void defineOnFalse(com.xarql.kdl.antlr.kdl.ConditionalContext ctx, Actor actor) throws Exception {
+	public void defineOnFalse(kdl.ConditionalContext ctx, Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onFalse);
 		// push the text of the assertion condition
 		String msg;
-		if (ctx.assertion().condition().getText().equals(KEYWORD_FALSE))
+		if(ctx.assertion().condition().getText().equals(KEYWORD_FALSE))
 			msg = "Failed assertion of false. Thus, this message was shown in error.";
 		else
 			msg = "Failed assertion with condition " + ctx.assertion().condition().getText();

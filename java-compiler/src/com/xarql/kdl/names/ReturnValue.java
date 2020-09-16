@@ -1,8 +1,6 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.StringOutput;
-
-public class ReturnValue implements StringOutput, ToName {
+public class ReturnValue implements ToName {
 
 	public static final ReturnValue BOOLEAN = new ReturnValue(BaseType.BOOLEAN);
 	public static final ReturnValue BYTE = new ReturnValue(BaseType.BYTE);
@@ -14,6 +12,10 @@ public class ReturnValue implements StringOutput, ToName {
 	public static final ReturnValue DOUBLE = new ReturnValue(BaseType.DOUBLE);
 	public static final ReturnValue STRING = new ReturnValue(BaseType.STRING);
 
+	// reinstantiating ARRAY from InternalName to avoid race condition
+	public static final ReturnValue ARRAY = new ReturnValue(new InternalName(Object.class, 1));
+	public static final ReturnValue OBJECT = new ReturnValue(new InternalName(Object.class));
+
 	public static final ReturnValue VOID = new ReturnValue();
 	public static final char VOID_REP = 'V';
 
@@ -24,7 +26,7 @@ public class ReturnValue implements StringOutput, ToName {
 	}
 
 	public ReturnValue(ToName internalName) {
-		if (internalName == null)
+		if(internalName == null)
 			this.returnType = null;
 		else
 			this.returnType = internalName.toInternalName();
@@ -35,7 +37,7 @@ public class ReturnValue implements StringOutput, ToName {
 	}
 
 	public static ReturnValue nonNull(ReturnValue returnValue) {
-		if (returnValue == null)
+		if(returnValue == null)
 			return VOID;
 		else
 			return returnValue;
@@ -47,11 +49,11 @@ public class ReturnValue implements StringOutput, ToName {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null && isVoid())
+		if(obj == null && isVoid())
 			return true;
-		else if (obj instanceof ReturnValue) {
+		else if(obj instanceof ReturnValue) {
 			ReturnValue rv = (ReturnValue) obj;
-			if (isVoid()) {
+			if(isVoid()) {
 				return rv.isVoid();
 			} else
 				return rv.returnType.equals(returnType);
@@ -59,17 +61,16 @@ public class ReturnValue implements StringOutput, ToName {
 			return false;
 	}
 
-	@Override
 	public String stringOutput() {
-		if (returnType == null)
+		if(returnType == null)
 			return "" + VOID_REP;
 		else
-			return returnType.internalObjectName();
+			return returnType.objectString();
 	}
 
 	@Override
 	public InternalName toInternalName() {
-		if (returnType == null)
+		if(returnType == null)
 			return new InternalName();
 		else
 			return returnType.toInternalName();

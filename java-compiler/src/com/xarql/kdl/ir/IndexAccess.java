@@ -31,14 +31,14 @@ public class IndexAccess extends BasePushable implements CommonText {
 	public IndexAccess push(final MethodVisitor visitor) throws Exception {
 		visitor.visitVarInsn(ALOAD, variable.localIndex);
 		// throw error if value within [ ] isn't an int
-		if (index.toBaseType().ordinal() > INT.ordinal())
+		if(index.toBaseType().ordinal() > INT.ordinal())
 			throw new IncompatibleTypeException("The input for an array access must be an integer");
 		else
 			index.push(visitor);
 
-		if (variable.isArray()) {
-			if (variable.type.isBaseType()) {
-				switch (variable.type.toBaseType()) {
+		if(variable.isArray()) {
+			if(variable.type.isBaseType()) {
+				switch(variable.type.toBaseType()) {
 					case INT:
 					case BOOLEAN:
 						visitor.visitInsn(IALOAD);
@@ -51,7 +51,7 @@ public class IndexAccess extends BasePushable implements CommonText {
 				}
 			} else
 				visitor.visitInsn(AALOAD);
-		} else if (variable.toBaseType() == BaseType.STRING)
+		} else if(variable.toBaseType() == BaseType.STRING)
 			STRING_CHAR_AT.invoke(visitor);
 		else
 			throw new IllegalArgumentException(variable + " is not an array nor a string");
@@ -60,7 +60,7 @@ public class IndexAccess extends BasePushable implements CommonText {
 
 	@Override
 	public InternalName toInternalName() {
-		if (!variable.isArray() && variable.toInternalName().equals(InternalName.STRING))
+		if(!variable.isArray() && variable.toInternalName().equals(InternalName.STRING))
 			return InternalName.CHAR;
 		else
 			return variable.toInternalName();

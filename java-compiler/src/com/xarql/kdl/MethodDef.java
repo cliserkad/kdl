@@ -1,10 +1,9 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
 
-public class MethodDef extends JavaMethodDef implements CommonText {
+public class MethodDef extends JavaMethodDef {
 
 	public static final Type DEFAULT_TYPE = Type.MTD;
 	public static final int DEFAULT_ACCESS = ACC_PUBLIC;
@@ -23,6 +22,10 @@ public class MethodDef extends JavaMethodDef implements CommonText {
 	public MethodDef(InternalName owner, Type type, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access) {
 		super(owner, methodName, paramTypes, returnValue, access);
 		this.type = type;
+	}
+
+	public MethodDef(JavaMethodDef parent, Type type) {
+		this(parent.owner, type, parent.methodName, parent.paramTypes, parent.returnValue, parent.access);
 	}
 
 	/**
@@ -48,8 +51,8 @@ public class MethodDef extends JavaMethodDef implements CommonText {
 		}
 
 		public static Type resolve(String type) {
-			for (Type t : values())
-				if (t.name().equals(type) || t.fullName.equals(type))
+			for(Type t : values())
+				if(t.name().equals(type) || t.fullName.equals(type))
 					return t;
 			throw new IllegalArgumentException("The method type " + type + " is invalid");
 		}

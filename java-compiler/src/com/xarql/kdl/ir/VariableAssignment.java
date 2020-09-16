@@ -21,7 +21,7 @@ public class VariableAssignment extends BasePushable {
 	 * assigns variable to pushable
 	 */
 	public VariableAssignment push(final MethodVisitor visitor) throws Exception {
-		if (pushable != null) {
+		if(pushable != null) {
 			ToName type = pushable.push(visitor);
 			CompilationUnit.store(type, variable, visitor);
 		} else {

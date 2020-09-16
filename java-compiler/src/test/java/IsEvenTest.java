@@ -10,17 +10,17 @@ public class IsEvenTest {
 	@Test
 	public void testIsEven() {
 		BestList<String> arguments = new BestList<String>();
-		for (int n : NUMS)
+		for(int n : NUMS)
 			arguments.add("" + n);
 		BestList<String> outputs = new BestList<String>();
-		for (int n : NUMS)
+		for(int n : NUMS)
 			outputs.add(isEven(n));
 
 		new StandardKdlTest("/sample", "IsEven", arguments, outputs);
 	}
 
 	public String isEven(int n) {
-		if (n % 2 == 0)
+		if(n % 2 == 0)
 			return "true";
 		else
 			return "false";

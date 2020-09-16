@@ -18,8 +18,8 @@ public class IfElse extends Conditional {
 	@Override
 	public void defineOnFalse(kdl.ConditionalContext ctx, Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onFalse);
-		if (ctx.r_if().r_else() != null) {
-			if (ctx.r_if().r_else().block() != null)
+		if(ctx.r_if().r_else() != null) {
+			if(ctx.r_if().r_else().block() != null)
 				actor.unit.consumeBlock(ctx.r_if().r_else().block(), actor);
 			else
 				throw new IllegalArgumentException("Missing block for else clause of if statement");

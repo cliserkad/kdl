@@ -1,0 +1,8 @@
+type StringTemplate {
+  const STR: "val1";
+
+  main {
+    string a: "val2";
+    println("STR is $STR and a is $a");
+  }
+}

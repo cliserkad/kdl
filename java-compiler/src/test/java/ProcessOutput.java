@@ -40,7 +40,7 @@ public class ProcessOutput {
 		String line = null;
 		BestList<String> output = new BestList<>();
 		BufferedReader in = new BufferedReader(new InputStreamReader(ins));
-		while ((line = in.readLine()) != null) {
+		while((line = in.readLine()) != null) {
 			output.add(line);
 		}
 		return output;

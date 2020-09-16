@@ -22,7 +22,7 @@ public class SyntaxErrorHandler extends BaseErrorListener {
 	}
 
 	public void printErrors() {
-		for (SyntaxException e : errors)
+		for(SyntaxException e : errors)
 			System.err.println("Within " + unit.unitName() + ": " + e.getMessage());
 	}
 

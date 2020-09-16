@@ -19,6 +19,7 @@ public class InternalName implements ToName, CommonText {
 	public static final InternalName BOOLEAN_WRAPPER = new InternalName(Boolean.class);
 
 	public static final InternalName OBJECT = new InternalName(Object.class);
+	public static final InternalName ARRAY = new InternalName(Object.class, 1);
 
 	public static final String OBJECT_SUFFIX = ";";
 	public static final String OBJECT_PREFIX = "L";
@@ -41,7 +42,7 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName(final Class<?> c, final int arrayDimensions) {
-		if (BaseType.matchClassStrict(c) != null) {
+		if(BaseType.matchClassStrict(c) != null) {
 			base = BaseType.matchClass(c);
 			clazz = null;
 		} else {
@@ -68,7 +69,7 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName(CustomClass cc) {
-		this.qualifiedName = cc.internalNameString();
+		this.qualifiedName = (cc.pkg + cc.name).replace('.', '/');
 		clazz = null;
 		base = null;
 		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
@@ -100,29 +101,29 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	private String objectInstance() {
-		return OBJECT_PREFIX + internalName() + OBJECT_SUFFIX;
+		return OBJECT_PREFIX + nameString() + OBJECT_SUFFIX;
 	}
 
-	public String internalObjectName() {
+	public String objectString() {
 		String dims = "";
-		for (int i = 0; i < arrayDimensions; i++)
+		for(int i = 0; i < arrayDimensions; i++)
 			dims += ARRAY_PREFIX;
 
-		if (isBaseType() && toBaseType() != BaseType.STRING)
-			return dims + internalName();
+		if(isBaseType() && toBaseType() != BaseType.STRING)
+			return dims + nameString();
 		else
 			return dims + objectInstance();
 	}
 
-	public String internalName() {
-		if (isBaseType()) {
-			if (toBaseType() == BaseType.STRING)
+	public String nameString() {
+		if(isBaseType()) {
+			if(toBaseType() == BaseType.STRING)
 				return String.class.getName().replace('.', '/');
 			else
 				return toBaseType().rep;
-		} else if (clazz != null)
+		} else if(clazz != null)
 			return clazz.getName().replace('.', '/');
-		else if (isCustom()) {
+		else if(isCustom()) {
 			return qualifiedName;
 		} else
 			throw new IllegalStateException("Both clazz and base can not be null in an instance of InternalName");
@@ -130,15 +131,15 @@ public class InternalName implements ToName, CommonText {
 
 	@Override
 	public String toString() {
-		return internalObjectName();
+		return objectString();
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof InternalName) {
+		if(o instanceof InternalName) {
 			InternalName in = (InternalName) o;
-			return in.internalName().equals(internalName());
-		} else if (o instanceof BaseType) {
+			return in.nameString().equals(nameString());
+		} else if(o instanceof BaseType) {
 			BaseType bt = (BaseType) o;
 			return bt == this.base;
 		}
@@ -151,11 +152,11 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public boolean compatibleWith(InternalName receiver) {
-		if (receiver.toBaseType() == BaseType.STRING)
+		if(receiver.toBaseType() == BaseType.STRING)
 			return true;
-		else if (toBaseType() == BaseType.STRING && receiver.equals(new InternalName(CharSequence.class)))
+		else if(toBaseType() == BaseType.STRING && receiver.equals(new InternalName(CharSequence.class)))
 			return true;
-		else if (receiver.isBaseType() && isBaseType())
+		else if(receiver.isBaseType() && isBaseType())
 			return toBaseType().compatibleWith(receiver);
 		else
 			return equals(receiver);
@@ -166,18 +167,18 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName toArray(final int dimensions) {
-		if (clazz != null)
+		if(clazz != null)
 			return new InternalName(clazz, dimensions);
-		else if (base != null)
+		else if(base != null)
 			return new InternalName(base, dimensions);
 		else
 			return new InternalName(qualifiedName);
 	}
 
 	public InternalName withoutArray() {
-		if (clazz != null)
+		if(clazz != null)
 			return new InternalName(clazz);
-		else if (base != null)
+		else if(base != null)
 			return new InternalName(base);
 		else
 			return new InternalName(qualifiedName);

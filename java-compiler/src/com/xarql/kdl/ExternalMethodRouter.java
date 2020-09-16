@@ -23,7 +23,7 @@ public class ExternalMethodRouter implements CommonText {
 		// add println method to class
 		visitor = unit.defineMethod(unit.addMethodDef(PRINTLN_MTD.withOwner(unit.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC)));
 		unit.getCurrentScope().newVariable(arg, new InternalName(String.class));
-		visitor.visitFieldInsn(GETSTATIC, new InternalName(System.class).internalName(), "out", new InternalName(PrintStream.class).internalObjectName());
+		visitor.visitFieldInsn(GETSTATIC, new InternalName(System.class).nameString(), "out", new InternalName(PrintStream.class).objectString());
 		visitor.visitVarInsn(ALOAD, unit.getLocalVariable(arg).localIndex); // load input
 		PRINTLN_MTD.invoke(visitor);
 		unit.getCurrentScope().end(1, visitor, ReturnValue.VOID);
@@ -31,7 +31,7 @@ public class ExternalMethodRouter implements CommonText {
 		// add print method to class
 		visitor = unit.defineMethod(unit.addMethodDef(PRINT_MTD.withOwner(unit.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC)));
 		unit.getCurrentScope().newVariable(arg, new InternalName(String.class));
-		visitor.visitFieldInsn(GETSTATIC, new InternalName(System.class).internalName(), "out", new InternalName(PrintStream.class).internalObjectName());
+		visitor.visitFieldInsn(GETSTATIC, new InternalName(System.class).nameString(), "out", new InternalName(PrintStream.class).objectString());
 		visitor.visitVarInsn(ALOAD, unit.getLocalVariable(arg).localIndex); // load input
 		PRINT_MTD.invoke(visitor);
 		unit.getCurrentScope().end(1, visitor, ReturnValue.VOID);
@@ -39,7 +39,7 @@ public class ExternalMethodRouter implements CommonText {
 		// add error method to class
 		visitor = unit.defineMethod(unit.addMethodDef(ERROR_MTD.withOwner(unit.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC)));
 		unit.getCurrentScope().newVariable(arg, new InternalName(String.class));
-		visitor.visitFieldInsn(GETSTATIC, new InternalName(System.class).internalName(), "err", new InternalName(PrintStream.class).internalObjectName());
+		visitor.visitFieldInsn(GETSTATIC, new InternalName(System.class).nameString(), "err", new InternalName(PrintStream.class).objectString());
 		visitor.visitVarInsn(ALOAD, unit.getLocalVariable(arg).localIndex); // load input
 		PRINTLN_MTD.invoke(visitor);
 		unit.getCurrentScope().end(1, visitor, ReturnValue.VOID);

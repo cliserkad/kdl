@@ -36,7 +36,7 @@ public class Scope implements Opcodes {
 	public Variable newVariable(final String name, final ToName type, final boolean mutable) {
 		Variable var = addLocalVariable(new Variable(name, type.toInternalName(), nextIndex(), mutable));
 		// increment it again to reserve a second slot if its a 64-bit number
-		if (type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
+		if(type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
 			index++;
 		return var;
 	}
@@ -46,7 +46,7 @@ public class Scope implements Opcodes {
 	}
 
 	public Variable addLocalVariable(Variable lv) {
-		if (!variables.contains(lv))
+		if(!variables.contains(lv))
 			variables.add(lv);
 		else
 			throw new IllegalArgumentException("The variable " + lv + "already exists within this scope");
@@ -57,13 +57,13 @@ public class Scope implements Opcodes {
 		final Label ret = new Label();
 		visitor.visitLabel(ret);
 		visitor.visitLineNumber(line, ret);
-		if (rv.isVoid())
+		if(rv.isVoid())
 			visitor.visitInsn(RETURN);
 		else
 			visitor.visitInsn(NOP);
 
 		visitor.visitLabel(end);
-		for (Variable lv : getVariables())
+		for(Variable lv : getVariables())
 			visitor.visitLocalVariable(lv.name, lv.type.toString(), null, start, end, lv.localIndex);
 		visitor.visitMaxs(0, 0);
 		visitor.visitEnd();
@@ -72,15 +72,15 @@ public class Scope implements Opcodes {
 	}
 
 	public boolean contains(String varname) {
-		for (Variable var : variables)
-			if (var.name.equals(varname))
+		for(Variable var : variables)
+			if(var.name.equals(varname))
 				return true;
 		return false;
 	}
 
 	public Variable getVariable(String name) {
-		for (Variable lv : variables)
-			if (lv.name.equals(name))
+		for(Variable lv : variables)
+			if(lv.name.equals(name))
 				return lv;
 		throw new IllegalArgumentException("The variable with name " + name + " does not exist in " + this);
 	}
@@ -91,7 +91,7 @@ public class Scope implements Opcodes {
 
 	public BestList<Variable> getVariables() {
 		BestList<Variable> out = new BestList<>();
-		for (Variable lv : variables)
+		for(Variable lv : variables)
 			out.add(lv);
 		return out;
 	}

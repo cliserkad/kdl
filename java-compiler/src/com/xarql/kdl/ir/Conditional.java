@@ -39,21 +39,21 @@ public abstract class Conditional implements Opcodes {
 		check(actor);
 		// if the check is positive, then we should jump to the false clause when no
 		// previous jump has been triggered
-		if (condition.positive)
+		if(condition.positive)
 			actor.visitJumpInsn(GOTO, labelSet.onFalse);
 	}
 
 	private void check(final Actor actor) throws Exception {
 		final BaseType aType = condition.a.pushType(actor).toBaseType();
 		// if the condition has two values
-		if (condition.b != null) { // if there are two values
+		if(condition.b != null) { // if there are two values
 			final BaseType bType = condition.b.pushType(actor).toBaseType();
 
 			// check type compatibility
-			if (!aType.compatibleNoDirection(bType))
+			if(!aType.compatibleNoDirection(bType))
 				throw new IncompatibleTypeException("The type " + aType + " is not compatible with " + bType);
 
-			switch (aType) {
+			switch(aType) {
 				case BOOLEAN:
 					testBooleans(actor);
 					break;
@@ -67,10 +67,10 @@ public abstract class Conditional implements Opcodes {
 					throw new UnimplementedException(CommonText.SWITCH_BASETYPE);
 			}
 		} else {
-			switch (aType) {
+			switch(aType) {
 				case BOOLEAN:
 				case INT:
-					if (condition.positive)
+					if(condition.positive)
 						actor.visitJumpInsn(IFNE, labelSet.onTrue);
 					else
 						actor.visitJumpInsn(IFEQ, labelSet.onFalse);
@@ -98,46 +98,46 @@ public abstract class Conditional implements Opcodes {
 		new JavaMethodDef(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).invoke(visitor);
 
 		// negative vs positive jump
-		if (condition.positive)
+		if(condition.positive)
 			visitor.visitJumpInsn(IFEQ, labelSet.onTrue); // if the string is not empty, then skip to true clause
 		else
 			visitor.visitJumpInsn(IFNE, labelSet.onFalse); // if the string is empty, then skip to false clause
 	}
 
 	public final void testIntegers(final MethodVisitor visitor) throws Exception {
-		switch (condition.cmp) {
+		switch(condition.cmp) {
 			case EQUAL:
-				if (condition.positive)
+				if(condition.positive)
 					visitor.visitJumpInsn(IF_ICMPEQ, labelSet.onTrue);
 				else
 					visitor.visitJumpInsn(IF_ICMPNE, labelSet.onFalse);
 				break;
 			case NOT_EQUAL:
-				if (condition.positive)
+				if(condition.positive)
 					visitor.visitJumpInsn(IF_ICMPNE, labelSet.onTrue);
 				else
 					visitor.visitJumpInsn(IF_ICMPEQ, labelSet.onFalse);
 				break;
 			case MORE_THAN:
-				if (condition.positive)
+				if(condition.positive)
 					visitor.visitJumpInsn(IF_ICMPGE, labelSet.onTrue);
 				else
 					visitor.visitJumpInsn(IF_ICMPLE, labelSet.onFalse);
 				break;
 			case LESS_THAN:
-				if (condition.positive)
+				if(condition.positive)
 					visitor.visitJumpInsn(IF_ICMPLE, labelSet.onTrue);
 				else
 					visitor.visitJumpInsn(IF_ICMPGE, labelSet.onFalse);
 				break;
 			case MORE_OR_EQUAL:
-				if (condition.positive)
+				if(condition.positive)
 					visitor.visitJumpInsn(IF_ICMPGT, labelSet.onTrue);
 				else
 					visitor.visitJumpInsn(IF_ICMPLT, labelSet.onFalse);
 				break;
 			case LESS_OR_EQUAL:
-				if (condition.positive)
+				if(condition.positive)
 					visitor.visitJumpInsn(IF_ICMPLT, labelSet.onFalse);
 				else
 					visitor.visitJumpInsn(IF_ICMPGT, labelSet.onFalse);
@@ -148,15 +148,15 @@ public abstract class Conditional implements Opcodes {
 	}
 
 	public final void testBooleans(final MethodVisitor visitor) throws Exception {
-		switch (condition.cmp) {
+		switch(condition.cmp) {
 			case EQUAL:
-				if (condition.positive)
+				if(condition.positive)
 					visitor.visitJumpInsn(IF_ICMPEQ, labelSet.onTrue);
 				else
 					visitor.visitJumpInsn(IF_ICMPNE, labelSet.onFalse);
 				break;
 			case NOT_EQUAL:
-				if (condition.positive)
+				if(condition.positive)
 					visitor.visitJumpInsn(IF_ICMPNE, labelSet.onTrue);
 				else
 					visitor.visitJumpInsn(IF_ICMPEQ, labelSet.onFalse);

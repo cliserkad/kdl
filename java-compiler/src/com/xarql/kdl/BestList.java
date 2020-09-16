@@ -32,22 +32,22 @@ public class BestList<E> extends ArrayList<E> {
 	@SafeVarargs
 	public final boolean add(E... elements) {
 		boolean output = true;
-		for (E e : elements)
-			if (!add(e))
+		for(E e : elements)
+			if(!add(e))
 				output = false;
 		return output;
 	}
 
 	public final boolean add(Iterable<E> input) {
 		boolean output = true;
-		for (E e : input)
-			if (!add(e))
+		for(E e : input)
+			if(!add(e))
 				output = false;
 		return output;
 	}
 
 	public final void removeAmount(int amount) {
-		for (int i = 0; i < amount; i++)
+		for(int i = 0; i < amount; i++)
 			remove(0);
 	}
 
@@ -58,7 +58,7 @@ public class BestList<E> extends ArrayList<E> {
 	 */
 	public String spread() {
 		String out = "";
-		for (E elm : this)
+		for(E elm : this)
 			out += elm.toString().replace("\n", "") + "\n";
 		return out;
 	}
@@ -71,7 +71,7 @@ public class BestList<E> extends ArrayList<E> {
 	 */
 	public String squish() {
 		String out = "";
-		for (E elm : this)
+		for(E elm : this)
 			out += elm.toString();
 		return out;
 	}
@@ -79,7 +79,7 @@ public class BestList<E> extends ArrayList<E> {
 	@Override
 	public String toString() {
 		String out = "";
-		for (E elm : this)
+		for(E elm : this)
 			out += elm.toString().replace(",", "") + ",";
 		return out;
 	}

@@ -8,9 +8,11 @@ lexer grammar kdlLexer;
 COMMENT: '//' .*? '\n' -> channel(HIDDEN);
 BLOCK_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
 
-NEWLINES: '\n' -> channel(HIDDEN);
 // skip over whitespace
-WS : [ \t\r]+ -> channel(HIDDEN);
+WS : [ \t\r\n]+ -> skip;
+
+QUOTE: '"';
+STRING_LIT: QUOTE (~["\\] | '\\' .)* QUOTE;
 
 // keywords
 TYPE: 'type';
@@ -90,5 +92,3 @@ VARNAME   : DNLETTER (LETTER | DIGIT)*;
 QUALIFIED_NAME: (DNTEXT '.')+ CLASSNAME;
 
 CHAR_LIT: '\'' . '\'';
-ESCAPED_QUOTE: '\\"';
-STRING_LIT: '"' (ESCAPED_QUOTE | ~'"')* '"';

@@ -17,7 +17,7 @@ public class Constant<Type> extends BasePushable implements Pushable {
 	private boolean evaluated;
 
 	public Constant(final String name, final Type value) {
-		if (name == null || name.isEmpty())
+		if(name == null || name.isEmpty())
 			throw new IllegalArgumentException("Constant name may not be empty");
 		this.name = name;
 		this.value = value;
@@ -28,7 +28,7 @@ public class Constant<Type> extends BasePushable implements Pushable {
 	}
 
 	public static <Any> Any checkValueType(Any value) {
-		if (!ACCEPTABLE_TYPES.contains(value.getClass()))
+		if(!ACCEPTABLE_TYPES.contains(value.getClass()))
 			throw new IllegalStateException("Constant may not have the Type of " + value.getClass() + ". Acceptable types are " + ACCEPTABLE_TYPES);
 		return value;
 	}
@@ -54,7 +54,7 @@ public class Constant<Type> extends BasePushable implements Pushable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof Constant) {
+		if(o instanceof Constant) {
 			Constant<?> other = (Constant<?>) o;
 			return other.name.equals(name);
 		}

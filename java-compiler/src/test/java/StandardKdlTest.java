@@ -26,24 +26,24 @@ public class StandardKdlTest {
 	 * @param expectedOutputs a list of expected outputs for each set of arguments
 	 */
 	public StandardKdlTest(final String pathExtension, final String className, final BestList<String> arguments, final BestList<String> expectedOutputs) {
-		if (pathExtension == null)
+		if(pathExtension == null)
 			this.pathExtension = "";
 		else
 			this.pathExtension = pathExtension;
 
 		this.className = className;
 
-		if (arguments != null)
+		if(arguments != null)
 			this.arguments = arguments;
 		else
 			this.arguments = list("");
 
-		if (expectedOutputs != null)
+		if(expectedOutputs != null)
 			this.expectedOutputs = expectedOutputs;
 		else
 			this.expectedOutputs = list("");
 
-		if (this.arguments.size() != this.expectedOutputs.size())
+		if(this.arguments.size() != this.expectedOutputs.size())
 			throw new IllegalStateException("arguments and expectedOutputs must have the same length. Check both inputs on " + getClass().getName() + " constructor");
 	}
 
@@ -63,14 +63,14 @@ public class StandardKdlTest {
 			// compile .kdl file
 			new CompilationDispatcher(new RegexFileFilter(fileName())).dispatchQuietly();
 			// run .class file
-			for (int i = 0; i < arguments.size(); i++) {
+			for(int i = 0; i < arguments.size(); i++) {
 				ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + pathExtension + " " + className + " " + arguments.get(i));
 				assertEquals(expectedOutputs.get(i), process.getOutput().squish());
 				// disregard exit code and errors
 				// assertTrue(process.getErrors().isEmpty());
 				// assertEquals(0, process.getExitValue());
 			}
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 			assert false;
 		}

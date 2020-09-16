@@ -10,7 +10,7 @@ public class FileUtil {
 		try {
 			Files.write(f.toPath(), s.getBytes());
 			return true;
-		} catch (IOException e) {
+		} catch(IOException e) {
 			return false;
 		}
 	}

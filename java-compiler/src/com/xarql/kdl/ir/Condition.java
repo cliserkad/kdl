@@ -14,11 +14,11 @@ public class Condition {
 
 	public Condition(final Pushable a, final Pushable b, final Comparator cmp, final boolean positive) {
 		// check that the arguments' existence is valid
-		if (a == null)
+		if(a == null)
 			throw new NullPointerException();
-		if (b == null && cmp != null)
+		if(b == null && cmp != null)
 			throw new NullPointerException();
-		if (cmp == null && b != null)
+		if(cmp == null && b != null)
 			throw new NullPointerException();
 
 		this.a = a;
@@ -58,10 +58,10 @@ public class Condition {
 	}
 
 	public static Condition parseCondition(kdl.ConditionContext ctx, Actor actor) throws Exception {
-		if (ctx.expression().size() > 1)
-			return new Condition(new Expression(ctx.expression(0), actor.unit), new Expression(ctx.expression(1), actor.unit), Comparator.match(ctx.comparator().getText()));
+		if(ctx.expression().size() > 1)
+			return new Condition(new Expression(ctx.expression(0), actor), new Expression(ctx.expression(1), actor), Comparator.match(ctx.comparator().getText()));
 		else
-			return new Condition(new Expression(ctx.expression(0), actor.unit));
+			return new Condition(new Expression(ctx.expression(0), actor));
 	}
 
 }

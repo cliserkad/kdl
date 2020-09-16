@@ -17,7 +17,7 @@ public class Variable extends Details implements Pushable, CommonText {
 
 	public Variable(final String name, final InternalName type, final int localIndex, final boolean mutable) {
 		super(name, type, mutable);
-		if (type == null)
+		if(type == null)
 			throw new NullPointerException();
 		this.localIndex = localIndex;
 	}
@@ -36,7 +36,7 @@ public class Variable extends Details implements Pushable, CommonText {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof Variable) {
+		if(obj instanceof Variable) {
 			Variable other = (Variable) obj;
 			return other.name.equals(name);
 		} else
@@ -54,8 +54,8 @@ public class Variable extends Details implements Pushable, CommonText {
 
 	@Override
 	public Variable push(final MethodVisitor visitor) throws UnimplementedException {
-		if (type.isBaseType() && !type.isArray()) {
-			switch (type.toBaseType()) {
+		if(type.isBaseType() && !type.isArray()) {
+			switch(type.toBaseType()) {
 				case BOOLEAN:
 				case BYTE:
 				case SHORT:

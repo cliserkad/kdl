@@ -1,9 +1,10 @@
 package com.xarql.kdl;
 
-import static com.xarql.kdl.names.InternalName.OBJECT_PREFIX;
-import static com.xarql.kdl.names.InternalName.OBJECT_SUFFIX;
+import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ToName;
 
-public class CustomClass {
+public class CustomClass implements ToName {
 
 	public final String pkg;
 	public final String name;
@@ -17,17 +18,24 @@ public class CustomClass {
 		this(null, name);
 	}
 
-	public String internalNameString() {
-		return (pkg + name).replace('.', '/');
-	}
-
-	public String internalObjectNameString() {
-		return OBJECT_PREFIX + internalNameString() + OBJECT_SUFFIX;
+	@Override
+	public String toString() {
+		return toInternalName().objectString();
 	}
 
 	@Override
-	public String toString() {
-		return internalNameString();
+	public InternalName toInternalName() {
+		return new InternalName(this);
+	}
+
+	@Override
+	public boolean isBaseType() {
+		return false;
+	}
+
+	@Override
+	public BaseType toBaseType() {
+		return null;
 	}
 
 }
