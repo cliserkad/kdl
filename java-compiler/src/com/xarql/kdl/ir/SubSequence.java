@@ -1,7 +1,7 @@
 package com.xarql.kdl.ir;
 
 import static com.xarql.kdl.BestList.list;
-import org.objectweb.asm.MethodVisitor;
+
 import org.objectweb.asm.Opcodes;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.JavaMethodDef;
@@ -29,7 +29,7 @@ public class SubSequence extends BasePushable {
 	}
 
 	@Override
-	public SubSequence push(MethodVisitor visitor) throws Exception {
+	public SubSequence push(Actor visitor) throws Exception {
 		if(!variable.isArray() && variable.toBaseType() == BaseType.STRING) {
 			variable.push(visitor);
 			range.min.push(visitor);

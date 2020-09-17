@@ -1,6 +1,5 @@
 package com.xarql.kdl.ir;
 
-import org.objectweb.asm.MethodVisitor;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
@@ -19,22 +18,22 @@ public interface Pushable extends ToName {
 	 * Pushes this value on to the stack. Executes sub-pushes and instructions if
 	 * needed. Use this over pushType() whenever an InternalName is not required.
 	 * 
-	 * @param visitor any MethodVisitor
+	 * @param actor any Actor
 	 * @return instance of implementing class; whatever "this" is
 	 * @throws Exception if pushing is impossible
 	 */
-	public Pushable push(final MethodVisitor visitor) throws Exception;
+	public Pushable push(final Actor actor) throws Exception;
 
 	/**
 	 * Pushes this value on to the stack. Returns the type of the value. Should call
 	 * push().
 	 * 
-	 * @param visitor any MethodVisitor
+	 * @param actor any Actor
 	 * @return pushed value type
 	 * @throws Exception if pushing is impossible
-	 * @see Pushable#push(MethodVisitor)
+	 * @see Pushable#push(Actor)
 	 */
-	public InternalName pushType(final MethodVisitor visitor) throws Exception;
+	public InternalName pushType(final Actor actor) throws Exception;
 
 	/**
 	 * Attempts to parse a Resolvable symbol

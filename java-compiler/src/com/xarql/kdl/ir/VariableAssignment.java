@@ -1,10 +1,10 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.Actor;
 import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
-import org.objectweb.asm.MethodVisitor;
 
 public class VariableAssignment extends BasePushable {
 
@@ -20,7 +20,7 @@ public class VariableAssignment extends BasePushable {
 	/**
 	 * assigns variable to pushable
 	 */
-	public VariableAssignment push(final MethodVisitor visitor) throws Exception {
+	public VariableAssignment push(final Actor visitor) throws Exception {
 		if(pushable != null) {
 			ToName type = pushable.push(visitor);
 			CompilationUnit.store(type, variable, visitor);

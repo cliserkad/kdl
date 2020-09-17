@@ -1,7 +1,9 @@
 package com.xarql.kdl.ir;
 
+import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.BaseType.STRING;
 import org.objectweb.asm.MethodVisitor;
+import com.xarql.kdl.Actor;
 import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.JavaMethodDef;
@@ -9,27 +11,31 @@ import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 
 public interface ExpressionHandler extends CommonText {
 
-	JavaMethodDef INIT_STRING_BUILDER = new JavaMethodDef(new InternalName(StringBuilder.class), JavaMethodDef.S_INIT, null, null, ACC_PUBLIC);
+	public static final JavaMethodDef INIT_STRING_BUILDER = new JavaMethodDef(new InternalName(StringBuilder.class), JavaMethodDef.S_INIT, null, null, ACC_PUBLIC);
+	JavaMethodDef SB_APPEND = new JavaMethodDef(new InternalName(StringBuilder.class), "append", list(new InternalName(String.class)),
+			new ReturnValue(new InternalName(StringBuilder.class)), ACC_PUBLIC);
+	JavaMethodDef SB_TO_STRING = new JavaMethodDef(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 
-	public static InternalName compute(final Expression xpr, final MethodVisitor visitor) throws Exception {
+	public static InternalName compute(final Expression xpr, final Actor actor) throws Exception {
 		final Pushable res = xpr.a;
 		final Pushable calc = xpr.b;
 		final Operator opr = xpr.opr;
 
 		if(xpr.isSingleValue()) {
-			return res.pushType(visitor);
+			return res.pushType(actor);
 		} else {
 			switch(res.toBaseType()) {
 				case INT:
 				case BOOLEAN: {
-					computeInt(res, calc, opr, visitor);
+					computeInt(res, calc, opr, actor);
 					return InternalName.INT;
 				}
 				case STRING: {
-					computeString(res, calc, opr, visitor);
+					computeString(res, calc, opr, actor);
 					return InternalName.STRING;
 				}
 				default:
@@ -43,33 +49,33 @@ public interface ExpressionHandler extends CommonText {
 	 * 
 	 * @param visitor
 	 */
-	public static void stringBuilderInit(MethodVisitor visitor) {
+	public static void createStringBuilder(MethodVisitor visitor) {
 		visitor.visitTypeInsn(NEW, new InternalName(StringBuilder.class).nameString());
 		visitor.visitInsn(DUP);
 		INIT_STRING_BUILDER.invoke(visitor);
 	}
 
-	public static void computeString(Pushable res1, Pushable res2, Operator opr, MethodVisitor visitor) throws Exception {
+	public static void computeString(Pushable res1, Pushable res2, Operator opr, Actor actor) throws Exception {
 		switch(opr) {
 			case PLUS: {
 				switch(res2.toBaseType()) {
 					case INT: {
-						stringBuilderInit(visitor);
-						res1.push(visitor);
-						visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-						res2.push(visitor);
-						CompilationUnit.convertToString(res2.toBaseType().toInternalName(), visitor);
-						visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-						visitor.visitMethodInsn(INVOKEVIRTUAL, InternalName.STRING_BUILDER.nameString(), SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
+						createStringBuilder(actor);
+						res1.push(actor);
+						SB_APPEND.invoke(actor);
+						res2.push(actor);
+						CompilationUnit.convertToString(res2.toBaseType().toInternalName(), actor);
+						SB_APPEND.invoke(actor);
+						SB_TO_STRING.invoke(actor);
 						break;
 					}
 					case STRING: {
-						stringBuilderInit(visitor);
-						res1.push(visitor);
-						visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-						res2.push(visitor);
-						visitor.visitMethodInsn(INVOKEVIRTUAL, SB_APPEND.owner(), SB_APPEND.methodName, SB_APPEND.descriptor(), false);
-						visitor.visitMethodInsn(INVOKEVIRTUAL, InternalName.STRING_BUILDER.nameString(), SB_TO_STRING.methodName, SB_TO_STRING.descriptor(), false);
+						createStringBuilder(actor);
+						res1.push(actor);
+						SB_APPEND.invoke(actor);
+						res2.push(actor);
+						SB_APPEND.invoke(actor);
+						SB_TO_STRING.invoke(actor);
 						break;
 					}
 					default: {
@@ -84,28 +90,28 @@ public interface ExpressionHandler extends CommonText {
 		}
 	}
 
-	public static BaseType computeInt(Pushable res1, Pushable res2, Operator opr, MethodVisitor visitor) throws Exception {
+	public static BaseType computeInt(Pushable res1, Pushable res2, Operator opr, Actor actor) throws Exception {
 		if(res2.toBaseType() == STRING)
 			throw new IncompatibleTypeException(BaseType.INT + INCOMPATIBLE + STRING);
 		// under the hood booleans should be either 0 or 1
 		else {
-			res1.push(visitor);
-			res2.push(visitor);
+			res1.push(actor);
+			res2.push(actor);
 			switch(opr) {
 				case PLUS:
-					visitor.visitInsn(IADD);
+					actor.visitInsn(IADD);
 					break;
 				case MINUS:
-					visitor.visitInsn(ISUB);
+					actor.visitInsn(ISUB);
 					break;
 				case MULTIPLY:
-					visitor.visitInsn(IMUL);
+					actor.visitInsn(IMUL);
 					break;
 				case DIVIDE:
-					visitor.visitInsn(IDIV);
+					actor.visitInsn(IDIV);
 					break;
 				case MODULUS:
-					visitor.visitInsn(IREM);
+					actor.visitInsn(IREM);
 					break;
 				default:
 					throw new UnimplementedException(SWITCH_OPERATOR);

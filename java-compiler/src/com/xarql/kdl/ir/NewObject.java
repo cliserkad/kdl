@@ -1,6 +1,5 @@
 package com.xarql.kdl.ir;
 
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.BestList;
@@ -32,7 +31,7 @@ public class NewObject extends BasePushable implements Opcodes {
 	}
 
 	@Override
-	public NewObject push(MethodVisitor visitor) throws Exception {
+	public NewObject push(Actor visitor) throws Exception {
 		final BestList<InternalName> paramTypes = new BestList<>();
 		for(Pushable arg : arguments)
 			paramTypes.add(arg.toInternalName());

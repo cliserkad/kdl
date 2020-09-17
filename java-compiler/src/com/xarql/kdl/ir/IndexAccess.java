@@ -1,5 +1,6 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.Actor;
 import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.JavaMethodDef;
 import com.xarql.kdl.UnimplementedException;
@@ -7,7 +8,6 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
-import org.objectweb.asm.MethodVisitor;
 
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.BaseType.INT;
@@ -28,7 +28,7 @@ public class IndexAccess extends BasePushable implements CommonText {
 	}
 
 	@Override
-	public IndexAccess push(final MethodVisitor visitor) throws Exception {
+	public IndexAccess push(final Actor visitor) throws Exception {
 		visitor.visitVarInsn(ALOAD, variable.localIndex);
 		// throw error if value within [ ] isn't an int
 		if(index.toBaseType().ordinal() > INT.ordinal())

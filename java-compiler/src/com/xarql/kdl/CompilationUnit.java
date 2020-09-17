@@ -61,7 +61,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private boolean nameSet;
 	private final int id;
 
-	public final BestList<Constant<?>> constants;
+	public final BestList<Constant> constants;
 	private final ConditionalHandler cmpHandler;
 	private final BestList<String> constantNames = new BestList<>();
 	private final Map<String, kdl.ConstantContext> constantContexts = new HashMap<>();
@@ -363,8 +363,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 			for(String name : constantNames) {
 				try {
-					final Literal<?> lit = Literal.parseLiteral(constantContexts.get(name).literal(), actor);
-					addConstant(new Constant(name, lit.value));
+					final Pushable pushable = Literal.parseLiteral(constantContexts.get(name).literal(), actor);
+					Constant c = new Constant(name, pushable.toInternalName(), clazz.toInternalName());
+					addConstant(c);
+					pushable.push(actor);
+					actor.visitFieldInsn(PUTSTATIC, c.owner.nameString(), name, c.type.objectString());
 				} catch(Exception e) {
 					printException(e);
 				}
@@ -559,26 +562,19 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public boolean hasConstant(final String name) {
-		for(Constant<?> c : constants) {
+		for(Constant c : constants) {
 			if(c.name.equals(name))
 				return true;
 		}
 		return false;
 	}
 
-	public Constant<?> getConstant(final String name) {
-		for(Constant<?> c : constants) {
+	public Constant getConstant(final String name) {
+		for(Constant c : constants) {
 			if(c.name.equals(name))
 				return c;
 		}
 		throw new IllegalArgumentException("Constant " + name + " does not exist");
-	}
-
-	public boolean isConstantSet() {
-		for(Constant<?> c : constants)
-			if(!c.isEvaluated())
-				return false;
-		return true;
 	}
 
 	/**
@@ -615,19 +611,20 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
 	}
 
-	public FieldVisitor addConstant(final Constant<?> c) {
+	public FieldVisitor addConstant(final Constant c) {
 		if(constants.contains(c))
 			throw new IllegalArgumentException("The constant with name " + c.name + " has already been defined.");
 		constants.add(c);
-		FieldVisitor fv;
-		BaseType bt;
-		if((bt = BaseType.matchValue(c.value)) != null) {
-			fv = cw.visitField(CONST_ACCESS, c.name, bt.toInternalName().objectString(), null, c.value);
-			fv.visitEnd();
-		} else {
-			fv = cw.visitField(CONST_ACCESS, c.name, new InternalName(c.value.getClass()).objectString(), null, null);
-			fv.visitEnd();
-		}
+		final FieldVisitor fv;
+		final Object defaultValue;
+		if(c.toBaseType() == STRING)
+			defaultValue = "placeholder";
+		else if(c.isBaseType())
+			defaultValue = c.toBaseType().defaultValue;
+		else
+			defaultValue = null;
+		fv = cw.visitField(CONST_ACCESS, c.name, c.type.objectString(), null, defaultValue);
+		fv.visitEnd();
 		return fv;
 	}
 

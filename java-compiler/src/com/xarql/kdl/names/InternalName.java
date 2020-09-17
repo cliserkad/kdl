@@ -25,7 +25,7 @@ public class InternalName implements ToName, CommonText {
 	public static final String OBJECT_PREFIX = "L";
 	public static final String ARRAY_PREFIX = "[";
 	public static final int DEFAULT_ARRAY_DIMENSIONS = 0;
-	public static final int MIN_DIMENSIONS = 1;
+	public static final int MIN_DIMENSIONS = 0;
 	public static final int MAX_DIMENSIONS = 255;
 
 	public final Class<?> clazz;
@@ -50,6 +50,8 @@ public class InternalName implements ToName, CommonText {
 			base = null;
 		}
 		qualifiedName = null;
+		if(arrayDimensions < MIN_DIMENSIONS || arrayDimensions > MAX_DIMENSIONS)
+			throw new IllegalArgumentException("arrayDimensions must be within " + MIN_DIMENSIONS + " & " + MAX_DIMENSIONS);
 		this.arrayDimensions = arrayDimensions;
 	}
 
@@ -163,7 +165,7 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public boolean isArray() {
-		return arrayDimensions >= MIN_DIMENSIONS;
+		return arrayDimensions > MIN_DIMENSIONS;
 	}
 
 	public InternalName toArray(final int dimensions) {

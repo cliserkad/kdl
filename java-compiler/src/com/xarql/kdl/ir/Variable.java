@@ -1,10 +1,10 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.Actor;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
-import org.objectweb.asm.MethodVisitor;
 
 public class Variable extends Details implements Pushable, CommonText {
 
@@ -53,7 +53,7 @@ public class Variable extends Details implements Pushable, CommonText {
 	}
 
 	@Override
-	public Variable push(final MethodVisitor visitor) throws UnimplementedException {
+	public Variable push(final Actor visitor) throws UnimplementedException {
 		if(type.isBaseType() && !type.isArray()) {
 			switch(type.toBaseType()) {
 				case BOOLEAN:
@@ -84,7 +84,7 @@ public class Variable extends Details implements Pushable, CommonText {
 	}
 
 	@Override
-	public InternalName pushType(final MethodVisitor visitor) throws Exception {
+	public InternalName pushType(final Actor visitor) throws Exception {
 		return push(visitor).toInternalName();
 	}
 

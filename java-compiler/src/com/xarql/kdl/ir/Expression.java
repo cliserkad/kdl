@@ -1,6 +1,5 @@
 package com.xarql.kdl.ir;
 
-import org.objectweb.asm.MethodVisitor;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
@@ -40,7 +39,7 @@ public class Expression extends BasePushable {
 	}
 
 	@Override
-	public Pushable push(MethodVisitor visitor) throws Exception {
+	public Pushable push(Actor visitor) throws Exception {
 		ExpressionHandler.compute(this, visitor);
 		return this;
 	}

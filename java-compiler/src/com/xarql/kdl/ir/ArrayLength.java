@@ -1,9 +1,9 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.Actor;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
-import org.objectweb.asm.MethodVisitor;
 
 /**
  * Represents the access of an array's length.
@@ -23,9 +23,9 @@ public class ArrayLength extends BasePushable implements CommonText {
 	 * @throws Exception unused
 	 */
 	@Override
-	public Pushable push(MethodVisitor visitor) throws Exception {
-		array.push(visitor);
-		visitor.visitInsn(ARRAYLENGTH);
+	public Pushable push(Actor actor) throws Exception {
+		array.push(actor);
+		actor.visitInsn(ARRAYLENGTH);
 		return this;
 	}
 

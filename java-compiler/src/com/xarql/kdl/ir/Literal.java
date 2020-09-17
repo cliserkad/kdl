@@ -2,7 +2,7 @@ package com.xarql.kdl.ir;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.objectweb.asm.MethodVisitor;
+
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
@@ -16,7 +16,8 @@ public class Literal<Type> extends BasePushable implements CommonText {
 
 	public Literal(Type value) {
 		if(!BaseType.isBaseType(value))
-			throw new IllegalArgumentException("Literal may only have Types defined in the BaseType enum, but the type was " + value.getClass());
+			throw new IllegalArgumentException(
+					BaseType.matchClass(value.getClass()) + " Literal may only have Types defined in the BaseType enum, but the type was " + value.getClass().getName());
 		else
 			this.value = value;
 	}
@@ -42,12 +43,12 @@ public class Literal<Type> extends BasePushable implements CommonText {
 	}
 
 	@Override
-	public Pushable push(MethodVisitor visitor) {
+	public Pushable push(Actor visitor) {
 		visitor.visitLdcInsn(value);
 		return this;
 	}
 
-	public static Literal<?> parseLiteral(final kdl.LiteralContext ctx, Actor actor) throws Exception {
+	public static Pushable parseLiteral(final kdl.LiteralContext ctx, Actor actor) throws Exception {
 		if(ctx.bool() != null)
 			return new Literal<>(ctx.bool().TRUE() != null);
 		else if(ctx.CHAR_LIT() != null)
@@ -70,19 +71,22 @@ public class Literal<Type> extends BasePushable implements CommonText {
 				return new Literal<>(val);
 		} else if(ctx.STRING_LIT() != null) {
 			String found = crush(ctx.STRING_LIT().getText());
-			String out = "";
+			StringTemplate out = new StringTemplate();
 			for(String s : fragment(found)) {
 				if(s.startsWith("$")) {
 					if(actor.unit.hasConstant(s.substring(1)))
-						out += actor.unit.getConstant(s.substring(1)).value;
+						out.add(actor.unit.getConstant(s.substring(1)));
 					else if(actor.unit.getCurrentScope().contains(s.substring(1)))
-						out += actor.unit.getLocalVariable(s.substring(1));
+						out.add(actor.unit.getLocalVariable(s.substring(1)));
 					else
-						out += s;
+						out.add(s);
 				} else
-					out += s;
+					out.add(s);
 			}
-			return new Literal<>(out);
+			if(out.isTextOnly())
+				return new Literal<>(out.toString());
+			else
+				return out;
 		} else
 			throw new UnimplementedException(SWITCH_BASETYPE);
 	}

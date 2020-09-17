@@ -1,9 +1,6 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.JavaMethodDef;
 import org.objectweb.asm.Opcodes;
-
-import static com.xarql.kdl.BestList.list;
 
 public interface CommonText extends Opcodes {
 
@@ -21,10 +18,6 @@ public interface CommonText extends Opcodes {
 	boolean DEFAULT_BOOLEAN = false;
 
 	String EMPTY_STRING = "";
-
-	JavaMethodDef SB_APPEND = new JavaMethodDef(new InternalName(StringBuilder.class), "append", list(new InternalName(String.class)),
-			new ReturnValue(new InternalName(StringBuilder.class)), ACC_PUBLIC);
-	JavaMethodDef SB_TO_STRING = new JavaMethodDef(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 
 	// handled by ExternalMethodRouter
 	String PRINT = "print";

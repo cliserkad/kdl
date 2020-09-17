@@ -1,27 +1,25 @@
 package com.xarql.kdl.names;
 
+import com.xarql.kdl.ir.Literal;
 import org.objectweb.asm.Opcodes;
-import com.xarql.kdl.ir.Constant;
 
 public enum BaseType implements ToName {
 
-	BOOLEAN('Z', new Constant<>(CommonText.DEFAULT, false), Opcodes.T_BOOLEAN), BYTE('B', new Constant<>(CommonText.DEFAULT, 0), Opcodes.T_BYTE),
-	SHORT('S', new Constant<>(CommonText.DEFAULT, 0), Opcodes.T_SHORT), CHAR('C', new Constant<>(CommonText.DEFAULT, ' '), Opcodes.T_CHAR),
-	INT('I', new Constant<>(CommonText.DEFAULT, 0), Opcodes.T_INT), FLOAT('F', new Constant<>(CommonText.DEFAULT, 0.0F), Opcodes.T_FLOAT),
-	LONG('J', new Constant<>(CommonText.DEFAULT, 0L), Opcodes.T_LONG), DOUBLE('D', new Constant<>(CommonText.DEFAULT, 0.0D), Opcodes.T_DOUBLE),
-	STRING("Ljava/lang/String;", new Constant<>(CommonText.DEFAULT, ""), 0);
+	BOOLEAN('Z', new Literal<>(false), Opcodes.T_BOOLEAN), BYTE('B', new Literal<>(0), Opcodes.T_BYTE), SHORT('S', new Literal<>(0), Opcodes.T_SHORT),
+	CHAR('C', new Literal<>(' '), Opcodes.T_CHAR), INT('I', new Literal<>(0), Opcodes.T_INT), FLOAT('F', new Literal<>(0.0F), Opcodes.T_FLOAT),
+	LONG('J', new Literal<>(0L), Opcodes.T_LONG), DOUBLE('D', new Literal<>(0.0D), Opcodes.T_DOUBLE), STRING("Ljava/lang/String;", new Literal<>(""), 0);
 
 	public final String rep;
-	public final Constant<?> defaultValue;
+	public final Literal<?> defaultValue;
 	public final int id;
 
-	BaseType(String rep, Constant<?> defaultValue, int id) {
+	BaseType(String rep, Literal<?> defaultValue, int id) {
 		this.rep = rep;
 		this.defaultValue = defaultValue;
 		this.id = id;
 	}
 
-	BaseType(char rep, Constant<?> defaultValue, int id) {
+	BaseType(char rep, Literal<?> defaultValue, int id) {
 		this("" + rep, defaultValue, id);
 	}
 
@@ -29,8 +27,28 @@ public enum BaseType implements ToName {
 		return matchClass(clazz) != null;
 	}
 
-	public static boolean isBaseType(Object value) {
-		return matchValue(value) != null;
+	public static boolean isBaseType(final Object value) {
+		final Class c = value.getClass();
+		if(c.equals(boolean.class) || c.equals(Boolean.class))
+			return true;
+		else if(c.equals(byte.class) || c.equals(Byte.class))
+			return true;
+		else if(c.equals(short.class) || c.equals(Short.class))
+			return true;
+		else if(c.equals(char.class) || c.equals(Character.class))
+			return true;
+		else if(c.equals(int.class) || c.equals(Integer.class))
+			return true;
+		else if(c.equals(float.class) || c.equals(Float.class))
+			return true;
+		else if(c.equals(long.class) || c.equals(Long.class))
+			return true;
+		else if(c.equals(double.class) || c.equals(Double.class))
+			return true;
+		else if(c.equals(String.class))
+			return true;
+		else
+			return false;
 	}
 
 	/**
@@ -100,7 +118,7 @@ public enum BaseType implements ToName {
 		return new InternalName(this);
 	}
 
-	public Constant<?> getDefaultValue() {
+	public Literal<?> getDefaultValue() {
 		return defaultValue;
 	}
 

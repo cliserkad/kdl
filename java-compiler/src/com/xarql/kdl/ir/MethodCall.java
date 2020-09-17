@@ -1,6 +1,5 @@
 package com.xarql.kdl.ir;
 
-import org.objectweb.asm.MethodVisitor;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.CompilationUnit;
@@ -61,7 +60,7 @@ public class MethodCall extends BasePushable implements CommonText {
 	}
 
 	@Override
-	public MethodCall push(final MethodVisitor visitor) throws Exception {
+	public MethodCall push(final Actor visitor) throws Exception {
 		if(source != null)
 			source.push(visitor);
 		for(int i = 0; i < arguments.size(); i++) {
