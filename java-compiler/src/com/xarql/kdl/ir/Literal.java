@@ -72,17 +72,20 @@ public class Literal<Type> extends BasePushable implements CommonText {
 		} else if(ctx.STRING_LIT() != null) {
 			String found = crush(ctx.STRING_LIT().getText());
 			StringTemplate out = new StringTemplate();
+			String prev = "";
 			for(String s : fragment(found)) {
-				if(s.startsWith("$")) {
+				if(s.startsWith("$") && (actor.unit.hasConstant(s.substring(1)) || actor.unit.getCurrentScope().contains(s.substring(1)))) {
+					out.add(prev);
+					prev = "";
 					if(actor.unit.hasConstant(s.substring(1)))
 						out.add(actor.unit.getConstant(s.substring(1)));
-					else if(actor.unit.getCurrentScope().contains(s.substring(1)))
-						out.add(actor.unit.getLocalVariable(s.substring(1)));
 					else
-						out.add(s);
+						out.add(actor.unit.getLocalVariable(s.substring(1)));
 				} else
-					out.add(s);
+					prev += s;
 			}
+			if(!prev.isEmpty())
+				out.add(prev);
 			if(out.isTextOnly())
 				return new Literal<>(out.toString());
 			else
