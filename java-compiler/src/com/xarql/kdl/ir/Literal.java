@@ -12,6 +12,10 @@ import com.xarql.kdl.names.InternalName;
 
 public class Literal<Type> extends BasePushable implements CommonText {
 
+	public static final char MIXIN = '$';
+	public static final char QUOTE = '\"';
+	public static final char ESCAPE = '\\';
+
 	public Type value;
 
 	public Literal(Type value) {
@@ -73,16 +77,26 @@ public class Literal<Type> extends BasePushable implements CommonText {
 			String found = crush(ctx.STRING_LIT().getText());
 			StringTemplate out = new StringTemplate();
 			String prev = "";
-			for(String s : fragment(found)) {
-				if(s.startsWith("$") && (actor.unit.hasConstant(s.substring(1)) || actor.unit.getCurrentScope().contains(s.substring(1)))) {
-					out.add(prev);
-					prev = "";
-					if(actor.unit.hasConstant(s.substring(1)))
-						out.add(actor.unit.getConstant(s.substring(1)));
-					else
-						out.add(actor.unit.getLocalVariable(s.substring(1)));
+			for(int i = 0; i < found.length(); i++) {
+				if(found.charAt(i) == MIXIN) {
+					if(i == 0 || found.charAt(i - 1) != ESCAPE) {
+						out.add(prev);
+						prev = "";
+						final String target = resolveMixin(found, i);
+						if(actor.unit.hasConstant(target))
+							out.add(actor.unit.getConstant(target));
+						else if(actor.unit.getCurrentScope().contains(target))
+							out.add(actor.unit.getLocalVariable(target));
+						else
+							throw new IllegalArgumentException(
+									target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);
+						i += target.length();
+					} else
+						prev += MIXIN;
+				} else if(found.charAt(i) == ESCAPE) {
+
 				} else
-					prev += s;
+					prev += found.charAt(i);
 			}
 			if(!prev.isEmpty())
 				out.add(prev);
@@ -94,18 +108,16 @@ public class Literal<Type> extends BasePushable implements CommonText {
 			throw new UnimplementedException(SWITCH_BASETYPE);
 	}
 
-	public static List<String> fragment(String found) {
-		List<String> list = new ArrayList<>();
-		String part = "";
-		for(int i = 0; i < found.length(); i++) {
-			if(found.charAt(i) == '$' || Character.isWhitespace(found.charAt(i))) {
-				list.add(part);
-				part = "";
-			}
-			part += found.charAt(i);
-		}
-		list.add(part);
-		return list;
+	public static String resolveMixin(final String s, final int start) {
+		String sub = s.substring(start + 1);
+		for(int i = 0; i < sub.length(); i++)
+			if(!isAlphabetic(sub.charAt(i)))
+				return sub.substring(0, i);
+		return sub;
+	}
+
+	public static boolean isAlphabetic(final char c) {
+		return (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
 	}
 
 	public static String crush(final String s) {
