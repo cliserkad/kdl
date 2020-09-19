@@ -46,8 +46,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
 
+	// used to generate a numerical id
 	private static int unitCount = 0;
 
+	// input and output
 	private File sourceFile;
 	private String sourceCode;
 	private File outputFile;
@@ -61,10 +63,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private boolean nameSet;
 	private final int id;
 
-	public final BestList<Constant> constants;
-	private final ConditionalHandler cmpHandler;
-	private final BestList<String> constantNames = new BestList<>();
-	private final Map<String, kdl.ConstantContext> constantContexts = new HashMap<>();
+	public final TrackedMap<Constant, kdl.ConstantContext> constants;
 
 	private String pkgName;
 
@@ -76,10 +75,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private CompilationUnit() {
 		pass = 0;
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
-		constants = new BestList<>();
+		constants = new TrackedMap<>();
 		imports = new BestList<>();
 		methods = new BestList<>();
-		cmpHandler = new ConditionalHandler(this);
 		id = unitCount++;
 		addImport(String.class);
 	}
@@ -351,9 +349,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(getPass() == 1) {
 			pkgName = nonNull(pkgName);
 			if(!pkgName.isEmpty())
-				setClassName(pkgName.substring(0, pkgName.lastIndexOf(".") + 1), ctx.CLASSNAME(0).getText());
+				setClassName(pkgName.substring(0, pkgName.lastIndexOf(".") + 1), ctx.CLASSNAME().getText());
 			else
-				setClassName(pkgName, ctx.CLASSNAME(0).getText());
+				setClassName(pkgName, ctx.CLASSNAME().getText());
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 			addDefaultConstructor(cw);
 		} else if(getPass() == 2) {
@@ -361,13 +359,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			addMethodDef(staticInit);
 			Actor actor = new Actor(defineMethod(staticInit), this);
 
-			for(String name : constantNames) {
+			for(kdl.ConstantContext c : constants) {
 				try {
-					final Pushable pushable = Literal.parseLiteral(constantContexts.get(name).literal(), actor);
-					Constant c = new Constant(name, pushable.toInternalName(), clazz.toInternalName());
-					addConstant(c);
+					final Pushable pushable = Literal.parseLiteral(c.literal(), actor);
+					final Constant unsetConst = new Constant(c.CONSTNAME().getText(), pushable.toInternalName(), clazz.toInternalName());
+					addConstant(unsetConst);
+					constants.put(unsetConst, c);
 					pushable.push(actor);
-					actor.visitFieldInsn(PUTSTATIC, c.owner.nameString(), name, c.type.objectString());
+					actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, unsetConst.type.objectString());
 				} catch(Exception e) {
 					printException(e);
 				}
@@ -381,11 +380,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		// collect names
 		if(getPass() == 1) {
 			final String name = ctx.CONSTNAME().toString();
-			if(!constantNames.contains(name)) {
-				constantNames.add(name);
-				constantContexts.put(name, ctx);
-			} else
-				throw new IllegalArgumentException("The const named " + name + " was already declared");
+			final Constant unsetConst = new Constant(name, InternalName.INT, getClazz().toInternalName());
+			if(!constants.contains(unsetConst))
+				constants.put(unsetConst, ctx);
+			else
+				throw new IllegalArgumentException("The const named " + name + " was already declared within " + getClazz());
 		}
 	}
 
@@ -424,7 +423,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			consumeMethodCallStatement(ctx.methodCallStatement(), actor);
 		} else if(ctx.conditional() != null) {
 			// forward to the handler to partition code
-			cmpHandler.handle(ctx.conditional(), actor);
+			ConditionalHandler.handle(ctx.conditional(), actor);
 		} else if(ctx.returnStatement() != null) {
 			if(ctx.returnStatement().expression() == null) {
 				actor.visitInsn(RETURN);
@@ -562,7 +561,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public boolean hasConstant(final String name) {
-		for(Constant c : constants) {
+		for(Constant c : constants.keys()) {
 			if(c.name.equals(name))
 				return true;
 		}
@@ -570,7 +569,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public Constant getConstant(final String name) {
-		for(Constant c : constants) {
+		for(Constant c : constants.keys()) {
 			if(c.name.equals(name))
 				return c;
 		}
@@ -612,9 +611,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public FieldVisitor addConstant(final Constant c) {
-		if(constants.contains(c))
-			throw new IllegalArgumentException("The constant with name " + c.name + " has already been defined.");
-		constants.add(c);
 		final FieldVisitor fv;
 		final Object defaultValue;
 		if(c.toBaseType() == STRING)

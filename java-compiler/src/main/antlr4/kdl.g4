@@ -66,6 +66,7 @@ basetype: BOOLEAN | BYTE | SHORT | CHAR | INT | FLOAT | LONG | DOUBLE | STRING;
 source: path? use* clazz EOF;
 use: USE QUALIFIED_NAME STATEMENT_END;
 path: PATH QUALIFIED_NAME STATEMENT_END;
-clazz: TYPE CLASSNAME (ASSIGN CLASSNAME*)? BODY_OPEN (constant | main | variableDeclaration | methodDefinition)* BODY_CLOSE;
+clazz: TYPE CLASSNAME BODY_OPEN (constant | field | main | methodDefinition)* BODY_CLOSE;
 constant: CONST CONSTNAME ASSIGN literal STATEMENT_END;
+field: variableDeclaration;
 main: MAIN block;

@@ -6,13 +6,7 @@ import com.xarql.kdl.names.*;
 
 public class ConditionalHandler implements CommonText {
 
-	private final CompilationUnit owner;
-
-	public ConditionalHandler(CompilationUnit owner) {
-		this.owner = owner;
-	}
-
-	private kdl.ConditionContext conditionContextof(kdl.ConditionalContext ctx) throws UnimplementedException {
+	private static kdl.ConditionContext conditionContextof(kdl.ConditionalContext ctx) throws UnimplementedException {
 		if(ctx.r_if() != null)
 			return ctx.r_if().condition();
 		else if(ctx.r_while() != null)
@@ -25,7 +19,7 @@ public class ConditionalHandler implements CommonText {
 			throw new UnimplementedException("Retrieving a conditional's condition failed");
 	}
 
-	public void handle(kdl.ConditionalContext ctx, final Actor actor) throws Exception {
+	public static void handle(kdl.ConditionalContext ctx, final Actor actor) throws Exception {
 		final kdl.ConditionContext cnd = conditionContextof(ctx);
 
 		final Conditional conditional;

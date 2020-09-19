@@ -42,7 +42,7 @@ public class Constant extends BasePushable {
 	public boolean equals(Object o) {
 		if(o instanceof Constant) {
 			Constant other = (Constant) o;
-			return other.name.equals(name) && other.type.equals(type);
+			return other.name.equals(name) && other.owner.equals(owner);
 		}
 		return false;
 	}
