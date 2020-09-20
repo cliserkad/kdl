@@ -6,6 +6,12 @@ public class Details implements ToName {
 	public final InternalName type;
 	public final boolean mutable;
 
+	public Details(final Details details) {
+		this.name = details.name;
+		this.type = details.type;
+		this.mutable = details.mutable;
+	}
+
 	public Details(final String name, final InternalName type, final boolean mutable) {
 		this.name = name;
 		this.type = type;
@@ -38,6 +44,14 @@ public class Details implements ToName {
 	@Override
 	public InternalName toInternalName() {
 		return type;
+	}
+
+	public boolean equals(Object object) {
+		if(object instanceof Details) {
+			final Details other = (Details) object;
+			return name.equals(other.name) && type.equals(other.type) && mutable == other.mutable;
+		} else
+			return false;
 	}
 
 }

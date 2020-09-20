@@ -6,7 +6,7 @@ import static com.xarql.kdl.BestList.list;
 
 public class ForTest {
 
-	public static final String EXTENSION = "/flow/for";
+	public static final String EXTENSION = "test/kdl/flow/for";
 
 	@Test
 	public void testForRange() {

@@ -11,6 +11,8 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.xarql.kdl.ir.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -22,18 +24,6 @@ import org.objectweb.asm.MethodVisitor;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.antlr.kdlBaseListener;
 import com.xarql.kdl.antlr.kdlLexer;
-import com.xarql.kdl.ir.ConditionalHandler;
-import com.xarql.kdl.ir.Constant;
-import com.xarql.kdl.ir.Expression;
-import com.xarql.kdl.ir.ExpressionHandler;
-import com.xarql.kdl.ir.Literal;
-import com.xarql.kdl.ir.MethodCall;
-import com.xarql.kdl.ir.NewObject;
-import com.xarql.kdl.ir.Operator;
-import com.xarql.kdl.ir.Pushable;
-import com.xarql.kdl.ir.Variable;
-import com.xarql.kdl.ir.VariableAssignment;
-import com.xarql.kdl.ir.VariableDeclaration;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.Details;
@@ -64,6 +54,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private final int id;
 
 	public final TrackedMap<Constant, kdl.ConstantContext> constants;
+	public final TrackedMap<Field, kdl.FieldContext> fields;
 
 	private String pkgName;
 
@@ -78,6 +69,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		constants = new TrackedMap<>();
 		imports = new BestList<>();
 		methods = new BestList<>();
+		fields = new TrackedMap<>();
 		id = unitCount++;
 		addImport(String.class);
 	}
@@ -127,6 +119,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		final ParseTree tree = makeParseTree(sourceCode);
 		newPass();
 		ParseTreeWalker.DEFAULT.walk(this, tree);
+		addImport(getClazz().toInternalName());
 		newPass();
 		ParseTreeWalker.DEFAULT.walk(this, tree);
 		newPass();
@@ -214,7 +207,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		} else {
 			type = resolveAgainstImports(ctx.type().getText());
 			if(type == null)
-
 				throw new IllegalArgumentException("Couldn't recognize type");
 		}
 
@@ -353,31 +345,69 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			else
 				setClassName(pkgName, ctx.CLASSNAME().getText());
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
-			addDefaultConstructor(cw);
 		} else if(getPass() == 2) {
-			JavaMethodDef staticInit = JavaMethodDef.STATIC_INIT.withOwner(clazz);
-			addMethodDef(staticInit);
-			Actor actor = new Actor(defineMethod(staticInit), this);
+			if(!constants.isEmpty()) {
+				JavaMethodDef staticInit = JavaMethodDef.STATIC_INIT.withOwner(clazz);
+				addMethodDef(staticInit);
+				Actor actor = new Actor(defineMethod(staticInit), this);
 
-			for(kdl.ConstantContext c : constants) {
-				try {
-					final Pushable pushable = Literal.parseLiteral(c.literal(), actor);
-					final Constant unsetConst = new Constant(c.CONSTNAME().getText(), pushable.toInternalName(), clazz.toInternalName());
-					addConstant(unsetConst);
-					constants.put(unsetConst, c);
-					pushable.push(actor);
-					actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, unsetConst.type.objectString());
-				} catch(Exception e) {
-					printException(e);
+				for(kdl.ConstantContext c : constants) {
+					try {
+						final Pushable pushable = Literal.parseLiteral(c.literal(), actor);
+						final Constant unsetConst = new Constant(c.CONSTNAME().getText(), pushable.toInternalName(), clazz.toInternalName());
+						addConstant(unsetConst);
+						constants.put(unsetConst, c);
+						pushable.push(actor);
+						actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, unsetConst.type.objectString());
+					} catch(Exception e) {
+						printException(e);
+					}
 				}
+				getCurrentScope().end(ctx.stop.getLine(), actor, staticInit.returnValue);
 			}
-			getCurrentScope().end(ctx.stop.getLine(), actor, staticInit.returnValue);
+
+			for(Field f : fields.keys()) {
+				final FieldVisitor fv;
+				final Object defaultValue;
+				if(f.type.toBaseType() == STRING)
+					defaultValue = "placeholder";
+				else if(f.type.isBaseType())
+					defaultValue = f.toBaseType().defaultValue.value;
+				else
+					defaultValue = null;
+				fv = cw.visitField(ACC_PUBLIC + ACC_FINAL, f.name, f.type.objectString(), null, defaultValue);
+				fv.visitEnd();
+			}
+
+			try {
+				addDefaultConstructor(cw);
+			} catch(Exception e) {
+				printException(e);
+			}
+		}
+	}
+
+	@Override
+	public void enterField(kdl.FieldContext ctx) {
+		// collect details
+		if(getPass() == 1) {
+			try {
+				final Details details = parseTypedVariable(ctx.variableDeclaration().typedVariable());
+				final Field field = new Field(details);
+				if(!fields.contains(field))
+					fields.put(field, ctx);
+				else
+					throw new IllegalArgumentException("The field named " + details.name + " was already declared within " + getClazz());
+			} catch(Exception e) {
+				throw new IllegalArgumentException(
+						"Couldn't determine the name, type and mutability of a field at " + ctx.getStart().getLine() + ":" + ctx.getStart().getCharPositionInLine());
+			}
 		}
 	}
 
 	@Override
 	public void enterConstant(final kdl.ConstantContext ctx) {
-		// collect names
+		// collect details
 		if(getPass() == 1) {
 			final String name = ctx.CONSTNAME().toString();
 			final Constant unsetConst = new Constant(name, InternalName.INT, getClazz().toInternalName());
@@ -484,6 +514,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		for(Method method : clazz.getMethods()) {
 			methods.add(new JavaMethodDef(clazz, method));
 		}
+	}
+
+	public void addImport(InternalName internalName) {
+		imports.add(internalName);
 	}
 
 	@Override
@@ -624,20 +658,38 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return fv;
 	}
 
-	public void addDefaultConstructor(final ClassWriter cw) {
-		final MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
-		mv.visitCode();
-		final Label l0 = new Label();
-		mv.visitLabel(l0);
-		mv.visitLineNumber(3, l0);
-		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
-		mv.visitInsn(RETURN);
-		final Label l1 = new Label();
-		mv.visitLabel(l1);
-		mv.visitLocalVariable("this", clazz.toInternalName().objectString(), null, l0, l1, 0);
-		mv.visitMaxs(0, 0);
-		mv.visitEnd();
+	public void addDefaultConstructor(final ClassWriter cw) throws Exception {
+		addMethodDef(JavaMethodDef.INIT.withOwner(getClazz()));
+		final Actor actor = new Actor(defineMethod(JavaMethodDef.INIT.withOwner(getClazz())), this);
+		actor.visitCode();
+		final Label start = new Label();
+		actor.visitLabel(start);
+		actor.visitLineNumber(0, start);
+
+		// call Object.super(this);
+		actor.visitVarInsn(ALOAD, 0);
+		actor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+
+		for(Field f : fields.keys()) {
+			// push "this"
+			actor.visitVarInsn(ALOAD, 0);
+			if(fields.get(f).variableDeclaration().ASSIGN() != null) {
+				final Expression xpr = new Expression(fields.get(f).variableDeclaration().expression(), actor);
+				xpr.push(actor);
+			} else {
+				if(f.type.isBaseType())
+					f.type.toBaseType().defaultValue.push(actor);
+				else
+					actor.visitInsn(ACONST_NULL);
+			}
+			actor.visitFieldInsn(PUTFIELD, getClazz().toInternalName().nameString(), f.name, f.type.objectString());
+		}
+		final Label finish = new Label();
+		actor.visitLabel(finish);
+		actor.visitInsn(RETURN);
+		actor.visitLocalVariable("this", clazz.toInternalName().objectString(), null, start, finish, 0);
+		actor.visitMaxs(0, 0);
+		actor.visitEnd();
 	}
 
 	public Scope getCurrentScope() {

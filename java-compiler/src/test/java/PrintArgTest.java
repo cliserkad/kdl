@@ -16,7 +16,7 @@ public class PrintArgTest {
 	@Test
 	public void testPrintArg() {
 		BestList<String> printArgArguments = new BestList<>(ARGS);
-		new StandardKdlTest("/basics", "PrintArg", printArgArguments, printArgArguments);
+		new StandardKdlTest("test/kdl/basics", "PrintArg", printArgArguments, printArgArguments);
 	}
 
 }

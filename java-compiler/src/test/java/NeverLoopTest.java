@@ -8,7 +8,7 @@ public class NeverLoopTest {
 
 	@Test
 	public void testNeverLoop() {
-		new StandardKdlTest("/flow/while", "NeverLoop", null, list("hello from NeverLoop")).testKDL();
+		new StandardKdlTest("test/kdl/flow/while", "NeverLoop", null, list("hello from NeverLoop")).testKDL();
 	}
 
 }

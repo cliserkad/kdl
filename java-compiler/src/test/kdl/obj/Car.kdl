@@ -1,0 +1,11 @@
+path test.kdl.obj.Car;
+
+type Car {
+  int year;
+  string model;
+
+  main {
+    Car car: Car();
+    println("success");
+  }
+}

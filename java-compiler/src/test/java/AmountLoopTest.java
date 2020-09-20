@@ -8,7 +8,7 @@ public class AmountLoopTest {
 
 	@Test
 	public void testAmountLoop() {
-		new StandardKdlTest("/flow/while", "AmountLoop", null, list(
+		new StandardKdlTest("test/kdl/flow/while", "AmountLoop", null, list(
 				"This message should be printed 5 timesThis message should be printed 5 timesThis message should be printed 5 timesThis message should be printed 5 timesThis message should be printed 5 times"))
 						.testKDL();
 	}

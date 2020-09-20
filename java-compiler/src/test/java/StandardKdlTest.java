@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StandardKdlTest {
 
-	public static final String JAVA_CMD = "java -cp src/test/kdl";
+	public static final String JAVA_CMD = "java -cp src/";
 
 	public final String className;
 	public final String pathExtension;
@@ -80,7 +80,10 @@ public class StandardKdlTest {
 	 * @return className + ".kdl"
 	 */
 	public String fileName() {
-		return className + ".kdl";
+		if(className.contains("."))
+			return ".*" + className.substring(className.lastIndexOf('.') + 1) + ".kdl";
+		else
+			return className + ".kdl";
 	}
 
 }

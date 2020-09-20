@@ -6,7 +6,7 @@ import static com.xarql.kdl.BestList.list;
 
 public class StringTemplateTest {
 
-	public static final String PATH = "/basics/string_template";
+	public static final String PATH = "test/kdl/basics/string_template";
 
 	@Test
 	public void testTemplate() {

@@ -22,7 +22,7 @@ public class FizzBuzzTest {
 		for(int n : NUMS)
 			fizzBuzzOutputs.add(fizzBuzz(n));
 
-		new StandardKdlTest("/sample", "FizzBuzz", fizzBuzzArguments, fizzBuzzOutputs);
+		new StandardKdlTest("test/kdl/sample", "FizzBuzz", fizzBuzzArguments, fizzBuzzOutputs);
 	}
 
 	public String fizzBuzz(int input) {

@@ -11,7 +11,7 @@ public class JavaMethodDef implements CommonText {
 
 	public static final JavaMethodDef MAIN = new JavaMethodDef(new InternalName(Object.class), "main", list(new InternalName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
 	public static final JavaMethodDef TO_STRING = new JavaMethodDef(new InternalName(Object.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
-	public static final JavaMethodDef INIT = new JavaMethodDef(new InternalName(Object.class), "<init>", null, ReturnValue.OBJECT, ACC_PUBLIC + ACC_STATIC);
+	public static final JavaMethodDef INIT = new JavaMethodDef(new InternalName(Object.class), "<init>", null, ReturnValue.VOID, ACC_PUBLIC);
 	public static final JavaMethodDef STATIC_INIT = new JavaMethodDef(new InternalName(Object.class), "<clinit>", null, ReturnValue.VOID, ACC_PUBLIC + ACC_STATIC + ACC_FINAL);
 
 	public static final String S_INIT = "<init>";

@@ -1,5 +1,7 @@
 path kdl.compiler.CompilationUnit;
 
+use java.io.File;
+
 type CompilationUnit {
     File input;
 

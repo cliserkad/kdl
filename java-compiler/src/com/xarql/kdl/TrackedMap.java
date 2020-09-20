@@ -44,6 +44,15 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	}
 
 	/**
+	 * Determines if this is empty. Returns true only if size is 0
+	 *
+	 * @return size() == 0
+	 */
+	public boolean isEmpty() {
+		return size() == 0;
+	}
+
+	/**
 	 * Specifies if this TrackedHashMap contains the given key. The key's existence
 	 * is determined in the container. Specifically,
 	 * <code>container.containsKey(key)</code>
