@@ -53,8 +53,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private boolean nameSet;
 	private final int id;
 
-	public final TrackedMap<Constant, kdl.ConstantContext> constants;
-	public final TrackedMap<Field, kdl.FieldContext> fields;
+	public final TrackedMap<Constant, kdl.ConstantDefContext> constants;
+	public final TrackedMap<Field, kdl.FieldDefContext> fields;
 
 	private String pkgName;
 
@@ -351,7 +351,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				addMethodDef(staticInit);
 				Actor actor = new Actor(defineMethod(staticInit), this);
 
-				for(kdl.ConstantContext c : constants) {
+				for(kdl.ConstantDefContext c : constants) {
 					try {
 						final Pushable pushable = Literal.parseLiteral(c.literal(), actor);
 						final Constant unsetConst = new Constant(c.CONSTNAME().getText(), pushable.toInternalName(), clazz.toInternalName());
@@ -388,7 +388,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	@Override
-	public void enterField(kdl.FieldContext ctx) {
+	public void enterFieldDef(kdl.FieldDefContext ctx) {
 		// collect details
 		if(getPass() == 1) {
 			try {
@@ -406,7 +406,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	@Override
-	public void enterConstant(final kdl.ConstantContext ctx) {
+	public void enterConstantDef(final kdl.ConstantDefContext ctx) {
 		// collect details
 		if(getPass() == 1) {
 			final String name = ctx.CONSTNAME().toString();

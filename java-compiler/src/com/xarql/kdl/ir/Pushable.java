@@ -46,10 +46,10 @@ public interface Pushable extends ToName {
 	public static Pushable parse(final Actor actor, final kdl.ValueContext val) throws Exception {
 		if(val.literal() != null)
 			return Literal.parseLiteral(val.literal(), actor);
-		else if(val.CONSTNAME() != null)
-			return actor.unit.getConstant(val.CONSTNAME().getText());
-		else if(val.VARNAME() != null)
-			return actor.unit.getLocalVariable(val.VARNAME().getText());
+		else if(val.constant() != null)
+			return actor.unit.getConstant(val.constant().CONSTNAME().getText());
+		else if(val.variable() != null)
+			return actor.unit.getLocalVariable(val.variable().VARNAME().getText());
 		else if(val.indexAccess() != null)
 			return new IndexAccess(actor.unit.getLocalVariable(val.indexAccess().VARNAME().getText()), new Expression(val.indexAccess().expression(), actor));
 		else if(val.subSequence() != null)
