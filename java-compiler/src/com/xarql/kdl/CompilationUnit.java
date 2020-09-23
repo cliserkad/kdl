@@ -435,7 +435,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(ctx.VARNAME() != null) {
 			final Variable target = getLocalVariable(ctx.VARNAME().getText());
 			final ToName resultType;
-			if (ctx.operatorAssign() != null)
+			if(ctx.operatorAssign() != null)
 				resultType = new Expression(target, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator().getText())).push(actor);
 			else
 				resultType = new VariableAssignment(new Expression(ctx.expression(), actor), target).push(actor);
@@ -531,15 +531,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		try {
 			// parse name and return type
 			final Details details;
-			if(ctx.methodHeader().typedVariable() != null)
-				details = parseTypedVariable(ctx.methodHeader().typedVariable());
+			if(ctx.typedVariable() != null)
+				details = parseTypedVariable(ctx.typedVariable());
 			else
-				details = new Details(ctx.methodHeader().VARNAME().getText(), null, false);
+				details = new Details(ctx.VARNAME().getText(), null, false);
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
 			final BestList<Details> params = new BestList<>();
-			for(kdl.TypedVariableContext typedVar : ctx.methodHeader().parameterDefinition().typedVariable())
+			for(kdl.TypedVariableContext typedVar : ctx.parameterDefinition().typedVariable())
 				params.add(parseTypedVariable(typedVar));
 
 			// create MethodDef
@@ -549,7 +549,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 			// check if the method accesses any fields
 			final int staticModifier;
-			if(ctx.methodHeader().TYPE() == null)
+			if(ctx.parameterDefinition().THIS() == null)
 				staticModifier = ACC_STATIC;
 			else
 				staticModifier = 0;

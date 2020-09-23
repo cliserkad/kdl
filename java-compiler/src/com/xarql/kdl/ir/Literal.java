@@ -81,7 +81,7 @@ public class Literal<Type> extends BasePushable implements CommonText {
 				if(found.charAt(i) == MIXIN) {
 					if(i == 0 || found.charAt(i - 1) != ESCAPE) {
 						if(!prev.isEmpty())
-						out.add(prev);
+							out.add(prev);
 						prev = "";
 						final String target = resolveMixin(found, i);
 						if(actor.unit.hasConstant(target))

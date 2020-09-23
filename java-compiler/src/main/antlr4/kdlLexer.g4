@@ -18,9 +18,6 @@ STRING_LIT: QUOTE (~["\\] | '\\' .)* QUOTE;
 TYPE: 'type';
 CONST: 'const';
 MAIN: 'main';
-
-TRUE: 'true';
-FALSE: 'false';
 RETURN: 'return';
 USE: 'use';
 PATH: 'path';
@@ -31,6 +28,7 @@ SIZE: 'size';
 ASSERT: 'assert';
 WHILE: 'while';
 FOR: 'for';
+THIS: 'this';
 
 // base types
 BOOLEAN: 'boolean';
@@ -42,6 +40,10 @@ FLOAT: 'float';
 LONG: 'long';
 DOUBLE: 'double';
 STRING: 'string';
+
+// boolean values
+TRUE: 'true';
+FALSE: 'false';
 
 // syntax
 BODY_OPEN: '{'; // opening bracket

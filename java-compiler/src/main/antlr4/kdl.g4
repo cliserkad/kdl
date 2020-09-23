@@ -56,9 +56,8 @@ methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet;
 parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
-methodDefinition: methodHeader block;
-methodHeader: TYPE? (typedVariable | VARNAME MUTABLE?) parameterDefinition;
-parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
+methodDefinition: (typedVariable | VARNAME MUTABLE?) parameterDefinition block;
+parameterDefinition: PARAM_OPEN (THIS | typedVariable)? (SEPARATOR typedVariable)* PARAM_CLOSE;
 
 returnStatement: RETURN expression STATEMENT_END;
 

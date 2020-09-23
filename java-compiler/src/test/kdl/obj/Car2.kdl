@@ -9,7 +9,7 @@ type Car2 {
     println(car.toString());
   }
 
-  type string toString() {
+  string toString(this) {
     return "$year $model";
   }
 }

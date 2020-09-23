@@ -31,8 +31,7 @@ public class Field extends Details implements Pushable {
 		if(object instanceof Field) {
 			final Field other = (Field) object;
 			return other.owner.equals(owner) && other.name.equals(name);
-		}
-		else
+		} else
 			return false;
 	}
 
@@ -47,4 +46,5 @@ public class Field extends Details implements Pushable {
 	public InternalName pushType(Actor actor) throws Exception {
 		return push(actor).toInternalName();
 	}
+
 }

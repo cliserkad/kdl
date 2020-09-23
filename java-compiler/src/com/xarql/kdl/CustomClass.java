@@ -51,4 +51,5 @@ public class CustomClass implements ToName, Pushable {
 	public InternalName pushType(Actor actor) throws Exception {
 		return push(actor).toInternalName();
 	}
+
 }
