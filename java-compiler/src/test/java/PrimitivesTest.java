@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.xarql.kdl.BestList.list;
 
-public class NicePrimitivesTest {
+public class PrimitivesTest {
 
 	public static final String OUTPUT0 = "true" + "120" + "32000" + "C" + "64000" + "1.5" + "string";
 	public static final String OUTPUT1 = "133444444444444" + "9.2348936E7" + OUTPUT0;
