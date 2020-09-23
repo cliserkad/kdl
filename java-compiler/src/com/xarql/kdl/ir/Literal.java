@@ -80,6 +80,7 @@ public class Literal<Type> extends BasePushable implements CommonText {
 			for(int i = 0; i < found.length(); i++) {
 				if(found.charAt(i) == MIXIN) {
 					if(i == 0 || found.charAt(i - 1) != ESCAPE) {
+						if(!prev.isEmpty())
 						out.add(prev);
 						prev = "";
 						final String target = resolveMixin(found, i);
@@ -87,6 +88,8 @@ public class Literal<Type> extends BasePushable implements CommonText {
 							out.add(actor.unit.getConstant(target));
 						else if(actor.unit.getCurrentScope().contains(target))
 							out.add(actor.unit.getLocalVariable(target));
+						else if(actor.unit.fields.contains(new Field(target, null, false, actor.unit.getClazz())))
+							out.add(actor.unit.fields.equivalentKey(new Field(target, null, false, actor.unit.getClazz())));
 						else
 							throw new IllegalArgumentException(
 									target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);

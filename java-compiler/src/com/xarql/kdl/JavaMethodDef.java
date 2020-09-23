@@ -96,8 +96,10 @@ public class JavaMethodDef implements CommonText {
 			JavaMethodDef md = (JavaMethodDef) obj;
 			if(obj == this)
 				return true;
-			else
+			else if(md.owner == null)
 				return methodName.equals(md.methodName) && returnValue.equals(md.returnValue) && paramTypes.equals(md.paramTypes);
+			else
+				return methodName.equals(md.methodName) && returnValue.equals(md.returnValue) && paramTypes.equals(md.paramTypes) && owner.equals(md.owner);
 		} else
 			return false;
 	}

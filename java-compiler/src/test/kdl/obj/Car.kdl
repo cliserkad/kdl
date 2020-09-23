@@ -1,11 +1,12 @@
 path test.kdl.obj.Car;
 
 type Car {
-  int year;
-  string model;
+  int year: 1998;
+  string model: "Honda Accord";
 
   main {
     Car car: Car();
     println("success");
   }
+
 }

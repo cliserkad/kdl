@@ -9,8 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.xarql.kdl.ir.*;
 import org.antlr.v4.runtime.CharStreams;
@@ -393,7 +391,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(getPass() == 1) {
 			try {
 				final Details details = parseTypedVariable(ctx.variableDeclaration().typedVariable());
-				final Field field = new Field(details);
+				final Field field = new Field(details, getClazz());
 				if(!fields.contains(field))
 					fields.put(field, ctx);
 				else
@@ -433,22 +431,30 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		new VariableDeclaration(ctx, actor).push(actor);
 	}
 
-	private void consumeVariableAssignment(kdl.VariableAssignmentContext ctx, Actor actor) throws Exception {
-		Variable target = getLocalVariable(ctx.VARNAME().getText());
-		final ToName resultType;
-		if(ctx.assignment().operatorAssign() != null)
-			resultType = ExpressionHandler.compute(new Expression(getLocalVariable(ctx.VARNAME().getText()), Pushable.parse(actor, ctx.assignment().operatorAssign().value()),
-					Operator.match(ctx.assignment().operatorAssign().operator().getText())), actor);
-		else
-			resultType = new VariableAssignment(new Expression(ctx.assignment().expression(), actor), target).push(actor);
-		store(resultType, target, actor);
+	private void consumeAssignment(kdl.AssignmentContext ctx, Actor actor) throws Exception {
+		if(ctx.VARNAME() != null) {
+			final Variable target = getLocalVariable(ctx.VARNAME().getText());
+			final ToName resultType;
+			if (ctx.operatorAssign() != null)
+				resultType = new Expression(target, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator().getText())).push(actor);
+			else
+				resultType = new VariableAssignment(new Expression(ctx.expression(), actor), target).push(actor);
+			store(resultType, target, actor);
+		} else {
+			final Field field = fields.equivalentKey(new Field(new Details(ctx.field().VARNAME(0).getText(), null, false), getClazz()));
+			if(ctx.operatorAssign() != null)
+				new Expression(field, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator().getText())).push(actor);
+			else
+				new Expression(ctx.expression(), actor).push(actor);
+			field.store(actor);
+		}
 	}
 
 	public void consumeStatement(final kdl.StatementContext ctx, Actor actor) throws Exception {
 		if(ctx.variableDeclaration() != null) {
 			consumeVariableDeclaration(ctx.variableDeclaration(), actor);
-		} else if(ctx.variableAssignment() != null) {
-			consumeVariableAssignment(ctx.variableAssignment(), actor);
+		} else if(ctx.assignment() != null) {
+			consumeAssignment(ctx.assignment(), actor);
 		} else if(ctx.methodCallStatement() != null) {
 			consumeMethodCallStatement(ctx.methodCallStatement(), actor);
 		} else if(ctx.conditional() != null) {
@@ -540,12 +546,24 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			final BestList<InternalName> paramTypes = new BestList<>();
 			for(Details param : params)
 				paramTypes.add(param.type);
-			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + ACC_STATIC);
+
+			// check if the method accesses any fields
+			final int staticModifier;
+			if(ctx.methodHeader().TYPE() == null)
+				staticModifier = ACC_STATIC;
+			else
+				staticModifier = 0;
+
+			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + staticModifier);
 
 			if(getPass() == 2) {
 				addMethodDef(def);
 			} else if(getPass() == 3) {
 				final Actor actor = new Actor(defineMethod(def), this);
+				// instance of owning type will always occupy slot 0
+				if(staticModifier != 0)
+					getCurrentScope().newVariable("this", getClazz().toInternalName());
+				// parameters will always occupy the first few slots
 				for(Details param : params)
 					getCurrentScope().newVariable(param.name, param.type);
 				consumeBlock(ctx.block(), actor);
@@ -567,7 +585,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(getPass() == 2) {
 			addMethodDef(JavaMethodDef.MAIN.withOwner(clazz));
 		} else if(getPass() == 3) {
-			final Actor actor = new Actor(defineMethod(JavaMethodDef.MAIN), this);
+			final Actor actor = new Actor(defineMethod(JavaMethodDef.MAIN.withOwner(clazz)), this);
 			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
 			try {
 				consumeBlock(ctx.block(), actor);

@@ -16,7 +16,7 @@ decimalNumber: DIGIT+ DOT DIGIT+;
 integer: DIGIT+;
 literal: bool | CHAR_LIT | STRING_LIT | integer | decimalNumber;
 
-statement: methodCallStatement | variableDeclaration | variableAssignment | returnStatement | conditional | newObject STATEMENT_END;
+statement: methodCallStatement | variableDeclaration | assignment | returnStatement | conditional | newObject STATEMENT_END;
 methodCallStatement: methodCall STATEMENT_END;
 block: BODY_OPEN statement* BODY_CLOSE;
 
@@ -45,8 +45,7 @@ comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THA
 appender: AND | OR;
 
 variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
-variableAssignment: VARNAME assignment STATEMENT_END;
-assignment: (ASSIGN expression) | operatorAssign;
+assignment: (VARNAME | field) ((ASSIGN expression) | operatorAssign) STATEMENT_END;
 operatorAssign: operator ASSIGN value;
 typedVariable: type MUTABLE? VARNAME;
 indexAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
@@ -58,7 +57,7 @@ parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
 methodDefinition: methodHeader block;
-methodHeader: (typedVariable | VARNAME MUTABLE?) parameterDefinition;
+methodHeader: TYPE? (typedVariable | VARNAME MUTABLE?) parameterDefinition;
 parameterDefinition: PARAM_OPEN typedVariable? (SEPARATOR typedVariable)* PARAM_CLOSE;
 
 returnStatement: RETURN expression STATEMENT_END;
