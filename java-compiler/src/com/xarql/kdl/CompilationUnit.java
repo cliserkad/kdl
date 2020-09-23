@@ -88,29 +88,29 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void runSilent() throws Exception {
-		// load source code
-		if(sourceCode == null)
-			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
-		compile();
-		write();
+		run0();
 	}
 
 	@Override
 	public void run() {
 		try {
-			// load source code
-			if(sourceCode == null)
-				sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
-			compile();
-			if(outputFile != null)
-				write(outputFile);
-			else
-				write();
-			System.out.println("Compiled " + clazz.name);
+			System.out.println("Compiled " + run0());
 		} catch(Exception e) {
 			System.err.println("CompilationUnit " + unitName() + " aborted.");
 			e.printStackTrace();
 		}
+	}
+
+	private String run0() throws Exception {
+		// load source code
+		if(sourceCode == null)
+			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
+		compile();
+		if(outputFile != null)
+			write(outputFile);
+		else
+			write();
+		return clazz.name;
 	}
 
 	public CompilationUnit compile() throws Exception {
