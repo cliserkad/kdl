@@ -1,11 +1,10 @@
 package com.xarql.kdl.ir;
 
+import org.objectweb.asm.Opcodes;
+
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.ToName;
-import org.objectweb.asm.Opcodes;
 
 public class Field extends Details implements Pushable {
 
@@ -27,6 +26,7 @@ public class Field extends Details implements Pushable {
 		return this;
 	}
 
+	@Override
 	public boolean equals(Object object) {
 		if(object instanceof Field) {
 			final Field other = (Field) object;

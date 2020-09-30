@@ -7,9 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-/**
- * Holds the data from running a process via runProcess()
- */
+/** Holds the data from running a process via runProcess() */
 public class ProcessOutput {
 
 	private final String command;

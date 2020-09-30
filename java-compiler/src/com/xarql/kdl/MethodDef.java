@@ -37,9 +37,7 @@ public class MethodDef extends JavaMethodDef {
 		this(owner, DEFAULT_TYPE, methodName, null, VOID, DEFAULT_ACCESS);
 	}
 
-	/**
-	 * Used to track compiletime restrictions of .kdl methods
-	 */
+	/** Used to track compiletime restrictions of .kdl methods */
 	public enum Type {
 
 		FNC("function"), MTD("method");

@@ -34,8 +34,9 @@ r_while: WHILE condition block;
 
 constant: (CLASSNAME DOT)? CONSTNAME;
 field: VARNAME (DOT VARNAME)*;
+staticField: CLASSNAME DOT VARNAME;
 variable: VARNAME;
-value: methodCall | arrayLength| literal | variable | constant | field | indexAccess | subSequence | R_NULL | newObject;
+value: methodCall | arrayLength| literal | variable | constant | field | staticField | indexAccess | subSequence | R_NULL | newObject;
 newObject: CLASSNAME + parameterSet;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 expression: value (operator expression)?;
@@ -44,10 +45,10 @@ condition: expression (comparator expression)?;
 comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 appender: AND | OR;
 
-variableDeclaration: typedVariable (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
+variableDeclaration: details (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
 assignment: (VARNAME | field) ((ASSIGN expression) | operatorAssign) STATEMENT_END;
 operatorAssign: operator ASSIGN value;
-typedVariable: type MUTABLE? VARNAME;
+details: type MUTABLE? VARNAME;
 indexAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
 subSequence: VARNAME BRACE_OPEN range BRACE_CLOSE;
 
@@ -56,8 +57,8 @@ methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet;
 parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
-methodDefinition: (typedVariable | VARNAME MUTABLE?) parameterDefinition block;
-parameterDefinition: PARAM_OPEN (THIS | typedVariable)? (SEPARATOR typedVariable)* PARAM_CLOSE;
+methodDefinition: (details | VARNAME MUTABLE?) parameterDefinition block;
+parameterDefinition: PARAM_OPEN (THIS | details)? (SEPARATOR details)* PARAM_CLOSE;
 
 returnStatement: RETURN expression STATEMENT_END;
 

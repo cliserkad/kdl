@@ -2,15 +2,13 @@ package com.xarql.kdl;
 
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.Text.nonNull;
-import static com.xarql.kdl.names.BaseType.BYTE;
-import static com.xarql.kdl.names.BaseType.SHORT;
-import static com.xarql.kdl.names.BaseType.STRING;
+import static com.xarql.kdl.names.BaseType.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 
-import com.xarql.kdl.ir.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -19,15 +17,12 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.antlr.kdlBaseListener;
 import com.xarql.kdl.antlr.kdlLexer;
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.Details;
-import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.ReturnValue;
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.ir.*;
+import com.xarql.kdl.names.*;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
 
@@ -36,24 +31,20 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	// used to generate a numerical id
 	private static int unitCount = 0;
-
-	// input and output
-	private File sourceFile;
-	private String sourceCode;
-	private File outputFile;
-
+	public final TrackedMap<Constant, kdl.ConstantDefContext> constants;
+	public final TrackedMap<Field, kdl.FieldDefContext> fields;
 	// set in constructor
 	private final ClassWriter cw;
 	private final BestList<InternalName> imports;
 	private final BestList<JavaMethodDef> methods;
+	private final int id;
+	// input and output
+	private File sourceFile;
+	private String sourceCode;
+	private File outputFile;
 	private Scope currentScope;
 	private CustomClass clazz;
 	private boolean nameSet;
-	private final int id;
-
-	public final TrackedMap<Constant, kdl.ConstantDefContext> constants;
-	public final TrackedMap<Field, kdl.FieldDefContext> fields;
-
 	private String pkgName;
 
 	// pass 1 collects imports, classname, and constant names, methodNames
@@ -85,6 +76,30 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public CompilationUnit(String sourceCode) {
 		this();
 		this.sourceCode = sourceCode;
+	}
+
+	/**
+	 * Converts the top item of the stack in to a string
+	 *
+	 * @param name    The type of the element on the stack
+	 * @param visitor Any MethodVisitor
+	 */
+	public static void convertToString(final InternalName name, final MethodVisitor visitor) {
+		JavaMethodDef stringValueOf;
+		if(name.isBaseType()) {
+			if(name.toBaseType() == STRING)
+				return;
+			else {
+				InternalName actualName = name;
+				if(name.toBaseType() == BYTE)
+					actualName = InternalName.INT;
+				else if(name.toBaseType() == SHORT)
+					actualName = InternalName.INT;
+				stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+			}
+		} else
+			stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
 	public void runSilent() throws Exception {
@@ -177,49 +192,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return write(new File(sourceFile.toPath().resolveSibling(clazz.name + ".class").toString()));
 	}
 
-	public Details parseTypedVariable(kdl.TypedVariableContext ctx) throws Exception {
-		String name = ctx.VARNAME().getText();
-
-		InternalName type;
-		if(ctx.type().basetype() != null) {
-			if(ctx.type().basetype().BOOLEAN() != null)
-				type = InternalName.BOOLEAN;
-			else if(ctx.type().basetype().BYTE() != null)
-				type = InternalName.BYTE;
-			else if(ctx.type().basetype().SHORT() != null)
-				type = InternalName.SHORT;
-			else if(ctx.type().basetype().CHAR() != null)
-				type = InternalName.CHAR;
-			else if(ctx.type().basetype().INT() != null)
-				type = InternalName.INT;
-			else if(ctx.type().basetype().FLOAT() != null)
-				type = InternalName.FLOAT;
-			else if(ctx.type().basetype().LONG() != null)
-				type = InternalName.LONG;
-			else if(ctx.type().basetype().DOUBLE() != null)
-				type = InternalName.DOUBLE;
-			else if(ctx.type().basetype().STRING() != null)
-				type = InternalName.STRING;
-			else
-				throw new UnimplementedException(SWITCH_BASETYPE);
-		} else {
-			type = resolveAgainstImports(ctx.type().getText());
-			if(type == null)
-				throw new IllegalArgumentException("Couldn't recognize type");
-		}
-
-		if(ctx.type().BRACE_OPEN() != null)
-
-		{
-			int dimensions = 0;
-			for(int i = 0; i < ctx.type().BRACE_OPEN().size(); i++)
-				dimensions++;
-			type = type.toArray(dimensions);
-		}
-
-		return new Details(name, type, ctx.MUTABLE() != null);
-	}
-
 	public InternalName resolveAgainstImports(String src) {
 		for(InternalName in : imports) {
 			String str = in.nameString();
@@ -228,102 +200,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			}
 		}
 		throw new IllegalArgumentException("Couldn't recognize type");
-	}
-
-	/**
-	 * Converts the top item of the stack in to a string
-	 * 
-	 * @param name    The type of the element on the stack
-	 * @param visitor Any MethodVisitor
-	 */
-	public static void convertToString(final InternalName name, final MethodVisitor visitor) {
-		JavaMethodDef stringValueOf;
-		if(name.isBaseType()) {
-			if(name.toBaseType() == STRING)
-				return;
-			else {
-				InternalName actualName = name;
-				if(name.toBaseType() == BYTE)
-					actualName = InternalName.INT;
-				else if(name.toBaseType() == SHORT)
-					actualName = InternalName.INT;
-				stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
-			}
-		} else
-			stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
-		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
-	}
-
-	/**
-	 * Store the value that is at the top of the stack in the target variable
-	 * 
-	 * @param type   the type of the data on top of the stack
-	 * @param target variable in which data will be stored
-	 * @param lmv    any MethodVisitor
-	 */
-	public static void store(ToName type, Variable target, MethodVisitor lmv) throws Exception {
-		if(!target.mutable && target.isInit()) {
-			throw new IllegalArgumentException(target + " is not mutable and has been set.");
-		} else if(!type.toInternalName().compatibleWith(target.type))
-			throw new IncompatibleTypeException(type + INCOMPATIBLE + target);
-		else {
-			if(type.isBaseType()) {
-				// convert integer to long
-				if(target.toBaseType() == BaseType.LONG && type.toBaseType() == BaseType.INT)
-					lmv.visitInsn(I2L);
-				// convert float to double
-				if(target.toBaseType() == BaseType.DOUBLE && type.toBaseType() == BaseType.FLOAT)
-					lmv.visitInsn(F2D);
-			}
-
-			if(target.isBaseType()) {
-				switch(target.toBaseType()) {
-					case BOOLEAN:
-					case BYTE:
-					case SHORT:
-					case CHAR:
-					case INT:
-						lmv.visitVarInsn(ISTORE, target.localIndex);
-						break;
-					case FLOAT:
-						lmv.visitVarInsn(FSTORE, target.localIndex);
-						break;
-					case LONG:
-						lmv.visitVarInsn(LSTORE, target.localIndex);
-						break;
-					case DOUBLE:
-						lmv.visitVarInsn(DSTORE, target.localIndex);
-						break;
-					case STRING:
-						lmv.visitVarInsn(ASTORE, target.localIndex);
-						break;
-					default:
-						throw new UnimplementedException(SWITCH_BASETYPE);
-				}
-
-				target.init();
-			} else
-				lmv.visitVarInsn(ASTORE, target.localIndex);
-		}
-	}
-
-	public static void storeDefault(Variable lv, MethodVisitor lmv) {
-		if(lv.type.isBaseType()) {
-			switch(lv.type.toBaseType()) {
-				case INT:
-				case BOOLEAN:
-					lmv.visitLdcInsn(DEFAULT_INT);
-					lmv.visitVarInsn(ISTORE, lv.localIndex);
-					break;
-				case STRING:
-					lmv.visitLdcInsn(DEFAULT_STRING);
-					lmv.visitVarInsn(ASTORE, lv.localIndex);
-					break;
-			}
-		} else {
-			lmv.visitInsn(ACONST_NULL);
-			lmv.visitVarInsn(ASTORE, lv.localIndex);
-		}
 	}
 
 	public int getPass() {
@@ -390,7 +266,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		// collect details
 		if(getPass() == 1) {
 			try {
-				final Details details = parseTypedVariable(ctx.variableDeclaration().typedVariable());
+				final Details details = new Details(ctx.variableDeclaration().details(), this);
 				final Field field = new Field(details, getClazz());
 				if(!fields.contains(field))
 					fields.put(field, ctx);
@@ -427,27 +303,22 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		new NewObject(ctx, actor).push(actor);
 	}
 
-	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, Actor actor) throws Exception {
-		new VariableDeclaration(ctx, actor).push(actor);
+	private void consumeAssignment(kdl.AssignmentContext ctx, Actor actor) throws Exception {
+		final Assignable target = Assignable.parse(ctx, actor);
+		final InternalName resultType;
+		if(ctx.operatorAssign() != null)
+			resultType = new Expression(target, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator().getText())).pushType(actor);
+		else
+			resultType = new Expression(ctx.expression(), actor).pushType(actor);
+		target.assign(resultType, actor);
 	}
 
-	private void consumeAssignment(kdl.AssignmentContext ctx, Actor actor) throws Exception {
-		if(ctx.VARNAME() != null) {
-			final Variable target = getLocalVariable(ctx.VARNAME().getText());
-			final ToName resultType;
-			if(ctx.operatorAssign() != null)
-				resultType = new Expression(target, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator().getText())).push(actor);
-			else
-				resultType = new VariableAssignment(new Expression(ctx.expression(), actor), target).push(actor);
-			store(resultType, target, actor);
-		} else {
-			final Field field = fields.equivalentKey(new Field(new Details(ctx.field().VARNAME(0).getText(), null, false), getClazz()));
-			if(ctx.operatorAssign() != null)
-				new Expression(field, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator().getText())).push(actor);
-			else
-				new Expression(ctx.expression(), actor).push(actor);
-			field.store(actor);
-		}
+	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, Actor actor) throws Exception {
+		final Variable target = getCurrentScope().newVariable(new Details(ctx.details(), this));
+		if(ctx.ASSIGN() != null) {
+			target.assign(new Expression(ctx.expression(), actor).pushType(actor), actor);
+		} else
+			target.assignDefault(actor);
 	}
 
 	public void consumeStatement(final kdl.StatementContext ctx, Actor actor) throws Exception {
@@ -531,16 +402,16 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		try {
 			// parse name and return type
 			final Details details;
-			if(ctx.typedVariable() != null)
-				details = parseTypedVariable(ctx.typedVariable());
+			if(ctx.details() != null)
+				details = new Details(ctx.details(), this);
 			else
 				details = new Details(ctx.VARNAME().getText(), null, false);
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
 			final BestList<Details> params = new BestList<>();
-			for(kdl.TypedVariableContext typedVar : ctx.parameterDefinition().typedVariable())
-				params.add(parseTypedVariable(typedVar));
+			for(kdl.DetailsContext typedVar : ctx.parameterDefinition().details())
+				params.add(new Details(typedVar, this));
 
 			// create MethodDef
 			final BestList<InternalName> paramTypes = new BestList<>();

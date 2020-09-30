@@ -76,9 +76,7 @@ public class StandardKdlTest {
 		}
 	}
 
-	/**
-	 * @return className + ".kdl"
-	 */
+	/** @return className + ".kdl" */
 	public String fileName() {
 		if(className.contains("."))
 			return ".*" + className.substring(className.lastIndexOf('.') + 1) + ".kdl";

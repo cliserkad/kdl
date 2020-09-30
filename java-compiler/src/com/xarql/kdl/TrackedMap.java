@@ -14,9 +14,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 
 	private static final Random RANDOM = new Random();
 
-	/**
-	 * The tracker retains the relationship between keys and indices.
-	 */
+	/** The tracker retains the relationship between keys and indices. */
 	private final List<K> tracker;
 	/**
 	 * The container retains the relationship between keys and elements. Elements
@@ -24,9 +22,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	 */
 	private final HashMap<K, E> container;
 
-	/**
-	 * Creates a TrackedHashMap() and sets the tracker's capacity to 0.
-	 */
+	/** Creates a TrackedHashMap() and sets the tracker's capacity to 0. */
 	public TrackedMap() {
 		tracker = new ArrayList<>();
 		container = new HashMap<>();
@@ -242,9 +238,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 		remove(key(index));
 	}
 
-	/**
-	 * Empties this TrackedHashMap of all data.
-	 */
+	/** Empties this TrackedHashMap of all data. */
 	public void clear() {
 		container.clear();
 		tracker.clear();

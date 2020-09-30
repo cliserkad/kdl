@@ -1,12 +1,14 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
+import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.UnimplementedException;
+import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
 
-public class Variable extends Details implements Pushable, CommonText {
+public class Variable extends Details implements Assignable, CommonText {
 
 	public static final boolean DEFAULT_MUTABLE = false;
 
@@ -86,6 +88,65 @@ public class Variable extends Details implements Pushable, CommonText {
 	@Override
 	public InternalName pushType(final Actor visitor) throws Exception {
 		return push(visitor).toInternalName();
+	}
+
+	@Override
+	public Assignable assign(final InternalName incomingType, final Actor actor) throws Exception {
+		if(!mutable && isInit()) {
+			throw new IllegalArgumentException(this + " is not mutable and has been set.");
+		} else if(!this.type.toInternalName().compatibleWith(this.type))
+			throw new IncompatibleTypeException(incomingType + INCOMPATIBLE + this);
+		else {
+			if(this.type.isBaseType()) {
+				// convert integer to long
+				if(toBaseType() == BaseType.LONG && incomingType.toBaseType() == BaseType.INT)
+					actor.visitInsn(I2L);
+				// convert float to double
+				if(toBaseType() == BaseType.DOUBLE && incomingType.toBaseType() == BaseType.FLOAT)
+					actor.visitInsn(F2D);
+			}
+
+			if(isBaseType()) {
+				switch(toBaseType()) {
+					case BOOLEAN:
+					case BYTE:
+					case SHORT:
+					case CHAR:
+					case INT:
+						actor.visitVarInsn(ISTORE, localIndex);
+						break;
+					case FLOAT:
+						actor.visitVarInsn(FSTORE, localIndex);
+						break;
+					case LONG:
+						actor.visitVarInsn(LSTORE, localIndex);
+						break;
+					case DOUBLE:
+						actor.visitVarInsn(DSTORE, localIndex);
+						break;
+					case STRING:
+						actor.visitVarInsn(ASTORE, localIndex);
+						break;
+					default:
+						throw new UnimplementedException(SWITCH_BASETYPE);
+				}
+
+				init();
+			} else
+				actor.visitVarInsn(ASTORE, localIndex);
+		}
+		return this;
+	}
+
+	@Override
+	public Assignable assignDefault(Actor actor) throws Exception {
+		if(isBaseType())
+			assign(toBaseType().defaultValue.pushType(actor), actor);
+		else {
+			actor.visitInsn(ACONST_NULL);
+			actor.visitVarInsn(ASTORE, localIndex);
+		}
+		return this;
 	}
 
 }
