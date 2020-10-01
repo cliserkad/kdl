@@ -1,10 +1,11 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.Actor;
+import com.xarql.kdl.antlr.kdl;
+
 import static com.xarql.kdl.ExternalMethodRouter.ERROR_MTD;
 import static com.xarql.kdl.ExternalMethodRouter.PRINT_MTD;
 import static com.xarql.kdl.names.CommonText.KEYWORD_FALSE;
-import com.xarql.kdl.Actor;
-import com.xarql.kdl.antlr.kdl;
 
 public class Assertion extends Conditional {
 

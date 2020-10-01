@@ -1,11 +1,13 @@
 package com.xarql.kdl;
 
-import static com.xarql.kdl.BestList.list;
-import java.lang.reflect.Method;
-import org.objectweb.asm.MethodVisitor;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
+import org.objectweb.asm.MethodVisitor;
+
+import java.lang.reflect.Method;
+
+import static com.xarql.kdl.BestList.list;
 
 public class JavaMethodDef implements CommonText {
 

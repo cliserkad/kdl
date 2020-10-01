@@ -4,9 +4,10 @@ import org.junit.jupiter.api.Test;
 
 public class EmptyTest {
 
-    @Test
-    public void testThatIsEmpty() {
-        // in order to satisfy maven
-        assert true;
-    }
+	@Test
+	public void testThatIsEmpty() {
+		// in order to satisfy maven
+		assert true;
+	}
+
 }

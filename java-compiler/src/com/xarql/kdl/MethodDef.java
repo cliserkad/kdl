@@ -12,7 +12,7 @@ public class MethodDef extends JavaMethodDef {
 
 	/**
 	 * Creates a .kdl MethodDef
-	 * 
+	 *
 	 * @param type        compiletime restrictions
 	 * @param methodName  name of method
 	 * @param paramTypes  the type of every parameter
@@ -30,14 +30,16 @@ public class MethodDef extends JavaMethodDef {
 
 	/**
 	 * Creates a method with methodName that is public, void, and has no parameters
-	 * 
+	 *
 	 * @param methodName
 	 */
 	public MethodDef(InternalName owner, String methodName) {
 		this(owner, DEFAULT_TYPE, methodName, null, VOID, DEFAULT_ACCESS);
 	}
 
-	/** Used to track compiletime restrictions of .kdl methods */
+	/**
+	 * Used to track compiletime restrictions of .kdl methods
+	 */
 	public enum Type {
 
 		FNC("function"), MTD("method");

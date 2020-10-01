@@ -10,6 +10,7 @@
 *.iml
 
 # Eclipse files
+**/bin
 *.prefs
 *.project
 *.classpath

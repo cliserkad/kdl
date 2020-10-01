@@ -1,6 +1,5 @@
 package com.xarql.kdl.ir;
 
-import org.objectweb.asm.Opcodes;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.CompilationUnit;
@@ -10,6 +9,7 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
 import com.xarql.kdl.names.ToName;
+import org.objectweb.asm.Opcodes;
 
 public class NewObject extends BasePushable implements Opcodes {
 

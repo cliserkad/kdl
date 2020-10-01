@@ -5,10 +5,13 @@ import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.JavaMethodDef;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.*;
-import org.objectweb.asm.Opcodes;
+import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 public abstract class Conditional implements Opcodes {
 

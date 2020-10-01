@@ -12,7 +12,9 @@ import com.xarql.kdl.names.ReturnValue;
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.BaseType.INT;
 
-/** Represents the access of an array's element */
+/**
+ * Represents the access of an array's element
+ */
 public class IndexAccess extends BasePushable implements CommonText {
 
 	public static final JavaMethodDef STRING_CHAR_AT = new JavaMethodDef(InternalName.STRING, "charAt", list(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);

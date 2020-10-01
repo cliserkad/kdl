@@ -1,8 +1,5 @@
 package com.xarql.kdl.ir;
 
-import static com.xarql.kdl.BestList.list;
-
-import org.objectweb.asm.Opcodes;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.JavaMethodDef;
 import com.xarql.kdl.UnimplementedException;
@@ -10,6 +7,9 @@ import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
+import org.objectweb.asm.Opcodes;
+
+import static com.xarql.kdl.BestList.list;
 
 public class SubSequence extends BasePushable {
 

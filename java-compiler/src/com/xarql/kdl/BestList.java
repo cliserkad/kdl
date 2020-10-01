@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 /**
  * Improved version of ArrayList that implements XML
- * 
+ *
  * @param <E>
  * @author Bryan Johnson
  */
@@ -53,7 +53,7 @@ public class BestList<E> extends ArrayList<E> {
 
 	/**
 	 * Creates a string that holds the toString() of all of this list's elements
-	 * 
+	 *
 	 * @return combined toString()
 	 */
 	public String spread() {
@@ -66,7 +66,7 @@ public class BestList<E> extends ArrayList<E> {
 	/**
 	 * Concatenates toString() of every element in to one string without any
 	 * separation
-	 * 
+	 *
 	 * @return concat of toString() on every element
 	 */
 	public String squish() {

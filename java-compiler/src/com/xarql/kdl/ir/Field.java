@@ -1,12 +1,11 @@
 package com.xarql.kdl.ir;
 
-import org.objectweb.asm.Opcodes;
-
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
+import org.objectweb.asm.Opcodes;
 
-public class Field extends Details implements Pushable {
+public class Field extends Details implements Assignable {
 
 	public final Pushable owner;
 
@@ -20,9 +19,18 @@ public class Field extends Details implements Pushable {
 		this.owner = owner;
 	}
 
-	public Field store(Actor actor) throws Exception {
+	@Override
+	public Field assign(InternalName incomingType, Actor actor) throws Exception {
 		final InternalName ownerType = owner.pushType(actor);
+		actor.visitInsn(Opcodes.SWAP);
 		actor.visitFieldInsn(Opcodes.PUTFIELD, ownerType.nameString(), name, type.objectString());
+		return this;
+	}
+
+	@Override
+	public Field assignDefault(Actor actor) throws Exception {
+		final InternalName incomingType = type.toBaseType().defaultValue.pushType(actor);
+		assign(incomingType, actor);
 		return this;
 	}
 

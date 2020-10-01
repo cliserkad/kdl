@@ -1,6 +1,8 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.*;
+import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.MethodVisitor;
 
 import java.io.PrintStream;

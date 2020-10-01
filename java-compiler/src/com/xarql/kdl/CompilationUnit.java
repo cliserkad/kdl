@@ -1,14 +1,10 @@
 package com.xarql.kdl;
 
-import static com.xarql.kdl.BestList.list;
-import static com.xarql.kdl.Text.nonNull;
-import static com.xarql.kdl.names.BaseType.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.nio.file.Files;
-
+import com.xarql.kdl.antlr.kdl;
+import com.xarql.kdl.antlr.kdlBaseListener;
+import com.xarql.kdl.antlr.kdlLexer;
+import com.xarql.kdl.ir.*;
+import com.xarql.kdl.names.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -18,11 +14,14 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
-import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.antlr.kdlBaseListener;
-import com.xarql.kdl.antlr.kdlLexer;
-import com.xarql.kdl.ir.*;
-import com.xarql.kdl.names.*;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+
+import static com.xarql.kdl.BestList.list;
+import static com.xarql.kdl.Text.nonNull;
+import static com.xarql.kdl.names.BaseType.*;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
 
@@ -403,9 +402,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			// parse name and return type
 			final Details details;
 			if(ctx.details() != null)
-				details = new Details(ctx.details(), this);
+				details = new Details(ctx.details(), this).filterName();
 			else
-				details = new Details(ctx.VARNAME().getText(), null, false);
+				details = new Details(ctx.VARNAME().getText(), null, false).filterName();
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
@@ -419,11 +418,18 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				paramTypes.add(param.type);
 
 			// check if the method accesses any fields
+			final boolean initializer;
 			final int staticModifier;
-			if(ctx.parameterDefinition().THIS() == null)
-				staticModifier = ACC_STATIC;
-			else
+			if(details.name.equals(JavaMethodDef.S_INIT)) {
 				staticModifier = 0;
+				initializer = true;
+			} else {
+				if(ctx.parameterDefinition().THIS() == null)
+					staticModifier = ACC_STATIC;
+				else
+					staticModifier = 0;
+				initializer = false;
+			}
 
 			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + staticModifier);
 
@@ -432,11 +438,18 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			} else if(getPass() == 3) {
 				final Actor actor = new Actor(defineMethod(def), this);
 				// instance of owning type will always occupy slot 0
-				if(staticModifier != 0)
+				if(staticModifier == 0)
 					getCurrentScope().newVariable("this", getClazz().toInternalName());
 				// parameters will always occupy the first few slots
 				for(Details param : params)
 					getCurrentScope().newVariable(param.name, param.type);
+
+				if(initializer) {
+					// call Object.super(this);
+					actor.visitVarInsn(ALOAD, 0);
+					actor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+				}
+
 				consumeBlock(ctx.block(), actor);
 
 				getCurrentScope().end(ctx.stop.getLine(), actor, rv);
@@ -501,7 +514,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	/**
 	 * Sets the name of this class to the given className.
-	 * 
+	 *
 	 * @param name name of class, Ex. Test
 	 * @return success of operation
 	 */

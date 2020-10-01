@@ -17,7 +17,7 @@ public class Text {
 
 	/**
 	 * Tests to see if a character is part of ASCII or not
-	 * 
+	 *
 	 * @param c any char
 	 * @return whether ASCII contains c
 	 */
@@ -43,7 +43,7 @@ public class Text {
 
 	/**
 	 * Only allow a-z and A-Z
-	 * 
+	 *
 	 * @param word
 	 * @return true if all chars are in the latin alphabet
 	 */
@@ -56,7 +56,7 @@ public class Text {
 
 	/**
 	 * only allow a-z, A-Z and whitespace
-	 * 
+	 *
 	 * @param in A supposedly latin word
 	 * @return true if all chars are latin
 	 */
@@ -168,7 +168,7 @@ public class Text {
 
 	/**
 	 * Turns CamelCaseNames in to lower_case_names
-	 * 
+	 *
 	 * @param input CamelCase String
 	 * @return lower_case_string
 	 */

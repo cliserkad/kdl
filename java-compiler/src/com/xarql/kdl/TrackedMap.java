@@ -6,15 +6,17 @@ import java.util.*;
  * A container that has both a list and a map to use them as one. This was
  * primarily made for caching.
  *
- * @author Bryan Johnson
  * @param <K> Key
  * @param <E> Element
+ * @author Bryan Johnson
  */
 public class TrackedMap<K, E> implements Iterable<E> {
 
 	private static final Random RANDOM = new Random();
 
-	/** The tracker retains the relationship between keys and indices. */
+	/**
+	 * The tracker retains the relationship between keys and indices.
+	 */
 	private final List<K> tracker;
 	/**
 	 * The container retains the relationship between keys and elements. Elements
@@ -22,13 +24,16 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	 */
 	private final HashMap<K, E> container;
 
-	/** Creates a TrackedHashMap() and sets the tracker's capacity to 0. */
+	/**
+	 * Creates a TrackedHashMap() and sets the tracker's capacity to 0.
+	 */
 	public TrackedMap() {
 		tracker = new ArrayList<>();
 		container = new HashMap<>();
 	}
 
 	// Stats
+
 	/**
 	 * Returns the size of this TrackedHashMap. The size is gotten from the tracker.
 	 * Specifically, <code>tracker.size()</code>
@@ -61,6 +66,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	}
 
 	// Key
+
 	/**
 	 * Grabs the key at the given index from the tracker. Specifically,
 	 * <code>tracker.get(index)</code>
@@ -136,11 +142,22 @@ public class TrackedMap<K, E> implements Iterable<E> {
 		return copy;
 	}
 
+	/**
+	 * Returns an internal key that is equivalent to the given key. If no such key
+	 * exists, return null.
+	 *
+	 * @param key A duplicate of a K key
+	 * @return K which equals key or null
+	 */
 	public K equivalentKey(K key) {
-		return key(indexOf(key));
+		if(contains(key))
+			return key(indexOf(key));
+		else
+			return null;
 	}
 
 	// Element
+
 	/**
 	 * Retrieves the element that is mapped to the given key.
 	 *
@@ -174,6 +191,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	}
 
 	// Adding
+
 	/**
 	 * Adds the key to the tracker. Adds the key and the element to the container.
 	 *
@@ -201,6 +219,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	}
 
 	// Removing
+
 	/**
 	 * Removes the key and associated element from this TrackedHashMap.
 	 *
@@ -238,7 +257,9 @@ public class TrackedMap<K, E> implements Iterable<E> {
 		remove(key(index));
 	}
 
-	/** Empties this TrackedHashMap of all data. */
+	/**
+	 * Empties this TrackedHashMap of all data.
+	 */
 	public void clear() {
 		container.clear();
 		tracker.clear();

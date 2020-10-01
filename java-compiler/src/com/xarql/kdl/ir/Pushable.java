@@ -17,7 +17,7 @@ public interface Pushable extends ToName {
 	/**
 	 * Pushes this value on to the stack. Executes sub-pushes and instructions if
 	 * needed. Use this over pushType() whenever an InternalName is not required.
-	 * 
+	 *
 	 * @param actor any Actor
 	 * @return instance of implementing class; whatever "this" is
 	 * @throws Exception if pushing is impossible
@@ -27,7 +27,7 @@ public interface Pushable extends ToName {
 	/**
 	 * Pushes this value on to the stack. Returns the type of the value. Should call
 	 * push().
-	 * 
+	 *
 	 * @param actor any Actor
 	 * @return pushed value type
 	 * @throws Exception if pushing is impossible
@@ -37,7 +37,7 @@ public interface Pushable extends ToName {
 
 	/**
 	 * Attempts to parse a Resolvable symbol
-	 * 
+	 *
 	 * @param actor any Actor
 	 * @param val   The symbol
 	 * @return A Resolvable whose actual type corresponds to the symbol

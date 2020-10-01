@@ -19,7 +19,7 @@ public class StandardKdlTest {
 
 	/**
 	 * Makes a StandardKdlTest
-	 * 
+	 *
 	 * @param pathExtension   extension on /src/test/kdl for java classpath
 	 * @param className       name of class
 	 * @param arguments       a list of sets of command line arguments
@@ -50,7 +50,7 @@ public class StandardKdlTest {
 	/**
 	 * Makes a StandardKdlTest that has no arguments and no output. Use this
 	 * constructor for .kdl files that use assert instead of printing.
-	 * 
+	 *
 	 * @param pathExtension extension on /src/test/kdl for java classpath
 	 * @param className     name of class
 	 */
@@ -76,7 +76,9 @@ public class StandardKdlTest {
 		}
 	}
 
-	/** @return className + ".kdl" */
+	/**
+	 * @return className + ".kdl"
+	 */
 	public String fileName() {
 		if(className.contains("."))
 			return ".*" + className.substring(className.lastIndexOf('.') + 1) + ".kdl";

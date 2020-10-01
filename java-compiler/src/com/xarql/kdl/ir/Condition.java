@@ -29,7 +29,7 @@ public class Condition {
 
 	/**
 	 * Makes a Condition that uses the default positive.
-	 * 
+	 *
 	 * @param a   arg 1
 	 * @param b   arg 2
 	 * @param cmp comparison to be made
@@ -40,7 +40,7 @@ public class Condition {
 
 	/**
 	 * Makes a Condition that checks the usability of a. Uses the default positive.
-	 * 
+	 *
 	 * @param a any Pushable
 	 */
 	public Condition(final Pushable a) {
@@ -49,7 +49,7 @@ public class Condition {
 
 	/**
 	 * Makes a Condition that checks the usability of a.
-	 * 
+	 *
 	 * @param a        any Pushable
 	 * @param positive Whether to make a positive or negative jump
 	 */

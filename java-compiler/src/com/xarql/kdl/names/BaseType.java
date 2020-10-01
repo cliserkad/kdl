@@ -53,7 +53,7 @@ public enum BaseType implements ToName {
 
 	/**
 	 * Matches a primitive or wrapper class to a BaseType
-	 * 
+	 *
 	 * @param c any Class
 	 * @return BaseType on match, null otherwise
 	 */
@@ -82,7 +82,7 @@ public enum BaseType implements ToName {
 
 	/**
 	 * Match only primitive classes, not their wrappers
-	 * 
+	 *
 	 * @param c any Class
 	 * @return BaseType on match, null otherwise
 	 */

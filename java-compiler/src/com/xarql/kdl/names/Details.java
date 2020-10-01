@@ -1,10 +1,13 @@
 package com.xarql.kdl.names;
 
 import com.xarql.kdl.CompilationUnit;
+import com.xarql.kdl.JavaMethodDef;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 
 public class Details implements ToName {
+
+	public static final String CHEVRON_REGEX = "[<>]";
 
 	public final String name;
 	public final InternalName type;
@@ -65,9 +68,25 @@ public class Details implements ToName {
 		this.mutable = ctx.MUTABLE() != null;
 	}
 
+	public Details withName(final String name) {
+		return new Details(name, type, mutable);
+	}
+
+	/**
+	 * Transforms init() and prep() to their respective special names
+	 */
+	public Details filterName() {
+		if(name.equals(JavaMethodDef.S_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
+			return withName(JavaMethodDef.S_INIT);
+		else if(name.equals(JavaMethodDef.S_STATIC_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
+			return withName(JavaMethodDef.S_STATIC_INIT);
+		else
+			return this;
+	}
+
 	/**
 	 * Forwarding method
-	 * 
+	 *
 	 * @see InternalName#isBaseType()
 	 */
 	@Override
@@ -77,7 +96,7 @@ public class Details implements ToName {
 
 	/**
 	 * Forwarding method
-	 * 
+	 *
 	 * @see InternalName#toBaseType()
 	 */
 	@Override
@@ -85,7 +104,9 @@ public class Details implements ToName {
 		return type.toBaseType();
 	}
 
-	/** @return type */
+	/**
+	 * @return type
+	 */
 	@Override
 	public InternalName toInternalName() {
 		return type;

@@ -5,7 +5,9 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 
-/** Represents the access of an array's length. */
+/**
+ * Represents the access of an array's length.
+ */
 public class ArrayLength extends BasePushable implements CommonText {
 
 	public final Variable array;
@@ -16,7 +18,7 @@ public class ArrayLength extends BasePushable implements CommonText {
 
 	/**
 	 * Pushes an int to the stack that is equal to the array's length
-	 * 
+	 *
 	 * @param visitor any MethodVisitor
 	 * @throws Exception unused
 	 */
@@ -27,7 +29,9 @@ public class ArrayLength extends BasePushable implements CommonText {
 		return this;
 	}
 
-	/** @return InternalName.INT */
+	/**
+	 * @return InternalName.INT
+	 */
 	@Override
 	public InternalName toInternalName() {
 		return InternalName.INT;
@@ -35,7 +39,7 @@ public class ArrayLength extends BasePushable implements CommonText {
 
 	/**
 	 * Determines if this will provide a base type
-	 * 
+	 *
 	 * @return true
 	 */
 	@Override
@@ -45,7 +49,7 @@ public class ArrayLength extends BasePushable implements CommonText {
 
 	/**
 	 * An array's length is always an INT
-	 * 
+	 *
 	 * @return BaseType.INT
 	 */
 	@Override

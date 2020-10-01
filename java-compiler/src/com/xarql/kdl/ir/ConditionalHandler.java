@@ -1,8 +1,9 @@
 package com.xarql.kdl.ir;
 
-import com.xarql.kdl.*;
+import com.xarql.kdl.Actor;
+import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.*;
+import com.xarql.kdl.names.CommonText;
 
 public class ConditionalHandler implements CommonText {
 

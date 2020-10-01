@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-/** Holds the data from running a process via runProcess() */
+/**
+ * Holds the data from running a process via runProcess()
+ */
 public class ProcessOutput {
 
 	private final String command;
@@ -46,7 +48,7 @@ public class ProcessOutput {
 
 	/**
 	 * Returns the command used to invoke the process
-	 * 
+	 *
 	 * @return command
 	 */
 	public String getCommand() {
@@ -55,7 +57,7 @@ public class ProcessOutput {
 
 	/**
 	 * Copies the strings in output to a new list and returns that list
-	 * 
+	 *
 	 * @return copy of output
 	 */
 	public BestList<String> getOutput() {
@@ -64,7 +66,7 @@ public class ProcessOutput {
 
 	/**
 	 * Copies the strings in errors to a new list and returns that list
-	 * 
+	 *
 	 * @return copy of errors
 	 */
 	public BestList<String> getErrors() {
@@ -73,7 +75,7 @@ public class ProcessOutput {
 
 	/**
 	 * Returns the exit value from the process
-	 * 
+	 *
 	 * @return exitValue
 	 */
 	public int getExitValue() {

@@ -2,13 +2,9 @@ package com.xarql.kdl.plugin;
 
 import com.xarql.kdl.CompilationDispatcher;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
-
 import org.apache.maven.plugin.MojoFailureException;
-import test.java.ProcessOutput;
 
 import java.io.File;
-import java.nio.file.Path;
 
 /**
  * Goal which touches a timestamp file.
@@ -20,7 +16,7 @@ public class KDLCompilerPlugin extends AbstractMojo {
 
 	/**
 	 * Location of the file.
-	 * 
+	 *
 	 * @parameter property="project.build.directory"
 	 * @required
 	 */
@@ -28,7 +24,7 @@ public class KDLCompilerPlugin extends AbstractMojo {
 
 	/**
 	 * Location of .kdl files
-	 * 
+	 *
 	 * @parameter property="project.build.sourceDirectory"
 	 * @required
 	 */

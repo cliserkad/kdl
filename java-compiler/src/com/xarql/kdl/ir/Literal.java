@@ -1,8 +1,5 @@
 package com.xarql.kdl.ir;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
