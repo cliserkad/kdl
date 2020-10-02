@@ -57,7 +57,10 @@ public class JavaMethodDef implements CommonText {
 				paramTypes.add(new InternalName(c));
 			}
 		}
-		this.returnValue = new ReturnValue(method.getReturnType());
+		if(method.getReturnType().equals(void.class))
+			this.returnValue = ReturnValue.VOID;
+		else
+			this.returnValue = new ReturnValue(method.getReturnType());
 		this.access = method.getModifiers();
 	}
 
