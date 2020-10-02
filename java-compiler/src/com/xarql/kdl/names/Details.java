@@ -121,4 +121,26 @@ public class Details implements ToName {
 			return false;
 	}
 
+	public String toString() {
+		final String name;
+		if(this.name != null)
+			name = this.name;
+		else
+			name = "???";
+
+		final String type;
+		if(this.type != null)
+			type = this.type.nameString();
+		else
+			type = "null";
+
+		final String mutable;
+		if(this.mutable)
+			mutable = "~";
+		else
+			mutable = "";
+
+		return type + mutable + " " + name;
+	}
+
 }

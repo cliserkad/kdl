@@ -3,6 +3,7 @@ package com.xarql.kdl.ir;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
+import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 
@@ -62,6 +63,8 @@ public interface Pushable extends ToName {
 			return new MethodCall(val.methodCall(), actor);
 		else if(val.newObject() != null)
 			return new NewObject(val.newObject(), actor);
+		else if(val.staticField() != null)
+			return actor.unit.fields.equivalentKey(new StaticField(val.staticField().VARNAME().getText(), actor.unit.resolveAgainstImports(val.staticField().CLASSNAME().getText())));
 		else
 			throw new UnimplementedException("a type of Pushable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
 	}

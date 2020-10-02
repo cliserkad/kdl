@@ -13,7 +13,7 @@ import org.objectweb.asm.Opcodes;
 
 public class NewObject extends BasePushable implements Opcodes {
 
-	public final ToName type;
+	public final InternalName type;
 	private final BestList<Pushable> arguments;
 
 	public NewObject(final kdl.NewObjectContext ctx, Actor actor) throws Exception {
@@ -33,9 +33,12 @@ public class NewObject extends BasePushable implements Opcodes {
 	@Override
 	public NewObject push(Actor visitor) throws Exception {
 		final BestList<InternalName> paramTypes = new BestList<>();
-		for(Pushable arg : arguments)
+		for(Pushable arg : arguments) {
+			if(arg.toInternalName() == null)
+				throw new NullPointerException("The type of an argument (" + arg + ") evaluated to null");
 			paramTypes.add(arg.toInternalName());
-		visitor.visitTypeInsn(NEW, type.toInternalName().nameString());
+		}
+		visitor.visitTypeInsn(NEW, type.nameString());
 		visitor.visitInsn(DUP);
 		for(int i = 0; i < arguments.size(); i++) {
 			arguments.get(i).push(visitor);
@@ -43,13 +46,13 @@ public class NewObject extends BasePushable implements Opcodes {
 				CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
 			}
 		}
-		new JavaMethodDef(type.toInternalName(), JavaMethodDef.S_INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
+		new JavaMethodDef(type, JavaMethodDef.S_INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
 		return this;
 	}
 
 	@Override
 	public InternalName toInternalName() {
-		return type.toInternalName();
+		return type;
 	}
 
 	@Override

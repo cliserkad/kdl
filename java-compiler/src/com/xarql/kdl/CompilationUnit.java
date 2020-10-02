@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.Text.nonNull;
@@ -31,11 +33,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	// used to generate a numerical id
 	private static int unitCount = 0;
 	public final TrackedMap<Constant, kdl.ConstantDefContext> constants;
-	public final TrackedMap<Field, kdl.FieldDefContext> fields;
+	public final TrackedMap<StaticField, kdl.FieldDefContext> fields;
 	// set in constructor
 	private final ClassWriter cw;
-	private final BestList<InternalName> imports;
-	private final BestList<JavaMethodDef> methods;
+	private final Set<InternalName> imports;
+	private final Set<JavaMethodDef> methods;
 	private final int id;
 	// input and output
 	private File sourceFile;
@@ -55,8 +57,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		pass = 0;
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		constants = new TrackedMap<>();
-		imports = new BestList<>();
-		methods = new BestList<>();
+		imports = new HashSet<>();
+		methods = new HashSet<>();
 		fields = new TrackedMap<>();
 		id = unitCount++;
 		addImport(String.class);
@@ -191,12 +193,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return write(new File(sourceFile.toPath().resolveSibling(clazz.name + ".class").toString()));
 	}
 
-	public InternalName resolveAgainstImports(String src) {
+	public InternalName resolveAgainstImports(String classname) {
 		for(InternalName in : imports) {
 			String str = in.nameString();
-			if(str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(src)) {
+			if(str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(classname))
 				return in;
-			}
 		}
 		throw new IllegalArgumentException("Couldn't recognize type");
 	}
@@ -239,17 +240,19 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				getCurrentScope().end(ctx.stop.getLine(), actor, staticInit.returnValue);
 			}
 
-			for(Field f : fields.keys()) {
-				final FieldVisitor fv;
-				final Object defaultValue;
-				if(f.type.toBaseType() == STRING)
-					defaultValue = "placeholder";
-				else if(f.type.isBaseType())
-					defaultValue = f.toBaseType().defaultValue.value;
-				else
-					defaultValue = null;
-				fv = cw.visitField(ACC_PUBLIC + ACC_FINAL, f.name, f.type.objectString(), null, defaultValue);
-				fv.visitEnd();
+			for(StaticField f : fields.keys()) {
+				if(f instanceof ObjectField) {
+					final FieldVisitor fv;
+					final Object defaultValue;
+					if(f.type.toBaseType() == STRING)
+						defaultValue = "placeholder";
+					else if(f.type.isBaseType())
+						defaultValue = f.toBaseType().defaultValue.value;
+					else
+						defaultValue = null;
+					fv = cw.visitField(ACC_PUBLIC + ACC_FINAL, f.name, f.type.objectString(), null, defaultValue);
+					fv.visitEnd();
+				}
 			}
 
 			try {
@@ -266,7 +269,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(getPass() == 1) {
 			try {
 				final Details details = new Details(ctx.variableDeclaration().details(), this);
-				final Field field = new Field(details, getClazz());
+				final ObjectField field = new ObjectField(details, getClazz());
 				if(!fields.contains(field))
 					fields.put(field, ctx);
 				else
@@ -390,6 +393,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		for(Method method : clazz.getMethods()) {
 			methods.add(new JavaMethodDef(clazz, method));
 		}
+		for(java.lang.reflect.Field field : clazz.getFields()) {
+			final Details details = new Details(field.getName(), new InternalName(field.getType()), (field.getModifiers() & ACC_FINAL) == ACC_FINAL);
+			if((field.getModifiers() & ACC_STATIC) == ACC_STATIC) {
+				fields.add(new StaticField(details, new InternalName(clazz)), null);
+			} else {
+				fields.add(new ObjectField(details, new InternalName(clazz)), null);
+			}
+		}
 	}
 
 	public void addImport(InternalName internalName) {
@@ -485,14 +496,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public JavaMethodDef addMethodDef(JavaMethodDef md) {
-		if(methods.contains(md))
+		if(!methods.add(md))
 			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
-		else
-			methods.add(md);
 		return md;
 	}
 
-	public BestList<JavaMethodDef> getMethods() {
+	public Set<JavaMethodDef> getMethods() {
 		return methods;
 	}
 
@@ -537,13 +546,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public MethodVisitor defineMethod(JavaMethodDef md) {
-		if(methods.contains(md)) {
-			final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);
-			currentScope = new Scope("Method " + md.methodName + " of class " + clazz, mv);
-			mv.visitCode();
-			return mv;
-		} else
-			throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
+		for(JavaMethodDef def : methods) {
+			if(def.equals(md)) {
+				final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);
+				currentScope = new Scope("Method " + md.methodName + " of class " + clazz, mv);
+				mv.visitCode();
+				return mv;
+			}
+		}
+		throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
 	}
 
 	public FieldVisitor addConstant(final Constant c) {
@@ -572,19 +583,21 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		actor.visitVarInsn(ALOAD, 0);
 		actor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 
-		for(Field f : fields.keys()) {
-			// push "this"
-			actor.visitVarInsn(ALOAD, 0);
-			if(fields.get(f).variableDeclaration().ASSIGN() != null) {
-				final Expression xpr = new Expression(fields.get(f).variableDeclaration().expression(), actor);
-				xpr.push(actor);
-			} else {
-				if(f.type.isBaseType())
-					f.type.toBaseType().defaultValue.push(actor);
-				else
-					actor.visitInsn(ACONST_NULL);
+		for(StaticField f : fields.keys()) {
+			if(f instanceof ObjectField) {
+				// push "this"
+				actor.visitVarInsn(ALOAD, 0);
+				if(fields.get(f).variableDeclaration().ASSIGN() != null) {
+					final Expression xpr = new Expression(fields.get(f).variableDeclaration().expression(), actor);
+					xpr.push(actor);
+				} else {
+					if(f.type.isBaseType())
+						f.type.toBaseType().defaultValue.push(actor);
+					else
+						actor.visitInsn(ACONST_NULL);
+				}
+				actor.visitFieldInsn(PUTFIELD, getClazz().toInternalName().nameString(), f.name, f.type.objectString());
 			}
-			actor.visitFieldInsn(PUTFIELD, getClazz().toInternalName().nameString(), f.name, f.type.objectString());
 		}
 		final Label finish = new Label();
 		actor.visitLabel(finish);

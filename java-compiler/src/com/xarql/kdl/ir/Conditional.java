@@ -1,9 +1,6 @@
 package com.xarql.kdl.ir;
 
-import com.xarql.kdl.Actor;
-import com.xarql.kdl.IncompatibleTypeException;
-import com.xarql.kdl.JavaMethodDef;
-import com.xarql.kdl.UnimplementedException;
+import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
@@ -12,6 +9,8 @@ import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+
+import static com.xarql.kdl.BestList.list;
 
 public abstract class Conditional implements Opcodes {
 
@@ -66,6 +65,9 @@ public abstract class Conditional implements Opcodes {
 				case INT:
 					testIntegers(actor);
 					break;
+				case STRING:
+					testStrings(actor);
+					break;
 				default:
 					throw new UnimplementedException(CommonText.SWITCH_BASETYPE);
 			}
@@ -105,6 +107,22 @@ public abstract class Conditional implements Opcodes {
 			visitor.visitJumpInsn(IFEQ, labelSet.onTrue); // if the string is not empty, then skip to true clause
 		else
 			visitor.visitJumpInsn(IFNE, labelSet.onFalse); // if the string is empty, then skip to false clause
+	}
+
+	public final void testStrings(final MethodVisitor visitor) throws Exception {
+		switch(condition.cmp) {
+			case EQUAL:
+				JavaMethodDef.EQUALS.withOwner(InternalName.STRING).invoke(visitor);
+				break;
+			default:
+				throw new UnimplementedException("Only == has been implemented for strings");
+		}
+
+		// negative vs positive jump
+		if(condition.positive)
+			visitor.visitJumpInsn(IFNE, labelSet.onTrue); // if the strings are not equal, then skip to true clause
+		else
+			visitor.visitJumpInsn(IFEQ, labelSet.onFalse); // if the string are equal, then skip to false clause
 	}
 
 	public final void testIntegers(final MethodVisitor visitor) throws Exception {

@@ -1,0 +1,20 @@
+path test.kdl.scanner.Echo;
+
+use java.util.Scanner;
+use java.lang.System;
+
+type EchoLoop {
+  main {
+    Scanner scan: Scanner(System.in);
+    println("Type \"exit\" to exit");
+    boolean~ continue: true;
+    while continue {
+      string input: scan.nextLine();
+      if input = "exit" {
+        continue: false;
+      } else {
+        println(input);
+      }
+    }
+  }
+}

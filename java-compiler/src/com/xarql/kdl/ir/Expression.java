@@ -59,4 +59,8 @@ public class Expression extends BasePushable {
 		return a.toBaseType();
 	}
 
+	public String toString() {
+		return a + " " + opr + " " + b;
+	}
+
 }

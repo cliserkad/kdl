@@ -13,6 +13,7 @@ public class IfElse extends Conditional {
 	public void defineOnTrue(kdl.ConditionalContext ctx, Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onTrue);
 		actor.unit.consumeBlock(ctx.r_if().block(), actor);
+		actor.visitJumpInsn(GOTO, labelSet.exit);
 	}
 
 	@Override

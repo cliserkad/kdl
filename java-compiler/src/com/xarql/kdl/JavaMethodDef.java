@@ -6,6 +6,7 @@ import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.MethodVisitor;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 
 import static com.xarql.kdl.BestList.list;
 
@@ -15,6 +16,7 @@ public class JavaMethodDef implements CommonText {
 	public static final JavaMethodDef TO_STRING = new JavaMethodDef(new InternalName(Object.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 	public static final JavaMethodDef INIT = new JavaMethodDef(new InternalName(Object.class), "<init>", null, ReturnValue.VOID, ACC_PUBLIC);
 	public static final JavaMethodDef STATIC_INIT = new JavaMethodDef(new InternalName(Object.class), "<clinit>", null, ReturnValue.VOID, ACC_PUBLIC + ACC_STATIC + ACC_FINAL);
+	public static final JavaMethodDef EQUALS = new JavaMethodDef(new InternalName(Object.class), "equals", list(new InternalName(Object.class)), ReturnValue.BOOLEAN, ACC_PUBLIC);
 
 	public static final String S_INIT = "<init>";
 	public static final String S_STATIC_INIT = "<clinit>";
@@ -29,10 +31,17 @@ public class JavaMethodDef implements CommonText {
 	public JavaMethodDef(InternalName owner, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access) {
 		this.owner = owner; // TODO: add check against primitives
 		this.methodName = Text.checkNotEmpty(methodName);
+
+		// check paramTypes
 		if(paramTypes == null)
 			this.paramTypes = new BestList<>();
-		else
+		else {
+			for(InternalName pt : paramTypes)
+				if(pt == null)
+					throw new NullPointerException("A parameter or argument's type may not be null");
 			this.paramTypes = paramTypes;
+		}
+
 		this.returnValue = ReturnValue.nonNull(returnValue);
 		this.access = access;
 	}
@@ -43,6 +52,8 @@ public class JavaMethodDef implements CommonText {
 		this.paramTypes = new BestList<>();
 		if(method.getParameterTypes().length > 0) {
 			for(Class<?> c : method.getParameterTypes()) {
+				if(c == null)
+					throw new NullPointerException();
 				paramTypes.add(new InternalName(c));
 			}
 		}
@@ -87,21 +98,26 @@ public class JavaMethodDef implements CommonText {
 	@Override
 	public String toString() {
 		if(descriptor() != null)
-			return owner + "." + methodName + descriptor();
+			return owner.nameString() + "." + methodName + descriptor();
 		else
-			return owner + "." + methodName;
+			return owner.nameString() + "." + methodName;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
 		if(obj instanceof JavaMethodDef) {
 			JavaMethodDef md = (JavaMethodDef) obj;
+
 			if(obj == this)
 				return true;
-			else if(md.owner == null)
-				return methodName.equals(md.methodName) && returnValue.equals(md.returnValue) && paramTypes.equals(md.paramTypes);
-			else
-				return methodName.equals(md.methodName) && returnValue.equals(md.returnValue) && paramTypes.equals(md.paramTypes) && owner.equals(md.owner);
+			else if(paramTypes.size() != md.paramTypes.size())
+				return false;
+			else {
+				for(int i = 0; i < md.paramTypes.size(); i++)
+					if(!paramTypes.get(i).equals(md.paramTypes.get(i)))
+						return false;
+				return methodName.equals(md.methodName) && returnValue.equals(md.returnValue) && owner.equals(md.owner);
+			}
 		} else
 			return false;
 	}
@@ -110,7 +126,7 @@ public class JavaMethodDef implements CommonText {
 		return resolveAgainst(src.getMethods());
 	}
 
-	public JavaMethodDef resolveAgainst(BestList<JavaMethodDef> methods) throws SymbolResolutionException {
+	public JavaMethodDef resolveAgainst(Set<JavaMethodDef> methods) throws SymbolResolutionException {
 		for(JavaMethodDef def : methods) {
 			if(owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def.paramTypes))
 				return def;
