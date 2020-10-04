@@ -23,4 +23,8 @@ public class StringTemplateTest {
 		new StandardKdlTest(PATH, "StringTemplate3", null, list("Template with val1 and val2 stored to a string")).testKDL();
 	}
 
+	@Test
+	public void testVarsEndingInNum() {
+		new StandardKdlTest(PATH, "StringTemplate4", null, list("99 is lower than 230")).testKDL();
+	}
 }

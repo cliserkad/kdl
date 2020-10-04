@@ -111,13 +111,13 @@ public class Literal<Type> extends BasePushable implements CommonText {
 	public static String resolveMixin(final String s, final int start) {
 		String sub = s.substring(start + 1);
 		for(int i = 0; i < sub.length(); i++)
-			if(!isAlphabetic(sub.charAt(i)))
+			if(!isAlphanumeric(sub.charAt(i)))
 				return sub.substring(0, i);
 		return sub;
 	}
 
-	public static boolean isAlphabetic(final char c) {
-		return (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
+	public static boolean isAlphanumeric(final char c) {
+		return (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || (c >= 48 && c <= 57);
 	}
 
 	public static String crush(final String s) {

@@ -1,0 +1,10 @@
+// tests templates with variables ending with numerals
+type StringTemplate4 {
+
+  main {
+    int n0: 99;
+    int n1: 230;
+    println("$n0 is lower than $n1");
+  }
+
+}
