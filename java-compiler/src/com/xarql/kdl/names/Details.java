@@ -1,7 +1,7 @@
 package com.xarql.kdl.names;
 
 import com.xarql.kdl.CompilationUnit;
-import com.xarql.kdl.JavaMethodDef;
+import com.xarql.kdl.MethodDef;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 
@@ -76,10 +76,10 @@ public class Details implements ToName {
 	 * Transforms init() and prep() to their respective special names
 	 */
 	public Details filterName() {
-		if(name.equals(JavaMethodDef.S_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
-			return withName(JavaMethodDef.S_INIT);
-		else if(name.equals(JavaMethodDef.S_STATIC_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
-			return withName(JavaMethodDef.S_STATIC_INIT);
+		if(name.equals(MethodDef.S_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
+			return withName(MethodDef.S_INIT);
+		else if(name.equals(MethodDef.S_STATIC_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
+			return withName(MethodDef.S_STATIC_INIT);
 		else
 			return this;
 	}

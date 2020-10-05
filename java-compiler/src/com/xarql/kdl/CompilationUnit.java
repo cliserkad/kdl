@@ -27,6 +27,7 @@ import static com.xarql.kdl.names.BaseType.*;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
 
+	public static final int USAGE_MASK = 0B00000000000000000000000000000001;
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
 
@@ -37,7 +38,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	// set in constructor
 	private final ClassWriter cw;
 	private final Set<InternalName> imports;
-	private final Set<JavaMethodDef> methods;
+	private final Set<MethodDef> methods;
 	private final int id;
 	// input and output
 	private File sourceFile;
@@ -86,7 +87,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param visitor Any MethodVisitor
 	 */
 	public static void convertToString(final InternalName name, final MethodVisitor visitor) {
-		JavaMethodDef stringValueOf;
+		MethodDef stringValueOf;
 		if(name.isBaseType()) {
 			if(name.toBaseType() == STRING)
 				return;
@@ -96,10 +97,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					actualName = InternalName.INT;
 				else if(name.toBaseType() == SHORT)
 					actualName = InternalName.INT;
-				stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+				stringValueOf = new MethodDef(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 			}
 		} else
-			stringValueOf = new JavaMethodDef(InternalName.STRING, "valueOf", list(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+			stringValueOf = new MethodDef(InternalName.STRING, "valueOf", list(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
 	}
 
@@ -221,7 +222,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 		} else if(getPass() == 2) {
 			if(!constants.isEmpty()) {
-				JavaMethodDef staticInit = JavaMethodDef.STATIC_INIT.withOwner(clazz);
+				MethodDef staticInit = MethodDef.STATIC_INIT.withOwner(clazz);
 				addMethodDef(staticInit);
 				Actor actor = new Actor(defineMethod(staticInit), this);
 
@@ -391,7 +392,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void addImport(Class<?> clazz) {
 		imports.add(new InternalName(clazz));
 		for(Method method : clazz.getMethods()) {
-			methods.add(new JavaMethodDef(clazz, method));
+			methods.add(new MethodDef(clazz, method));
 		}
 		for(java.lang.reflect.Field field : clazz.getFields()) {
 			final Details details = new Details(field.getName(), new InternalName(field.getType()), (field.getModifiers() & ACC_FINAL) == ACC_FINAL);
@@ -419,9 +420,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
-			final BestList<Details> params = new BestList<>();
-			for(kdl.DetailsContext typedVar : ctx.parameterDefinition().details())
-				params.add(new Details(typedVar, this));
+			final BestList<Param> params = new BestList<>();
+			for(kdl.ParamContext param : ctx.paramSet().param())
+				params.add(new Param(new Details(param.details(), this), param.value()));
 
 			// create MethodDef
 			final BestList<InternalName> paramTypes = new BestList<>();
@@ -431,18 +432,18 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			// check if the method accesses any fields
 			final boolean initializer;
 			final int staticModifier;
-			if(details.name.equals(JavaMethodDef.S_INIT)) {
+			if(details.name.equals(MethodDef.S_INIT)) {
 				staticModifier = 0;
 				initializer = true;
 			} else {
-				if(ctx.parameterDefinition().THIS() == null)
+				if(ctx.paramSet().THIS() == null)
 					staticModifier = ACC_STATIC;
 				else
 					staticModifier = 0;
 				initializer = false;
 			}
 
-			MethodDef def = new MethodDef(new InternalName(clazz), MethodDef.Type.FNC, details.name, paramTypes, rv, ACC_PUBLIC + staticModifier);
+			MethodDef def = new MethodDef(clazz.toInternalName(), details.name, paramTypes, rv, ACC_PUBLIC + staticModifier);
 
 			if(getPass() == 2) {
 				addMethodDef(def);
@@ -452,7 +453,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				if(staticModifier == 0)
 					getCurrentScope().newVariable("this", getClazz().toInternalName());
 				// parameters will always occupy the first few slots
-				for(Details param : params)
+				for(Param param : params)
 					getCurrentScope().newVariable(param.name, param.type);
 
 				if(initializer) {
@@ -478,9 +479,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterMain(final kdl.MainContext ctx) {
 		if(getPass() == 2) {
-			addMethodDef(JavaMethodDef.MAIN.withOwner(clazz));
+			addMethodDef(MethodDef.MAIN.withOwner(clazz));
 		} else if(getPass() == 3) {
-			final Actor actor = new Actor(defineMethod(JavaMethodDef.MAIN.withOwner(clazz)), this);
+			final Actor actor = new Actor(defineMethod(MethodDef.MAIN.withOwner(clazz)), this);
 			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
 			try {
 				consumeBlock(ctx.block(), actor);
@@ -495,13 +496,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return getCurrentScope().getVariable(name.trim());
 	}
 
-	public JavaMethodDef addMethodDef(JavaMethodDef md) {
+	public MethodDef addMethodDef(MethodDef md) {
 		if(!methods.add(md))
 			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
 		return md;
 	}
 
-	public Set<JavaMethodDef> getMethods() {
+	public Set<MethodDef> getMethods() {
 		return methods;
 	}
 
@@ -545,8 +546,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return clazz;
 	}
 
-	public MethodVisitor defineMethod(JavaMethodDef md) {
-		for(JavaMethodDef def : methods) {
+	public MethodVisitor defineMethod(MethodDef md) {
+		for(MethodDef def : methods) {
 			if(def.equals(md)) {
 				final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);
 				currentScope = new Scope("Method " + md.methodName + " of class " + clazz, mv);
@@ -572,8 +573,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void addDefaultConstructor(final ClassWriter cw) throws Exception {
-		addMethodDef(JavaMethodDef.INIT.withOwner(getClazz()));
-		final Actor actor = new Actor(defineMethod(JavaMethodDef.INIT.withOwner(getClazz())), this);
+		addMethodDef(MethodDef.INIT.withOwner(getClazz()));
+		final Actor actor = new Actor(defineMethod(MethodDef.INIT.withOwner(getClazz())), this);
 		actor.visitCode();
 		final Label start = new Label();
 		actor.visitLabel(start);

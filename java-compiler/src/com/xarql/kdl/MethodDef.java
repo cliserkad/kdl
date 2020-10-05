@@ -1,62 +1,168 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
+import org.objectweb.asm.MethodVisitor;
 
-public class MethodDef extends JavaMethodDef {
+import java.lang.reflect.Method;
+import java.util.Set;
 
-	public static final Type DEFAULT_TYPE = Type.MTD;
-	public static final int DEFAULT_ACCESS = ACC_PUBLIC;
+import static com.xarql.kdl.BestList.list;
 
-	public final Type type;
+public class MethodDef implements CommonText {
 
-	/**
-	 * Creates a .kdl MethodDef
-	 *
-	 * @param type        compiletime restrictions
-	 * @param methodName  name of method
-	 * @param paramTypes  the type of every parameter
-	 * @param returnValue the type that is returned
-	 * @param access      access modifiers
-	 */
-	public MethodDef(InternalName owner, Type type, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access) {
-		super(owner, methodName, paramTypes, returnValue, access);
-		this.type = type;
-	}
+	public static final MethodDef MAIN = new MethodDef(new InternalName(Object.class), "main", list(new InternalName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
+	public static final MethodDef TO_STRING = new MethodDef(new InternalName(Object.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
+	public static final MethodDef INIT = new MethodDef(new InternalName(Object.class), "<init>", null, ReturnValue.VOID, ACC_PUBLIC);
+	public static final MethodDef STATIC_INIT = new MethodDef(new InternalName(Object.class), "<clinit>", null, ReturnValue.VOID, ACC_PUBLIC + ACC_STATIC + ACC_FINAL);
+	public static final MethodDef EQUALS = new MethodDef(new InternalName(Object.class), "equals", list(new InternalName(Object.class)), ReturnValue.BOOLEAN, ACC_PUBLIC);
 
-	public MethodDef(JavaMethodDef parent, Type type) {
-		this(parent.owner, type, parent.methodName, parent.paramTypes, parent.returnValue, parent.access);
-	}
+	public static final String S_INIT = "<init>";
+	public static final String S_STATIC_INIT = "<clinit>";
+	public static final int DEFAULT_ACCESS = ACC_PUBLIC + ACC_STATIC;
 
-	/**
-	 * Creates a method with methodName that is public, void, and has no parameters
-	 *
-	 * @param methodName
-	 */
-	public MethodDef(InternalName owner, String methodName) {
-		this(owner, DEFAULT_TYPE, methodName, null, VOID, DEFAULT_ACCESS);
-	}
+	public final InternalName owner;
+	public final String methodName;
+	public final BestList<InternalName> paramTypes;
+	public final ReturnValue returnValue;
+	public final int access;
 
-	/**
-	 * Used to track compiletime restrictions of .kdl methods
-	 */
-	public enum Type {
+	public MethodDef(InternalName owner, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access) {
+		this.owner = owner; // TODO: add check against primitives
+		this.methodName = Text.checkNotEmpty(methodName);
 
-		FNC("function"), MTD("method");
-
-		String fullName;
-
-		Type(String fullName) {
-			this.fullName = fullName;
+		// check paramTypes
+		if(paramTypes == null)
+			this.paramTypes = new BestList<>();
+		else {
+			for(InternalName pt : paramTypes)
+				if(pt == null)
+					throw new NullPointerException("A parameter or argument's type may not be null");
+			this.paramTypes = paramTypes;
 		}
 
-		public static Type resolve(String type) {
-			for(Type t : values())
-				if(t.name().equals(type) || t.fullName.equals(type))
-					return t;
-			throw new IllegalArgumentException("The method type " + type + " is invalid");
-		}
+		this.returnValue = ReturnValue.nonNull(returnValue);
+		this.access = access;
+	}
 
+	public MethodDef(Class<?> jvmClass, Method method) {
+		this.owner = new InternalName(jvmClass);
+		this.methodName = method.getName();
+		this.paramTypes = new BestList<>();
+		if(method.getParameterTypes().length > 0) {
+			for(Class<?> c : method.getParameterTypes()) {
+				if(c == null)
+					throw new NullPointerException();
+				paramTypes.add(new InternalName(c));
+			}
+		}
+		if(method.getReturnType().equals(void.class))
+			this.returnValue = ReturnValue.VOID;
+		else
+			this.returnValue = new ReturnValue(method.getReturnType());
+		this.access = method.getModifiers();
+	}
+
+	public MethodDef withOwner(final CustomClass cc) {
+		return new MethodDef(new InternalName(cc), methodName, paramTypes, returnValue, access);
+	}
+
+	public MethodDef withOwner(final InternalName owner) {
+		return new MethodDef(owner, methodName, paramTypes, returnValue, access);
+	}
+
+	public MethodDef withAccess(final int access) {
+		return new MethodDef(owner, methodName, paramTypes, returnValue, access);
+	}
+
+	public MethodDef withReturnValue(final ReturnValue returnValue) {
+		return new MethodDef(owner, methodName, paramTypes, returnValue, access);
+	}
+
+	public static void main(String[] args) {
+		System.out.println(MAIN);
+	}
+
+	public String descriptor() {
+		String out = "";
+		out += "(";
+		for(InternalName in : paramTypes)
+			out += in.objectString();
+		out += ")";
+		out += returnValue.stringOutput();
+		return out;
+	}
+
+	public String owner() {
+		return owner.nameString();
+	}
+
+	@Override
+	public String toString() {
+		if(descriptor() != null)
+			return owner.nameString() + "." + methodName + descriptor();
+		else
+			return owner.nameString() + "." + methodName;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof MethodDef) {
+			MethodDef md = (MethodDef) obj;
+
+			if(obj == this)
+				return true;
+			else if(paramTypes.size() != md.paramTypes.size())
+				return false;
+			else {
+				for(int i = 0; i < md.paramTypes.size(); i++)
+					if(!paramTypes.get(i).equals(md.paramTypes.get(i)))
+						return false;
+				return methodName.equals(md.methodName) && returnValue.equals(md.returnValue) && owner.equals(md.owner);
+			}
+		} else
+			return false;
+	}
+
+	public MethodDef resolve(CompilationUnit src) throws SymbolResolutionException {
+		return resolveAgainst(src.getMethods());
+	}
+
+	public MethodDef resolveAgainst(Set<MethodDef> methods) throws SymbolResolutionException {
+		for(MethodDef def : methods) {
+			if(owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def.paramTypes))
+				return def;
+		}
+		throw new SymbolResolutionException("Couldn't resolve given method " + this);
+	}
+
+	public boolean paramsCompatible(BestList<InternalName> others) {
+		if(paramTypes.size() != others.size())
+			return false;
+		for(int i = 0; i < paramTypes.size(); i++) {
+			if(!paramTypes.get(i).compatibleWith(others.get(i)))
+				return false;
+		}
+		return true;
+	}
+
+	private MethodDef invoke0(final int type, final MethodVisitor visitor) {
+		visitor.visitMethodInsn(type, owner.nameString(), methodName, descriptor(), false);
+		return this;
+	}
+
+	public MethodDef invoke(MethodVisitor visitor) {
+		if((access & ACC_STATIC) == ACC_STATIC)
+			return invoke0(INVOKESTATIC, visitor);
+		else if((access & ACC_PRIVATE) == ACC_PRIVATE || methodName.equals(S_INIT))
+			return invoke0(INVOKESPECIAL, visitor);
+		else
+			return invoke0(INVOKEVIRTUAL, visitor);
+	}
+
+	public boolean isStatic() {
+		return (access & ACC_STATIC) == ACC_STATIC;
 	}
 
 }

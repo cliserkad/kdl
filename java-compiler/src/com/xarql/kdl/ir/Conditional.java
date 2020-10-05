@@ -10,8 +10,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import static com.xarql.kdl.BestList.list;
-
 public abstract class Conditional implements Opcodes {
 
 	public final Condition condition;
@@ -100,7 +98,7 @@ public abstract class Conditional implements Opcodes {
 
 		// use isEmpty() on the second copy of the string
 		visitor.visitLabel(isEmpty);
-		new JavaMethodDef(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).invoke(visitor);
+		new MethodDef(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).invoke(visitor);
 
 		// negative vs positive jump
 		if(condition.positive)
@@ -112,7 +110,7 @@ public abstract class Conditional implements Opcodes {
 	public final void testStrings(final MethodVisitor visitor) throws Exception {
 		switch(condition.cmp) {
 			case EQUAL:
-				JavaMethodDef.EQUALS.withOwner(InternalName.STRING).invoke(visitor);
+				MethodDef.EQUALS.withOwner(InternalName.STRING).invoke(visitor);
 				break;
 			default:
 				throw new UnimplementedException("Only == has been implemented for strings");

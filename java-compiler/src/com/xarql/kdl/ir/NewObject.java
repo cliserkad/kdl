@@ -3,12 +3,11 @@ package com.xarql.kdl.ir;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.CompilationUnit;
-import com.xarql.kdl.JavaMethodDef;
+import com.xarql.kdl.MethodDef;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
-import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Opcodes;
 
 public class NewObject extends BasePushable implements Opcodes {
@@ -46,7 +45,7 @@ public class NewObject extends BasePushable implements Opcodes {
 				CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
 			}
 		}
-		new JavaMethodDef(type, JavaMethodDef.S_INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
+		new MethodDef(type, MethodDef.S_INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
 		return this;
 	}
 

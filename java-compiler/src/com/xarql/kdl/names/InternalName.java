@@ -1,5 +1,6 @@
 package com.xarql.kdl.names;
 
+import com.xarql.kdl.Actor;
 import com.xarql.kdl.CustomClass;
 
 public class InternalName implements ToName, CommonText {
@@ -129,6 +130,14 @@ public class InternalName implements ToName, CommonText {
 			return qualifiedName;
 		} else
 			throw new IllegalStateException("Both clazz and base can not be null in an instance of InternalName");
+	}
+
+	public void pushDefault(Actor actor) {
+		if(isBaseType()) {
+			toBaseType().defaultValue.push(actor);
+		} else {
+			actor.visitInsn(ACONST_NULL);
+		}
 	}
 
 	@Override

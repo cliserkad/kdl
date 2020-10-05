@@ -3,7 +3,7 @@ package com.xarql.kdl.ir;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.CompilationUnit;
-import com.xarql.kdl.JavaMethodDef;
+import com.xarql.kdl.MethodDef;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
@@ -12,17 +12,13 @@ import com.xarql.kdl.names.ToName;
 
 public class MethodCall extends BasePushable implements CommonText {
 
-	public final JavaMethodDef method;
+	public final MethodDef method;
 	public final Pushable source;
 	private final BestList<Pushable> arguments;
 
 	public MethodCall(kdl.MethodCallContext ctx, Actor actor) throws Exception {
 		// parse methodCall alone
 		final String methodName = ctx.VARNAME(ctx.VARNAME().size() - 1).getText();
-		arguments = parseArguments(ctx.parameterSet(), actor);
-		final BestList<InternalName> params = new BestList<>();
-		for(Pushable arg : arguments)
-			params.add(arg.toInternalName());
 
 		// determine which class owns the method being called
 		final InternalName owner;
@@ -40,7 +36,12 @@ public class MethodCall extends BasePushable implements CommonText {
 			source = null;
 		}
 
-		JavaMethodDef known = new JavaMethodDef(owner, methodName, params, null, ACC_PUBLIC + accessModifier);
+		arguments = parseArguments(ctx.parameterSet(), actor);
+		final BestList<InternalName> params = new BestList<>();
+		for(Pushable arg : arguments)
+			params.add(arg.toInternalName());
+
+		MethodDef known = new MethodDef(owner, methodName, params, null, ACC_PUBLIC + accessModifier);
 		method = known.resolve(actor.unit);
 	}
 
