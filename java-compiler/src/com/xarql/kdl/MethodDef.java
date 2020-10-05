@@ -21,14 +21,17 @@ public class MethodDef implements CommonText {
 	public static final String S_INIT = "<init>";
 	public static final String S_STATIC_INIT = "<clinit>";
 	public static final int DEFAULT_ACCESS = ACC_PUBLIC + ACC_STATIC;
+	public static final boolean[] DEFAULT_DEFAULTS = new boolean[]{};
 
 	public final InternalName owner;
 	public final String methodName;
 	public final BestList<InternalName> paramTypes;
 	public final ReturnValue returnValue;
 	public final int access;
+	public final boolean[] defaults; // tracks which params are necessary
 
-	public MethodDef(InternalName owner, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access) {
+	public MethodDef(InternalName owner, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access, boolean[] defaults) {
+		boolean[] defaults1;
 		this.owner = owner; // TODO: add check against primitives
 		this.methodName = Text.checkNotEmpty(methodName);
 
@@ -44,6 +47,11 @@ public class MethodDef implements CommonText {
 
 		this.returnValue = ReturnValue.nonNull(returnValue);
 		this.access = access;
+		this.defaults = defaults;
+	}
+
+	public MethodDef(InternalName owner, String methodName, BestList<InternalName> paramTypes, ReturnValue returnValue, int access) {
+		this(owner, methodName, paramTypes, returnValue, access, DEFAULT_DEFAULTS);
 	}
 
 	public MethodDef(Class<?> jvmClass, Method method) {
@@ -61,6 +69,7 @@ public class MethodDef implements CommonText {
 			this.returnValue = ReturnValue.VOID;
 		else
 			this.returnValue = new ReturnValue(method.getReturnType());
+		this.defaults = DEFAULT_DEFAULTS;
 		this.access = method.getModifiers();
 	}
 
@@ -131,19 +140,25 @@ public class MethodDef implements CommonText {
 
 	public MethodDef resolveAgainst(Set<MethodDef> methods) throws SymbolResolutionException {
 		for(MethodDef def : methods) {
-			if(owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def.paramTypes))
+			if(owner.equals(def.owner) && methodName.equals(def.methodName) && paramsCompatible(def))
 				return def;
 		}
 		throw new SymbolResolutionException("Couldn't resolve given method " + this);
 	}
 
-	public boolean paramsCompatible(BestList<InternalName> others) {
-		if(paramTypes.size() != others.size())
+	public boolean paramsCompatible(MethodDef other) {
+		if(paramTypes.size() < other.paramTypes.size())
 			return false;
-		for(int i = 0; i < paramTypes.size(); i++) {
-			if(!paramTypes.get(i).compatibleWith(others.get(i)))
+
+		int dest = 0;
+		for(int arg = 0; arg < paramTypes.size(); ) {
+			if(paramTypes.get(arg).compatibleWith(other.paramTypes.get(dest))) // if the argument is compatible with the parameter, go to the next arg
+				arg++;
+			else if(other.defaults[dest]) // if the parameter was necessary, but incompatible
 				return false;
+			dest++;
 		}
+
 		return true;
 	}
 
