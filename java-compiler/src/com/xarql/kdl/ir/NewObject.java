@@ -3,7 +3,7 @@ package com.xarql.kdl.ir;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.BestList;
 import com.xarql.kdl.CompilationUnit;
-import com.xarql.kdl.MethodDef;
+import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
@@ -45,7 +45,7 @@ public class NewObject extends BasePushable implements Opcodes {
 				CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
 			}
 		}
-		new MethodDef(type, MethodDef.S_INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
+		new MethodHeader(type, MethodHeader.S_INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
 		return this;
 	}
 

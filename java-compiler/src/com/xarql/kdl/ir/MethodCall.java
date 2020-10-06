@@ -1,9 +1,6 @@
 package com.xarql.kdl.ir;
 
-import com.xarql.kdl.Actor;
-import com.xarql.kdl.BestList;
-import com.xarql.kdl.CompilationUnit;
-import com.xarql.kdl.MethodDef;
+import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
@@ -12,37 +9,34 @@ import com.xarql.kdl.names.ToName;
 
 public class MethodCall extends BasePushable implements CommonText {
 
-	public final MethodDef method;
-	public final Pushable source;
-	private final BestList<Pushable> arguments;
+	public final MethodInvocation invocation;
 
 	public MethodCall(kdl.MethodCallContext ctx, Actor actor) throws Exception {
 		// parse methodCall alone
 		final String methodName = ctx.VARNAME(ctx.VARNAME().size() - 1).getText();
 
 		// determine which class owns the method being called
+		final Pushable source;
 		final InternalName owner;
-		int accessModifier = 0;
+		boolean isStatic;
 		if(ctx.CLASSNAME() != null) {
-			owner = actor.unit.resolveAgainstImports(ctx.CLASSNAME().getText());
-			accessModifier += ACC_STATIC;
 			source = null;
+			owner = actor.unit.resolveAgainstImports(ctx.CLASSNAME().getText());
+			isStatic = true;
 		} else if(ctx.VARNAME().size() > 1) {
 			source = actor.unit.getLocalVariable(ctx.VARNAME(0).getText());
 			owner = source.toInternalName();
+			isStatic = false;
 		} else {
-			owner = new InternalName(actor.unit.getClazz());
-			accessModifier += ACC_STATIC;
 			source = null;
+			owner = new InternalName(actor.unit.getClazz());
+			isStatic = false;
 		}
 
-		arguments = parseArguments(ctx.parameterSet(), actor);
-		final BestList<InternalName> params = new BestList<>();
-		for(Pushable arg : arguments)
-			params.add(arg.toInternalName());
+		final BestList<Pushable> args = parseArguments(ctx.parameterSet(), actor);
 
-		MethodDef known = new MethodDef(owner, methodName, params, null, ACC_PUBLIC + accessModifier);
-		method = known.resolve(actor.unit);
+		MethodTarget known = new MethodTarget(owner, methodName, argTypes(args), isStatic);
+		invocation = known.resolve(actor).withOwner(source).withArgs(args);
 	}
 
 	public MethodCall(kdl.MethodCallStatementContext ctx, Actor actor) throws Exception {
@@ -60,45 +54,42 @@ public class MethodCall extends BasePushable implements CommonText {
 		return arguments;
 	}
 
+	public BestList<InternalName> argTypes(BestList<Pushable> args) {
+		final BestList<InternalName> argTypes = new BestList<>();
+		for(Pushable arg : args)
+			argTypes.add(arg.toInternalName());
+		return argTypes;
+	}
+
 	@Override
-	public MethodCall push(final Actor visitor) throws Exception {
-		if(source != null)
-			source.push(visitor);
-		for(int i = 0; i < arguments.size(); i++) {
-			ToName argType = arguments.get(i).push(visitor);
-			if(method.paramTypes.get(i) == InternalName.STRING) {
-				CompilationUnit.convertToString(argType.toInternalName(), visitor);
-			}
-		}
-		method.invoke(visitor);
+	public MethodCall push(final Actor actor) throws Exception {
+		invocation.push(actor);
 		return this;
 	}
 
 	@Override
 	public InternalName toInternalName() {
-		if(method.returnValue.returnType == null)
-			return new InternalName();
-		return method.returnValue.returnType.toInternalName();
+		return invocation.header.toInternalName();
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return method.returnValue.returnType.isBaseType();
+		return invocation.header.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return method.returnValue.returnType.toBaseType();
+		return invocation.header.toBaseType();
 	}
 
 	@Override
 	public String toString() {
-		return "MethodCall --> {\n\tMethod --> " + method + arguments() + "\n}";
+		return "MethodCall --> {\n\tMethod --> " + invocation.header + arguments() + "\n}";
 	}
 
 	private String arguments() {
 		String out = "\n\tCalculable --> {";
-		for(Pushable arg : arguments)
+		for(Pushable arg : invocation.args)
 			out += "\n\t\t" + arg.toString().replace("\n", "\n\t\t");
 		out += "\n\t}";
 		return out;

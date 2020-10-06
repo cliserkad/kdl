@@ -1,7 +1,7 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.MethodDef;
+import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
@@ -13,7 +13,7 @@ import static com.xarql.kdl.BestList.list;
 
 public class SubSequence extends BasePushable {
 
-	public static final MethodDef SUB_STRING = new MethodDef(InternalName.STRING, "substring", list(InternalName.INT, InternalName.INT), ReturnValue.STRING,
+	public static final MethodHeader SUB_STRING = new MethodHeader(InternalName.STRING, "substring", list(InternalName.INT, InternalName.INT), ReturnValue.STRING,
 			Opcodes.ACC_PUBLIC);
 
 	public final Variable variable;

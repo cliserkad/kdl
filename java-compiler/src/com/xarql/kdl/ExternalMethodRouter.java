@@ -12,15 +12,15 @@ import static com.xarql.kdl.names.InternalName.INT_WRAPPER;
 
 public class ExternalMethodRouter implements CommonText {
 
-	public static final MethodDef PRINTLN_MTD = new MethodDef(new InternalName(PrintStream.class), PRINTLN, list(InternalName.STRING), VOID, ACC_PUBLIC);
-	public static final MethodDef PRINT_MTD = new MethodDef(new InternalName(PrintStream.class), PRINT, list(InternalName.STRING), VOID, ACC_PUBLIC);
-	public static final MethodDef ERROR_MTD = new MethodDef(new InternalName(PrintStream.class), ERROR, list(InternalName.STRING), VOID, ACC_PUBLIC);
-	public static final MethodDef PARSE_INT_MTD = new MethodDef(INT_WRAPPER, "parseInt", list(InternalName.STRING), ReturnValue.INT, ACC_PUBLIC + ACC_STATIC);
+	public static final MethodHeader PRINTLN_MTD = new MethodHeader(new InternalName(PrintStream.class), PRINTLN, list(InternalName.STRING), VOID, ACC_PUBLIC);
+	public static final MethodHeader PRINT_MTD = new MethodHeader(new InternalName(PrintStream.class), PRINT, list(InternalName.STRING), VOID, ACC_PUBLIC);
+	public static final MethodHeader ERROR_MTD = new MethodHeader(new InternalName(PrintStream.class), ERROR, list(InternalName.STRING), VOID, ACC_PUBLIC);
+	public static final MethodHeader PARSE_INT_MTD = new MethodHeader(INT_WRAPPER, "parseInt", list(InternalName.STRING), ReturnValue.INT, ACC_PUBLIC + ACC_STATIC);
 
 	public static void writeMethods(final CompilationUnit unit, int line) {
 		MethodVisitor visitor;
 		final String arg = "input";
-		MethodDef def;
+		MethodHeader def;
 
 		// add println method to class
 		visitor = unit.defineMethod(unit.addMethodDef(PRINTLN_MTD.withOwner(unit.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC)));

@@ -2,7 +2,7 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.IncompatibleTypeException;
-import com.xarql.kdl.MethodDef;
+import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
@@ -17,7 +17,7 @@ import static com.xarql.kdl.names.BaseType.INT;
  */
 public class IndexAccess extends BasePushable implements CommonText {
 
-	public static final MethodDef STRING_CHAR_AT = new MethodDef(InternalName.STRING, "charAt", list(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
+	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(InternalName.STRING, "charAt", list(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
 
 	public final Variable variable;
 	public final Pushable index;

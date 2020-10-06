@@ -12,10 +12,10 @@ import static com.xarql.kdl.names.BaseType.STRING;
 
 public interface ExpressionHandler extends CommonText {
 
-	public static final MethodDef INIT_STRING_BUILDER = new MethodDef(new InternalName(StringBuilder.class), MethodDef.S_INIT, null, null, ACC_PUBLIC);
-	MethodDef SB_APPEND = new MethodDef(new InternalName(StringBuilder.class), "append", list(new InternalName(String.class)),
+	public static final MethodHeader INIT_STRING_BUILDER = new MethodHeader(new InternalName(StringBuilder.class), MethodHeader.S_INIT, null, null, ACC_PUBLIC);
+	MethodHeader SB_APPEND = new MethodHeader(new InternalName(StringBuilder.class), "append", list(new InternalName(String.class)),
 			new ReturnValue(new InternalName(StringBuilder.class)), ACC_PUBLIC);
-	MethodDef SB_TO_STRING = new MethodDef(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
+	MethodHeader SB_TO_STRING = new MethodHeader(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 
 	public static InternalName compute(final Expression xpr, final Actor actor) throws Exception {
 		final Pushable res = xpr.a;

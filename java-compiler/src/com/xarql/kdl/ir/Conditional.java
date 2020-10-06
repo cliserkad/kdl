@@ -98,7 +98,7 @@ public abstract class Conditional implements Opcodes {
 
 		// use isEmpty() on the second copy of the string
 		visitor.visitLabel(isEmpty);
-		new MethodDef(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).invoke(visitor);
+		new MethodHeader(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).invoke(visitor);
 
 		// negative vs positive jump
 		if(condition.positive)
@@ -110,7 +110,7 @@ public abstract class Conditional implements Opcodes {
 	public final void testStrings(final MethodVisitor visitor) throws Exception {
 		switch(condition.cmp) {
 			case EQUAL:
-				MethodDef.EQUALS.withOwner(InternalName.STRING).invoke(visitor);
+				MethodHeader.EQUALS.withOwner(InternalName.STRING).invoke(visitor);
 				break;
 			default:
 				throw new UnimplementedException("Only == has been implemented for strings");

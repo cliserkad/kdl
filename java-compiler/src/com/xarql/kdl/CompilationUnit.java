@@ -38,7 +38,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	// set in constructor
 	private final ClassWriter cw;
 	private final Set<InternalName> imports;
-	private final Set<MethodDef> methods;
+	private final Set<MethodHeader> methods;
 	private final int id;
 	// input and output
 	private File sourceFile;
@@ -87,7 +87,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param visitor Any MethodVisitor
 	 */
 	public static void convertToString(final InternalName name, final MethodVisitor visitor) {
-		MethodDef stringValueOf;
+		MethodHeader stringValueOf;
 		if(name.isBaseType()) {
 			if(name.toBaseType() == STRING)
 				return;
@@ -97,11 +97,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					actualName = InternalName.INT;
 				else if(name.toBaseType() == SHORT)
 					actualName = InternalName.INT;
-				stringValueOf = new MethodDef(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+				stringValueOf = new MethodHeader(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 			}
 		} else
-			stringValueOf = new MethodDef(InternalName.STRING, "valueOf", list(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
-		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.methodName, stringValueOf.descriptor(), false);
+			stringValueOf = new MethodHeader(InternalName.STRING, "valueOf", list(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.name, stringValueOf.descriptor(), false);
 	}
 
 	public void runSilent() throws Exception {
@@ -222,7 +222,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 		} else if(getPass() == 2) {
 			if(!constants.isEmpty()) {
-				MethodDef staticInit = MethodDef.STATIC_INIT.withOwner(clazz);
+				MethodHeader staticInit = MethodHeader.STATIC_INIT.withOwner(clazz);
 				addMethodDef(staticInit);
 				Actor actor = new Actor(defineMethod(staticInit), this);
 
@@ -238,7 +238,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 						printException(e);
 					}
 				}
-				getCurrentScope().end(ctx.stop.getLine(), actor, staticInit.returnValue);
+				getCurrentScope().end(ctx.stop.getLine(), actor, staticInit.returns);
 			}
 
 			for(StaticField f : fields.keys()) {
@@ -392,7 +392,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void addImport(Class<?> clazz) {
 		imports.add(new InternalName(clazz));
 		for(Method method : clazz.getMethods()) {
-			methods.add(new MethodDef(clazz, method));
+			methods.add(new MethodHeader(clazz, method));
 		}
 		for(java.lang.reflect.Field field : clazz.getFields()) {
 			final Details details = new Details(field.getName(), new InternalName(field.getType()), (field.getModifiers() & ACC_FINAL) == ACC_FINAL);
@@ -432,7 +432,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			// check if the method accesses any fields
 			final boolean initializer;
 			final int staticModifier;
-			if(details.name.equals(MethodDef.S_INIT)) {
+			if(details.name.equals(MethodHeader.S_INIT)) {
 				staticModifier = 0;
 				initializer = true;
 			} else {
@@ -443,7 +443,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				initializer = false;
 			}
 
-			MethodDef def = new MethodDef(clazz.toInternalName(), details.name, paramTypes, rv, ACC_PUBLIC + staticModifier);
+			MethodHeader def = new MethodHeader(clazz.toInternalName(), details.name, paramTypes, rv, ACC_PUBLIC + staticModifier);
 
 			if(getPass() == 2) {
 				addMethodDef(def);
@@ -479,9 +479,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterMain(final kdl.MainContext ctx) {
 		if(getPass() == 2) {
-			addMethodDef(MethodDef.MAIN.withOwner(clazz));
+			addMethodDef(MethodHeader.MAIN.withOwner(clazz));
 		} else if(getPass() == 3) {
-			final Actor actor = new Actor(defineMethod(MethodDef.MAIN.withOwner(clazz)), this);
+			final Actor actor = new Actor(defineMethod(MethodHeader.MAIN.withOwner(clazz)), this);
 			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
 			try {
 				consumeBlock(ctx.block(), actor);
@@ -496,13 +496,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return getCurrentScope().getVariable(name.trim());
 	}
 
-	public MethodDef addMethodDef(MethodDef md) {
+	public MethodHeader addMethodDef(MethodHeader md) {
 		if(!methods.add(md))
 			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
 		return md;
 	}
 
-	public Set<MethodDef> getMethods() {
+	public Set<MethodHeader> getMethods() {
 		return methods;
 	}
 
@@ -546,11 +546,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return clazz;
 	}
 
-	public MethodVisitor defineMethod(MethodDef md) {
-		for(MethodDef def : methods) {
+	public MethodVisitor defineMethod(MethodHeader md) {
+		for(MethodHeader def : methods) {
 			if(def.equals(md)) {
-				final MethodVisitor mv = cw.visitMethod(md.access, md.methodName, md.descriptor(), null, null);
-				currentScope = new Scope("Method " + md.methodName + " of class " + clazz, mv);
+				final MethodVisitor mv = cw.visitMethod(md.access, md.name, md.descriptor(), null, null);
+				currentScope = new Scope("Method " + md.name + " of class " + clazz, mv);
 				mv.visitCode();
 				return mv;
 			}
@@ -573,8 +573,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void addDefaultConstructor(final ClassWriter cw) throws Exception {
-		addMethodDef(MethodDef.INIT.withOwner(getClazz()));
-		final Actor actor = new Actor(defineMethod(MethodDef.INIT.withOwner(getClazz())), this);
+		addMethodDef(MethodHeader.INIT.withOwner(getClazz()));
+		final Actor actor = new Actor(defineMethod(MethodHeader.INIT.withOwner(getClazz())), this);
 		actor.visitCode();
 		final Label start = new Label();
 		actor.visitLabel(start);
