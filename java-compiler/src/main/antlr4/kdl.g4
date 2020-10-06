@@ -58,7 +58,7 @@ parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
 methodDefinition: (details | VARNAME MUTABLE?) paramSet block;
-paramSet: PARAM_OPEN ((THIS | param) (SEPARATOR param)*)? PARAM_CLOSE;
+paramSet: PARAM_OPEN ((VARNAME | param) (SEPARATOR param)*)? PARAM_CLOSE;
 param: details (ASSIGN value)?;
 
 returnStatement: RETURN expression STATEMENT_END;

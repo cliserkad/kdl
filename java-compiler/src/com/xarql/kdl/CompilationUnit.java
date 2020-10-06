@@ -297,8 +297,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, Actor actor) throws Exception {
 		kdl.MethodCallContext mcc = ctx.methodCall();
-		if(mcc.VARNAME().size() > 1)
-			getLocalVariable(mcc.VARNAME(0).getText()).push(actor);
 		new MethodCall(ctx, actor).push(actor);
 	}
 
@@ -436,10 +434,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				staticModifier = 0;
 				initializer = true;
 			} else {
-				if(ctx.paramSet().THIS() == null)
+				if(ctx.paramSet().VARNAME() == null)
 					staticModifier = ACC_STATIC;
-				else
-					staticModifier = 0;
+				else {
+					if(ctx.paramSet().VARNAME().getText().equals("this"))
+						staticModifier = 0;
+					else
+						throw new IllegalArgumentException("Only \"this\" may be used as a non typed argument");
+				}
 				initializer = false;
 			}
 

@@ -12,12 +12,12 @@ public interface Assignable extends Pushable {
 
 	public static Assignable parse(final kdl.AssignmentContext ctx, final Actor actor) {
 		if(ctx.field() != null) {
-			ObjectField field = null;
+			StaticField field = null;
 			for(int i = 0; i < ctx.field().VARNAME().size(); i++) {
 				if(field == null)
-					field = new ObjectField(ctx.field().VARNAME(i).getText(), null, false, actor.unit.getClazz());
+					field = actor.unit.fields.equivalentKey(new ObjectField(ctx.field().VARNAME(i).getText(), null, false, actor.unit.getClazz()));
 				else
-					field = new ObjectField(ctx.field().VARNAME(i).getText(), null, false, field);
+					field = actor.unit.fields.equivalentKey(new ObjectField(ctx.field().VARNAME(i).getText(), null, false, field));
 			}
 			return field;
 		} else if(ctx.VARNAME() != null) {

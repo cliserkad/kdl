@@ -28,7 +28,6 @@ SIZE: 'size';
 ASSERT: 'assert';
 WHILE: 'while';
 FOR: 'for';
-THIS: 'this';
 
 // base types
 BOOLEAN: 'boolean';
