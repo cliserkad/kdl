@@ -75,19 +75,19 @@ public class CompilationDispatcher implements CommonText {
 	}
 
 	public CompilationDispatcher dispatchVerbosely() {
-		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>(), true))
+		for(CompilationUnit unit : registerCompilationUnits(true))
 			unit.run();
 		return this;
 	}
 
 	public CompilationDispatcher dispatch() {
-		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>()))
+		for(CompilationUnit unit : registerCompilationUnits())
 			unit.run();
 		return this;
 	}
 
 	public CompilationDispatcher dispatchQuietly() throws Exception {
-		for(CompilationUnit unit : registerCompilationUnits(input, new BestList<>()))
+		for(CompilationUnit unit : registerCompilationUnits())
 			try {
 				unit.runSilent();
 			} catch(Exception e) {
@@ -96,11 +96,15 @@ public class CompilationDispatcher implements CommonText {
 		return this;
 	}
 
-	private BestList<CompilationUnit> registerCompilationUnits(final File f, final BestList<CompilationUnit> units) {
-		return registerCompilationUnits(f, units, DEFAULT_VERBOSE);
+	public BestList<CompilationUnit> registerCompilationUnits() {
+		return registerCompilationUnits(DEFAULT_VERBOSE);
 	}
 
-	private BestList<CompilationUnit> registerCompilationUnits(final File f, final BestList<CompilationUnit> units, final boolean verbose) {
+	public BestList<CompilationUnit> registerCompilationUnits(final boolean verbose) {
+		return registerCompilationUnits(input, new BestList<CompilationUnit>(), verbose);
+	}
+
+	public BestList<CompilationUnit> registerCompilationUnits(final File f, final BestList<CompilationUnit> units, final boolean verbose) {
 		if(f.isDirectory()) {
 			for(File sub : f.listFiles()) {
 				registerCompilationUnits(sub, units, verbose);
