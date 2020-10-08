@@ -46,6 +46,14 @@ public class MethodHeader implements CommonText, ToName {
 		this.access = access;
 	}
 
+	public MethodHeader(InternalName owner, String name, ReturnValue returns, int access) {
+		this(owner, name, null, returns, access);
+	}
+
+	public MethodHeader(InternalName owner, String name, int access) {
+		this(owner, name, null, null, access);
+	}
+
 	public MethodHeader(Class<?> jvmClass, Method method) {
 		this.owner = new InternalName(jvmClass);
 		this.name = method.getName();

@@ -9,10 +9,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -451,7 +448,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				for(Param param : params) {
 					if(param.defaultValue != null) {
 						final ReturnValue returnValue = new ReturnValue(param.toInternalName());
-						final MethodHeader defaultProvider = new MethodHeader(clazz.toInternalName(), details.name + "_" + param.name, null, returnValue, ACC_PUBLIC);
+						final MethodHeader defaultProvider = new MethodHeader(clazz.toInternalName(), details.name + "_" + param.name, null, returnValue, def.access + Opcodes.ACC_SYNTHETIC);
 						addMethodDef(defaultProvider);
 						final Actor defaultWriter = new Actor(defineMethod(defaultProvider), this);
 						Pushable.parse(actor, param.defaultValue).push(defaultWriter);

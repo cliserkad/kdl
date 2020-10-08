@@ -1,10 +1,13 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.ir.Param;
 import com.xarql.kdl.ir.Pushable;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
+import org.objectweb.asm.Opcodes;
 
-public class MethodInvocation implements Pushable{
+public class MethodInvocation implements Pushable {
 
 	public final Pushable owner;
 	public final MethodHeader header;
@@ -22,6 +25,10 @@ public class MethodInvocation implements Pushable{
 			this.paramUse = new boolean[this.args.size()];
 		else
 			this.paramUse = paramUse;
+	}
+
+	public MethodInvocation(Pushable owner, MethodHeader header) {
+		this(owner, header, null, null);
 	}
 
 	public MethodInvocation withOwner(Pushable owner) {
@@ -43,12 +50,16 @@ public class MethodInvocation implements Pushable{
 			if(paramUse[i])
 				argType = args.get(arg++).push(actor).toInternalName();
 			else
-				throw new UnimplementedException("default parameters aren't implemented");
+				argType = new MethodInvocation(owner, defaultParam(header.params.get(i))).push(actor).toInternalName();
 			if(header.paramTypes()[i] == InternalName.STRING)
 				CompilationUnit.convertToString(argType, actor);
 		}
 		header.invoke(actor);
 		return this;
+	}
+
+	public MethodHeader defaultParam(Param param) {
+		return new MethodHeader(header.owner, header.name + "_" + param.name, new ReturnValue(param.toInternalName()), header.access + Opcodes.ACC_SYNTHETIC);
 	}
 
 	@Override
