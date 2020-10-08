@@ -13,7 +13,7 @@ import static com.xarql.kdl.names.BaseType.STRING;
 public interface ExpressionHandler extends CommonText {
 
 	public static final MethodHeader INIT_STRING_BUILDER = new MethodHeader(new InternalName(StringBuilder.class), MethodHeader.S_INIT, null, null, ACC_PUBLIC);
-	MethodHeader SB_APPEND = new MethodHeader(new InternalName(StringBuilder.class), "append", list(new InternalName(String.class)),
+	MethodHeader SB_APPEND = new MethodHeader(new InternalName(StringBuilder.class), "append", MethodHeader.toParamList(new InternalName(String.class)),
 			new ReturnValue(new InternalName(StringBuilder.class)), ACC_PUBLIC);
 	MethodHeader SB_TO_STRING = new MethodHeader(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 

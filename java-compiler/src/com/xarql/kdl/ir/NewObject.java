@@ -45,7 +45,7 @@ public class NewObject extends BasePushable implements Opcodes {
 				CompilationUnit.convertToString(arguments.get(i).toInternalName(), visitor);
 			}
 		}
-		new MethodHeader(type, MethodHeader.S_INIT, paramTypes, ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
+		new MethodHeader(type, MethodHeader.S_INIT, MethodHeader.toParamList(paramTypes), ReturnValue.VOID, ACC_PUBLIC).invoke(visitor);
 		return this;
 	}
 

@@ -43,8 +43,8 @@ public class MethodInvocation implements Pushable{
 			if(paramUse[i])
 				argType = args.get(arg++).push(actor).toInternalName();
 			else
-				argType = header.defaults.get(i).push(actor).toInternalName();
-			if(header.params.get(i) == InternalName.STRING)
+				throw new UnimplementedException("default parameters aren't implemented");
+			if(header.paramTypes()[i] == InternalName.STRING)
 				CompilationUnit.convertToString(argType, actor);
 		}
 		header.invoke(actor);

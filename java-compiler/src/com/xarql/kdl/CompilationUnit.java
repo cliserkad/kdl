@@ -27,7 +27,6 @@ import static com.xarql.kdl.names.BaseType.*;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
 
-	public static final int USAGE_MASK = 0B00000000000000000000000000000001;
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
 
@@ -97,10 +96,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					actualName = InternalName.INT;
 				else if(name.toBaseType() == SHORT)
 					actualName = InternalName.INT;
-				stringValueOf = new MethodHeader(InternalName.STRING, "valueOf", list(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+				stringValueOf = new MethodHeader(InternalName.STRING, "valueOf", MethodHeader.toParamList(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 			}
 		} else
-			stringValueOf = new MethodHeader(InternalName.STRING, "valueOf", list(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+			stringValueOf = new MethodHeader(InternalName.STRING, "valueOf", MethodHeader.toParamList(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.name, stringValueOf.descriptor(), false);
 	}
 
@@ -257,7 +256,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			}
 
 			try {
-				addDefaultConstructor(cw);
+				addDefaultConstructor();
 			} catch(Exception e) {
 				printException(e);
 			}
@@ -296,7 +295,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, Actor actor) throws Exception {
-		kdl.MethodCallContext mcc = ctx.methodCall();
 		new MethodCall(ctx, actor).push(actor);
 	}
 
@@ -333,27 +331,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			// forward to the handler to partition code
 			ConditionalHandler.handle(ctx.conditional(), actor);
 		} else if(ctx.returnStatement() != null) {
-			if(ctx.returnStatement().expression() == null) {
-				actor.visitInsn(RETURN);
-				return;
-			}
-
-			ToName returnType = ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), actor), actor);
-			if(returnType.isBaseType() && !returnType.toInternalName().isArray()) {
-				switch(returnType.toBaseType()) {
-					case BOOLEAN:
-					case INT:
-						actor.visitInsn(IRETURN);
-						break;
-					case STRING:
-						actor.visitInsn(ARETURN);
-						break;
-					default:
-						throw new UnimplementedException(SWITCH_BASETYPE);
-				}
-			} else
-				actor.visitInsn(ARETURN);
-
+			final ReturnValue rv;
+			if(ctx.returnStatement().expression() == null)
+				rv = null;
+			else
+				rv = new ReturnValue(ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), actor), actor));
+			actor.writeReturn(rv);
 		} else if(ctx.newObject() != null) {
 			consumeNewObject(ctx.newObject(), actor);
 		} else
@@ -422,11 +405,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			for(kdl.ParamContext param : ctx.paramSet().param())
 				params.add(new Param(new Details(param.details(), this), param.value()));
 
-			// create MethodDef
-			final BestList<InternalName> paramTypes = new BestList<>();
-			for(Details param : params)
-				paramTypes.add(param.type);
-
 			// check if the method accesses any fields
 			final boolean initializer;
 			final int staticModifier;
@@ -445,11 +423,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				initializer = false;
 			}
 
-			MethodHeader def = new MethodHeader(clazz.toInternalName(), details.name, paramTypes, rv, ACC_PUBLIC + staticModifier);
+			MethodHeader def = new MethodHeader(clazz.toInternalName(), details.name, params, rv, ACC_PUBLIC + staticModifier);
 
 			if(getPass() == 2) {
 				addMethodDef(def);
 			} else if(getPass() == 3) {
+				// define user specified method
 				final Actor actor = new Actor(defineMethod(def), this);
 				// instance of owning type will always occupy slot 0
 				if(staticModifier == 0)
@@ -467,6 +446,20 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				consumeBlock(ctx.block(), actor);
 
 				getCurrentScope().end(ctx.stop.getLine(), actor, rv);
+
+				// add in helper methods for default values
+				for(Param param : params) {
+					if(param.defaultValue != null) {
+						final ReturnValue returnValue = new ReturnValue(param.toInternalName());
+						final MethodHeader defaultProvider = new MethodHeader(clazz.toInternalName(), details.name + "_" + param.name, null, returnValue, ACC_PUBLIC);
+						addMethodDef(defaultProvider);
+						final Actor defaultWriter = new Actor(defineMethod(defaultProvider), this);
+						Pushable.parse(actor, param.defaultValue).push(defaultWriter);
+						defaultWriter.writeReturn(returnValue);
+						getCurrentScope().end(ctx.start.getLine(), defaultWriter, returnValue);
+					}
+				}
+
 			}
 		} catch(Exception e) {
 			printException(e);
@@ -574,7 +567,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return fv;
 	}
 
-	public void addDefaultConstructor(final ClassWriter cw) throws Exception {
+	public void addDefaultConstructor() throws Exception {
 		addMethodDef(MethodHeader.INIT.withOwner(getClazz()));
 		final Actor actor = new Actor(defineMethod(MethodHeader.INIT.withOwner(getClazz())), this);
 		actor.visitCode();

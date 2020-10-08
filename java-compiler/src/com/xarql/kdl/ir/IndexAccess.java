@@ -17,7 +17,7 @@ import static com.xarql.kdl.names.BaseType.INT;
  */
 public class IndexAccess extends BasePushable implements CommonText {
 
-	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(InternalName.STRING, "charAt", list(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
+	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(InternalName.STRING, "charAt", MethodHeader.toParamList(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
 
 	public final Variable variable;
 	public final Pushable index;

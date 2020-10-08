@@ -8,14 +8,15 @@ import org.objectweb.asm.MethodVisitor;
 import java.io.PrintStream;
 
 import static com.xarql.kdl.BestList.list;
+import static com.xarql.kdl.MethodHeader.toParamList;
 import static com.xarql.kdl.names.InternalName.INT_WRAPPER;
 
 public class ExternalMethodRouter implements CommonText {
 
-	public static final MethodHeader PRINTLN_MTD = new MethodHeader(new InternalName(PrintStream.class), PRINTLN, list(InternalName.STRING), VOID, ACC_PUBLIC);
-	public static final MethodHeader PRINT_MTD = new MethodHeader(new InternalName(PrintStream.class), PRINT, list(InternalName.STRING), VOID, ACC_PUBLIC);
-	public static final MethodHeader ERROR_MTD = new MethodHeader(new InternalName(PrintStream.class), ERROR, list(InternalName.STRING), VOID, ACC_PUBLIC);
-	public static final MethodHeader PARSE_INT_MTD = new MethodHeader(INT_WRAPPER, "parseInt", list(InternalName.STRING), ReturnValue.INT, ACC_PUBLIC + ACC_STATIC);
+	public static final MethodHeader PRINTLN_MTD = new MethodHeader(new InternalName(PrintStream.class), PRINTLN, toParamList(InternalName.STRING), VOID, ACC_PUBLIC);
+	public static final MethodHeader PRINT_MTD = new MethodHeader(new InternalName(PrintStream.class), PRINT, toParamList(InternalName.STRING), VOID, ACC_PUBLIC);
+	public static final MethodHeader ERROR_MTD = new MethodHeader(new InternalName(PrintStream.class), ERROR, toParamList(InternalName.STRING), VOID, ACC_PUBLIC);
+	public static final MethodHeader PARSE_INT_MTD = new MethodHeader(INT_WRAPPER, "parseInt", toParamList(InternalName.STRING), ReturnValue.INT, ACC_PUBLIC + ACC_STATIC);
 
 	public static void writeMethods(final CompilationUnit unit, int line) {
 		MethodVisitor visitor;

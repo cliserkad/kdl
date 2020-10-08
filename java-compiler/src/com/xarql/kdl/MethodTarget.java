@@ -51,7 +51,7 @@ public class MethodTarget {
 		boolean[] usage = new boolean[header.params.size()];
 		int dest = 0;
 		for(int arg = 0; arg < args.size(); ) {
-			if(args.get(arg).compatibleWith(header.params.get(dest))) { // if the argument is compatible with the parameter, go to the next arg
+			if(args.get(arg).compatibleWith(header.paramTypes()[dest])) { // if the argument is compatible with the parameter, go to the next arg
 				arg++;
 				usage[dest] = true;
 			} else if(header.availableDefaults()[dest]) // if the parameter was necessary, but incompatible
