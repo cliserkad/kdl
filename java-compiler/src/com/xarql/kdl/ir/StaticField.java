@@ -15,7 +15,7 @@ public class StaticField extends Details implements Assignable {
 	}
 
 	public StaticField(String name, InternalName ownerType) {
-		this(new Details(name, null, false), ownerType);
+		this(new Details(name), ownerType);
 	}
 
 	@Override

@@ -7,6 +7,11 @@ import com.xarql.kdl.antlr.kdl;
 
 public class Details implements ToName {
 
+	public static final String DEFAULT_NAME = "unknown";
+	public static final InternalName DEFAULT_TYPE = null;
+	public static final boolean DEFAULT_MUTABLE = false;
+	public static final boolean DEFAULT_NULLABLE = false;
+
 	public static final String CHEVRON_REGEX = "[<>]";
 
 	public final String name;
@@ -23,6 +28,18 @@ public class Details implements ToName {
 		this.name = name;
 		this.type = type;
 		this.mutable = mutable;
+	}
+
+	public Details(final String name, final InternalName type) {
+		this(name, type, DEFAULT_MUTABLE);
+	}
+
+	public Details(final String name) {
+		this(name, DEFAULT_TYPE);
+	}
+
+	public Details() {
+		this(DEFAULT_NAME);
 	}
 
 	public Details(final kdl.DetailsContext ctx, final CompilationUnit unit) throws Exception {

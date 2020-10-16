@@ -247,7 +247,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 						defaultValue = f.toBaseType().defaultValue.value;
 					else
 						defaultValue = null;
-					fv = cw.visitField(ACC_PUBLIC + ACC_FINAL, f.name, f.type.objectString(), null, defaultValue);
+					int modifier = 0;
+					if(f.mutable)
+						modifier = ACC_FINAL;
+					fv = cw.visitField(ACC_PUBLIC + modifier, f.name, f.type.objectString(), null, defaultValue);
 					fv.visitEnd();
 				}
 			}
@@ -394,7 +397,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(ctx.details() != null)
 				details = new Details(ctx.details(), this).filterName();
 			else
-				details = new Details(ctx.VARNAME().getText(), null, false).filterName();
+				details = new Details(ctx.VARNAME().getText(), null).filterName();
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters

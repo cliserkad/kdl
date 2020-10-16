@@ -126,7 +126,7 @@ public class MethodHeader implements CommonText, ToName {
 	public static BestList<Param> toParamList(List<InternalName> types) {
 		final BestList<Param> params = new BestList<>();
 		for(int i = 0; i < types.size(); i++)
-			params.add(new Param(new Details("unknown" + i, types.get(i), false), null));
+			params.add(new Param(new Details("unknown" + i, types.get(i), true), null));
 		return params;
 	}
 
