@@ -1,14 +1,14 @@
 type Fibonacci {
   main {
     // parse the first argument as an int
-    println(fib(parseInt(args[0])));
+    println(fib(parseInt(args[0])))
   }
 
   int fib(int n) {
     if n <= 1 {
-      return n;
+      return n
     } else {
-      return fib(n - 1) + fib(n - 2);
+      return fib(n - 1) + fib(n - 2)
     }
   }
 

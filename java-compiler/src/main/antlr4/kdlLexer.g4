@@ -53,7 +53,7 @@ BRACE_OPEN: '[';
 BRACE_CLOSE: ']';
 DOT: '.';
 SEPARATOR: ',';
-STATEMENT_END: ';';
+SEMICOLON: ';';
 ASSIGN: ':';
 MUTABLE: '~';
 

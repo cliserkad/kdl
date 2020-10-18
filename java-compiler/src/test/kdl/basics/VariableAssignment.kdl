@@ -1,13 +1,13 @@
 type VariableAssignment {
   main {
-    int~ a;
-    a : 1;
-    boolean~ b;
-    b : true;
-    string~ msg;
-    msg : "hello from VariableAssignment";
-    println(a);
-    println(b);
-    println(msg);
+    int~ a
+    a : 1
+    boolean~ b
+    b : true
+    string~ msg
+    msg : "hello from VariableAssignment"
+    println(a)
+    println(b)
+    println(msg)
   }
 }

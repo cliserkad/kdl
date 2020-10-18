@@ -1,14 +1,14 @@
-path test.kdl.sample.MakeFile;
+path test.kdl.sample.MakeFile
 
-use java.io.File;
-use test.kdl.sample.FileUtil;
+use java.io.File
+use test.kdl.sample.FileUtil
 
 type MakeFile {
   main {
-    File f: File("test.txt");
-    println(f);
-    f.createNewFile();
-    println(FileUtil.writeOut(f, "Testing this out!"));
+    File f: File("test.txt")
+    println(f)
+    f.createNewFile()
+    println(FileUtil.writeOut(f, "Testing this out!"))
   }
 
 }

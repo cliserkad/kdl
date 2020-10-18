@@ -196,7 +196,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(classname))
 				return in;
 		}
-		throw new IllegalArgumentException("Couldn't recognize type");
+		throw new IllegalArgumentException("Couldn't recognize type: " + classname);
 	}
 
 	public int getPass() {
@@ -358,7 +358,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterUse(final kdl.UseContext ctx) {
 		if(pass == 1) {
-			addImport(ctx.getText().substring(3, ctx.getText().length() - 1));
+			addImport(ctx.getText().substring(3));
 		}
 	}
 

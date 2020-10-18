@@ -1,20 +1,20 @@
-path test.kdl.obj.Car4;
+path test.kdl.obj.Car4
 
 type Car4 {
-  int year;
-  string model;
+  int year
+  string model
 
   main {
-    Car4 car: Car4("Honda Accord");
-    println(car);
+    Car4 car: Car4("Honda Accord")
+    println(car)
   }
 
   init(string model) {
-    this.model: model;
-    this.year: 1998;
+    this.model: model
+    this.year: 1998
   }
 
   string toString(this) {
-    return "$year $model";
+    return "$year $model"
   }
 }

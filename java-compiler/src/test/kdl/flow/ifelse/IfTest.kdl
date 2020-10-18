@@ -2,16 +2,16 @@
 type IfTest {
   main {
     if true {
-      println("hello from IfTest");
+      println("hello from IfTest")
     }
 
     if false {
-      println("IfTest failed, this statement was under if(false) and should not have been printed");
+      println("IfTest failed, this statement was under if(false) and should not have been printed")
     }
 
-    boolean b : true;
+    boolean b : true
     if b {
-      println("boolean b was true");
+      println("boolean b was true")
     }
   }
 }

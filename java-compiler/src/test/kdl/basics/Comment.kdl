@@ -1,13 +1,13 @@
 type Comment {
   main {
     // This is a comment so I write what I want to
-    // println("First message");
-    println("hello from Comment!");
+    // println("First message")
+    println("hello from Comment!")
 
     /* nothing
     that is down here should work or matter
-    int a : 0;
-    a : a * 2;
-    println(a); */
+    int a : 0
+    a : a * 2
+    println(a) */
   }
 }

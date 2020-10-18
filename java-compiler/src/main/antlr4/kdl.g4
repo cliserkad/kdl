@@ -16,8 +16,8 @@ decimalNumber: DIGIT? (DIGIT | SEPARATOR | UNDERSCORE)* DOT DIGIT (DIGIT | SEPAR
 integer: DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
 literal: bool | CHAR_LIT | STRING_LIT | integer | decimalNumber;
 
-statement: methodCallStatement | variableDeclaration | assignment | returnStatement | conditional | newObject STATEMENT_END;
-methodCallStatement: methodCall STATEMENT_END;
+statement: methodCallStatement | variableDeclaration | assignment | returnStatement | conditional | newObject;
+methodCallStatement: methodCall;
 block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
@@ -29,7 +29,7 @@ range: expression? DOT DOT expression;
 conditional: r_if | assertion | r_while | for_loop | for_each_loop;
 r_if: R_IF condition block r_else?;
 r_else: R_ELSE (block | statement);
-assertion: ASSERT condition STATEMENT_END;
+assertion: ASSERT condition;
 r_while: WHILE condition block;
 
 constant: (CLASSNAME DOT)? CONSTNAME;
@@ -45,8 +45,8 @@ condition: expression (comparator expression)?;
 comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 appender: AND | OR;
 
-variableDeclaration: details (SEPARATOR VARNAME)* (ASSIGN expression)? STATEMENT_END;
-assignment: (VARNAME | field) ((ASSIGN expression) | operatorAssign) STATEMENT_END;
+variableDeclaration: details (SEPARATOR VARNAME)* (ASSIGN expression)?;
+assignment: (VARNAME | field) ((ASSIGN expression) | operatorAssign);
 operatorAssign: operator ASSIGN value;
 details: type MUTABLE? VARNAME;
 indexAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
@@ -61,15 +61,15 @@ methodDefinition: (details | VARNAME MUTABLE?) paramSet block;
 paramSet: PARAM_OPEN ((VARNAME | param) (SEPARATOR param)*)? PARAM_CLOSE;
 param: details (ASSIGN value)?;
 
-returnStatement: RETURN expression STATEMENT_END;
+returnStatement: RETURN expression;
 
 type: (basetype | CLASSNAME) (BRACE_OPEN BRACE_CLOSE)*;
 basetype: BOOLEAN | BYTE | SHORT | CHAR | INT | FLOAT | LONG | DOUBLE | STRING;
 
 source: path? use* clazz EOF;
-use: USE QUALIFIED_NAME STATEMENT_END;
-path: PATH QUALIFIED_NAME STATEMENT_END;
+use: USE QUALIFIED_NAME;
+path: PATH QUALIFIED_NAME;
 clazz: TYPE CLASSNAME BODY_OPEN (constantDef | fieldDef | main | methodDefinition)* BODY_CLOSE;
-constantDef: CONST CONSTNAME ASSIGN value STATEMENT_END;
+constantDef: CONST CONSTNAME ASSIGN value;
 fieldDef: variableDeclaration;
 main: MAIN block;
