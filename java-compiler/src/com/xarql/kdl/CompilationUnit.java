@@ -222,14 +222,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				addMethodDef(staticInit);
 				Actor actor = new Actor(defineMethod(staticInit), this);
 
-				for(kdl.ConstantDefContext c : constants) {
+				for(Constant c : constants.keys()) {
 					try {
-						final Pushable pushable = Literal.parseLiteral(c.literal(), actor);
-						final Constant unsetConst = new Constant(c.CONSTNAME().getText(), pushable.toInternalName(), clazz.toInternalName());
+						final kdl.ConstantDefContext cDef = constants.get(c);
+						final Pushable pushable = Pushable.parse(actor, cDef.value());
+						final Constant unsetConst = new Constant(c.name, pushable.toInternalName(), clazz.toInternalName());
 						addConstant(unsetConst);
-						constants.put(unsetConst, c);
+						constants.put(unsetConst, cDef);
 						pushable.push(actor);
-						actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, unsetConst.type.objectString());
+						actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, pushable.toInternalName().objectString());
 					} catch(Exception e) {
 						printException(e);
 					}
@@ -286,7 +287,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		// collect details
 		if(getPass() == 1) {
 			final String name = ctx.CONSTNAME().toString();
-			final Constant unsetConst = new Constant(name, InternalName.INT, getClazz().toInternalName());
+			final Constant unsetConst = new Constant(name, InternalName.PLACEHOLDER, getClazz().toInternalName());
 			if(!constants.contains(unsetConst))
 				constants.put(unsetConst, ctx);
 			else
@@ -559,7 +560,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(c.toBaseType() == STRING)
 			defaultValue = "placeholder";
 		else if(c.isBaseType())
-			defaultValue = c.toBaseType().defaultValue;
+			defaultValue = c.toBaseType().defaultValue.value;
 		else
 			defaultValue = null;
 		fv = cw.visitField(CONST_ACCESS, c.name, c.type.objectString(), null, defaultValue);

@@ -12,8 +12,13 @@ public class Literal<Type> extends BasePushable implements CommonText {
 	public static final char MIXIN = '$';
 	public static final char QUOTE = '\"';
 	public static final char ESCAPE = '\\';
+	public static final String SPACERS_REGEX = "[,_]";
 
 	public Type value;
+
+	public static void main(String[] args) {
+		System.out.println(removeSpacers("1,00_0.0000_0"));   
+	}
 
 	public Literal(Type value) {
 		if(!BaseType.isBaseType(value))
@@ -55,7 +60,7 @@ public class Literal<Type> extends BasePushable implements CommonText {
 		else if(ctx.CHAR_LIT() != null)
 			return new Literal<>(ctx.CHAR_LIT().getText().charAt(1));
 		else if(ctx.integer() != null) {
-			final long val = Long.parseLong(ctx.integer().getText());
+			final long val = Long.parseLong(removeSpacers(ctx.integer().getText()));
 			if(val < Byte.MAX_VALUE && val > Byte.MIN_VALUE)
 				return new Literal<>((byte) val);
 			else if(val < Short.MAX_VALUE && val > Short.MIN_VALUE)
@@ -65,7 +70,7 @@ public class Literal<Type> extends BasePushable implements CommonText {
 			else
 				return new Literal<>(val);
 		} else if(ctx.decimalNumber() != null) {
-			final double val = Double.parseDouble(ctx.decimalNumber().getText());
+			final double val = Double.parseDouble(removeSpacers(ctx.decimalNumber().getText()));
 			if(val < Float.MAX_VALUE && val > Float.MIN_VALUE)
 				return new Literal<>((float) val);
 			else
@@ -106,6 +111,10 @@ public class Literal<Type> extends BasePushable implements CommonText {
 				return out;
 		} else
 			throw new UnimplementedException(SWITCH_BASETYPE);
+	}
+
+	public static String removeSpacers(final String s) {
+		return s.replaceAll(SPACERS_REGEX, CommonText.EMPTY_STRING).trim();
 	}
 
 	public static String resolveMixin(final String s, final int start) {

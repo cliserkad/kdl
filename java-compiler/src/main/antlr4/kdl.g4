@@ -12,8 +12,8 @@ arrayLength: VARNAME DOT SIZE;
 
 // literals
 bool: TRUE | FALSE;
-decimalNumber: DIGIT+ DOT DIGIT+;
-integer: DIGIT+;
+decimalNumber: DIGIT? (DIGIT | SEPARATOR | UNDERSCORE)* DOT DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
+integer: DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
 literal: bool | CHAR_LIT | STRING_LIT | integer | decimalNumber;
 
 statement: methodCallStatement | variableDeclaration | assignment | returnStatement | conditional | newObject STATEMENT_END;
@@ -70,6 +70,6 @@ source: path? use* clazz EOF;
 use: USE QUALIFIED_NAME STATEMENT_END;
 path: PATH QUALIFIED_NAME STATEMENT_END;
 clazz: TYPE CLASSNAME BODY_OPEN (constantDef | fieldDef | main | methodDefinition)* BODY_CLOSE;
-constantDef: CONST CONSTNAME ASSIGN literal STATEMENT_END;
+constantDef: CONST CONSTNAME ASSIGN value STATEMENT_END;
 fieldDef: variableDeclaration;
 main: MAIN block;

@@ -50,6 +50,8 @@ public class StringTemplate extends BasePushable {
 	public Pushable push(final Actor actor) throws Exception {
 		ExpressionHandler.createStringBuilder(actor);
 		for(Pushable p : elements) {
+			if(p instanceof Constant)
+				p = actor.unit.getConstant(((Constant) p).name);
 			InternalName type = p.pushType(actor);
 			if(!type.equals(InternalName.STRING))
 				CompilationUnit.convertToString(type, actor);

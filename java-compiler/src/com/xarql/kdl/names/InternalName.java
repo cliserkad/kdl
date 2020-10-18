@@ -2,6 +2,7 @@ package com.xarql.kdl.names;
 
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.CustomClass;
+import com.xarql.kdl.PlaceHolder;
 
 public class InternalName implements ToName, CommonText {
 
@@ -14,6 +15,7 @@ public class InternalName implements ToName, CommonText {
 	public static final InternalName LONG = new InternalName(BaseType.LONG);
 	public static final InternalName DOUBLE = new InternalName(BaseType.DOUBLE);
 	public static final InternalName STRING = new InternalName(BaseType.STRING);
+	public static final InternalName PLACEHOLDER = new InternalName(PlaceHolder.class);
 
 	public static final InternalName STRING_BUILDER = new InternalName(StringBuilder.class);
 	public static final InternalName INT_WRAPPER = new InternalName(Integer.class);

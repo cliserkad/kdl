@@ -83,7 +83,7 @@ fragment UPLETTER   : [A-Z];
 fragment DNLETTER   : [a-z];
 fragment LETTER     : UPLETTER | DNLETTER;
 fragment ALPHANUM   : LETTER | DIGIT;
-fragment UNDERSCORE : '_';
+UNDERSCORE : '_';
 fragment DNTEXT     : DNLETTER+;
 
 CONSTNAME : UPLETTER (UPLETTER | DIGIT | UNDERSCORE)+;
