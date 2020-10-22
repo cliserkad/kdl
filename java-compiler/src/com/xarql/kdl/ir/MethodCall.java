@@ -18,24 +18,28 @@ public class MethodCall extends BasePushable implements CommonText {
 		// determine which class owns the method being called
 		final Pushable source;
 		final InternalName owner;
-		boolean isStatic;
+		boolean requireStatic;
 		if(ctx.CLASSNAME() != null) {
 			source = null;
 			owner = actor.unit.resolveAgainstImports(ctx.CLASSNAME().getText());
-			isStatic = true;
+			requireStatic = true;
 		} else if(ctx.VARNAME().size() > 1) {
 			source = actor.unit.getLocalVariable(ctx.VARNAME(0).getText());
 			owner = source.toInternalName();
-			isStatic = false;
+			requireStatic = false;
+		} else if(actor.unit.getCurrentScope().contains("this")) {
+			source = actor.unit.getLocalVariable("this");
+			owner = actor.unit.getClazz().toInternalName();
+			requireStatic = false;
 		} else {
 			source = null;
-			owner = new InternalName(actor.unit.getClazz());
-			isStatic = false;
+			owner = actor.unit.getClazz().toInternalName();
+			requireStatic = true;
 		}
 
 		final BestList<Pushable> args = parseArguments(ctx.parameterSet(), actor);
 
-		MethodTarget known = new MethodTarget(owner, methodName, argTypes(args), isStatic);
+		MethodTarget known = new MethodTarget(owner, methodName, argTypes(args), requireStatic);
 		invocation = known.resolve(actor).withOwner(source).withArgs(args);
 	}
 

@@ -1,0 +1,7 @@
+type ToLowerCase {
+  main {
+    string s: "Hello World"
+    string s2: s.toLowerCase()
+    println(s2)
+  }
+}

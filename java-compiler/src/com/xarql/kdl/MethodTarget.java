@@ -9,16 +9,16 @@ public class MethodTarget {
 	public final InternalName owner;
 	public final String name;
 	public final BestList<InternalName> args;
-	public final boolean isStatic;
+	public final boolean requireStatic;
 
-	public MethodTarget(InternalName owner, String name, BestList<InternalName> args, boolean isStatic) {
+	public MethodTarget(InternalName owner, String name, BestList<InternalName> args, boolean requireStatic) {
 		this.owner = owner;
 		this.name = name;
 		if(args == null)
 			this.args = new BestList<>();
 		else
 			this.args = args;
-		this.isStatic = isStatic;
+		this.requireStatic = requireStatic;
 	}
 
 	public MethodInvocation resolve(Actor actor) throws SymbolResolutionException {
@@ -37,7 +37,7 @@ public class MethodTarget {
 	}
 
 	public boolean staticCompatible(MethodHeader header) {
-		if(isStatic) {
+		if(requireStatic) {
 			return header.isStatic();
 		} else {
 			return true;
@@ -49,15 +49,15 @@ public class MethodTarget {
 			return null;
 
 		boolean[] usage = new boolean[header.params.size()];
-		int dest = 0;
-		for(int arg = 0; arg < args.size(); ) {
-			if(args.get(arg).compatibleWith(header.paramTypes()[dest])) { // if the argument is compatible with the parameter, go to the next arg
+		int arg = 0;
+		for(int dest = 0; dest < usage.length; dest++) {
+			if(args.size() > dest && args.get(arg).compatibleWith(header.paramTypes()[dest])) { // if the argument is compatible with the parameter, go to the next arg
 				arg++;
 				usage[dest] = true;
-			} else if(header.availableDefaults()[dest]) // if the parameter was necessary, but incompatible
+			} else if(!header.availableDefaults()[dest]) // if the parameter was necessary, but incompatible
 				return null;
-			dest++;
 		}
+
 		return usage;
 	}
 

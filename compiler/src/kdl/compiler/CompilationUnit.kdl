@@ -1,8 +1,8 @@
-path kdl.compiler.CompilationUnit;
+path kdl.compiler.CompilationUnit
 
-use java.io.File;
+use java.io.File
 
 type CompilationUnit {
-    File input;
+    File input
 
 }
