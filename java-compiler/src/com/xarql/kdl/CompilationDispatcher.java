@@ -8,8 +8,9 @@ import java.io.FileFilter;
 
 public class CompilationDispatcher implements CommonText {
 
-	public static final File DEFAULT_LOC = new File(System.getProperty("user.dir")); // default to current working
-	// directory
+	public static final File DEFAULT_INPUT = new File(System.getProperty("user.dir")); // default to current working directory
+	public static final File DEFUALT_OUTPUT = new File(System.getProperty("user.dir"), "/target/classes/");
+
 	public static final FileFilter KDL_FILTER = new RegexFileFilter(".*\\.kdl"); // default to all .kdl files
 	public static final boolean DEFAULT_VERBOSE = false; // whether or not to print some extra messages
 
@@ -22,39 +23,30 @@ public class CompilationDispatcher implements CommonText {
 
 	public CompilationDispatcher(final File input, final FileFilter filter, final File output) {
 		if(input == null)
-			this.input = DEFAULT_LOC;
+			this.input = DEFAULT_INPUT;
 		else
 			this.input = input;
 		if(filter == null)
 			this.filter = KDL_FILTER;
 		else
 			this.filter = filter;
-		this.output = output;
-	}
-
-	public CompilationDispatcher(final File input) {
-		this(input, KDL_FILTER, null);
-	}
-
-	public CompilationDispatcher(final FileFilter filter) {
-		this(DEFAULT_LOC, filter, null);
-	}
-
-	public CompilationDispatcher() {
-		this(DEFAULT_LOC, KDL_FILTER, null);
+		if(output == null)
+			this.output = DEFUALT_OUTPUT;
+		else
+			this.output = output;
 	}
 
 	public static void main(String[] args) {
 		BestList<String> arguments = new BestList<>(args);
 
 		if(arguments.isEmpty())
-			new CompilationDispatcher().dispatch();
+			new CompilationDispatcher(null, null, null).dispatch();
 		else {
 			final CompilationDispatcher dispatcher;
 			if(arguments.get(0).equalsIgnoreCase(VERBOSE) || arguments.get(0).equalsIgnoreCase(QUIET))
-				dispatcher = new CompilationDispatcher(KDL_FILTER);
+				dispatcher = new CompilationDispatcher(null, KDL_FILTER, null);
 			else {
-				dispatcher = new CompilationDispatcher(new RegexFileFilter(arguments.get(0)));
+				dispatcher = new CompilationDispatcher(null, new RegexFileFilter(arguments.get(0)), null);
 				arguments.remove(0);
 			}
 
@@ -75,12 +67,16 @@ public class CompilationDispatcher implements CommonText {
 	}
 
 	public CompilationDispatcher dispatchVerbosely() {
+		System.out.println("Input Directory: " + input);
+		System.out.println("Output Directory: " + output);
 		for(CompilationUnit unit : registerCompilationUnits(true))
 			unit.run();
 		return this;
 	}
 
 	public CompilationDispatcher dispatch() {
+		System.out.println("Input Directory: " + input);
+		System.out.println("Output Directory: " + output);
 		for(CompilationUnit unit : registerCompilationUnits())
 			unit.run();
 		return this;

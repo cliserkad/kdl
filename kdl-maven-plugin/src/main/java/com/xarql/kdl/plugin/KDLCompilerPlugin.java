@@ -35,12 +35,10 @@ public class KDLCompilerPlugin extends AbstractMojo {
 		if(!outputDirectory.isDirectory())
 			outputDirectory = new File(outputDirectory.getPath() + "/");
 		outputDirectory = new File(outputDirectory, "classes/");
-		// create the file path if it doesn't exist
-		if(!outputDirectory.exists())
-			outputDirectory.mkdirs();
-		System.out.println(outputDirectory);
+		getLog().info("Input Directory: " + sourceDirectory);
+		getLog().info("Output Directory: " + outputDirectory);
 		// dispatch compilation
-		CompilationDispatcher dispatcher = new CompilationDispatcher(sourceDirectory, CompilationDispatcher.KDL_FILTER, outputDirectory);
+		final CompilationDispatcher dispatcher = new CompilationDispatcher(sourceDirectory, CompilationDispatcher.KDL_FILTER, outputDirectory);
 		try {
 			dispatcher.dispatchQuietly();
 		} catch(Exception e) {

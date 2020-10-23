@@ -8,7 +8,7 @@ public class FullCompileTest {
 	@Test
 	public void testFull() {
 		try {
-			new CompilationDispatcher().dispatchQuietly();
+			new CompilationDispatcher(null, null, null).dispatchQuietly();
 			assert true;
 		} catch(Exception e) {
 			assert false;

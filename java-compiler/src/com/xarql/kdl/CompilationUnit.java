@@ -18,7 +18,6 @@ import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.BaseType.*;
 
@@ -39,7 +38,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	// input and output
 	private File sourceFile;
 	private String sourceCode;
-	private File outputFile;
+	private File outputDir;
 	private Scope currentScope;
 	private CustomClass clazz;
 	private boolean nameSet;
@@ -61,10 +60,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		addImport(String.class);
 	}
 
-	public CompilationUnit(File sourceFile, File outputFile) {
+	public CompilationUnit(File sourceFile, File outputDir) {
 		this();
 		this.sourceFile = sourceFile;
-		this.outputFile = outputFile;
+		this.outputDir = outputDir;
 	}
 
 	public CompilationUnit(File sourceFile) {
@@ -119,8 +118,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(sourceCode == null)
 			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 		compile();
-		if(outputFile != null)
-			write(outputFile);
+		if(outputDir != null)
+			write(outputDir);
 		else
 			write();
 		return clazz.name;
@@ -176,9 +175,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(sourceFile != null && !sourceFile.getName().replace(".kdl", "").equalsIgnoreCase(clazz.name))
 			throw new IllegalArgumentException(INCORRECT_FILE_NAME + " file:" + sourceFile.getName() + " class:" + clazz.name);
 
-		// if destination is a directory, make a file within that directory
-		if(destination.isDirectory())
-			destination = new File(destination, clazz.name + ".class");
+		destination = new File(destination, clazz.qualifiedName() + ".class");
+		destination.getParentFile().mkdirs();
+		destination.createNewFile();
 
 		Files.write(destination.toPath(), cw.toByteArray());
 		return this;
@@ -187,7 +186,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public CompilationUnit write() throws IOException, NullPointerException {
 		if(sourceFile == null)
 			throw new NullPointerException("write() without params in CompilationUnit if the unit wasn't created with a file.");
-		return write(new File(sourceFile.toPath().resolveSibling(clazz.name + ".class").toString()));
+		return write(outputDir);
 	}
 
 	public InternalName resolveAgainstImports(String classname) {
