@@ -1,4 +1,4 @@
-path test.kdl.gui.FrameTest
+path test.kdl.gui;
 
 use javax.swing.JFrame
 

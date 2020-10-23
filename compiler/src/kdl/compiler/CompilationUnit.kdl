@@ -1,4 +1,4 @@
-path kdl.compiler.CompilationUnit
+path kdl.compiler;
 
 use java.io.File
 

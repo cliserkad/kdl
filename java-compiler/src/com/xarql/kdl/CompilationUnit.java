@@ -210,11 +210,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterClazz(final kdl.ClazzContext ctx) {
 		if(getPass() == 1) {
-			pkgName = nonNull(pkgName);
-			if(!pkgName.isEmpty())
-				setClassName(pkgName.substring(0, pkgName.lastIndexOf(".") + 1), ctx.CLASSNAME().getText());
-			else
-				setClassName(pkgName, ctx.CLASSNAME().getText());
+			setClassName(ctx.CLASSNAME().getText());
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 		} else if(getPass() == 2) {
 			if(!constants.isEmpty()) {
@@ -352,7 +348,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterPath(final kdl.PathContext ctx) {
 		if(pass == 1)
-			pkgName = ctx.getText().trim().substring(4).trim();
+			pkgName = ctx.getText().trim().substring(4).replace(';', ' ').trim();
 	}
 
 	@Override
@@ -524,14 +520,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @param name name of class, Ex. Test
 	 * @return success of operation
 	 */
-	public boolean setClassName(final String pkg, final String name) {
+	public boolean setClassName(final String name) {
 		if(!nameSet) {
-			this.clazz = new CustomClass(pkg, name);
+			pkgName = nonNull(pkgName);
+			clazz = new CustomClass(pkgName, name);
 			nameSet = true;
 
 			// give name to ClassWriter
 			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, clazz.toInternalName().nameString(), null, InternalName.OBJECT.nameString(), null);
-			cw.visitSource(clazz + ".kdl", null);
+			cw.visitSource(clazz.name + ".kdl", null);
 
 			return true;
 		} else

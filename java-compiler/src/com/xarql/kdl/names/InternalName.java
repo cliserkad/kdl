@@ -33,14 +33,14 @@ public class InternalName implements ToName, CommonText {
 
 	public final Class<?> clazz;
 	public final BaseType base;
-	public final String qualifiedName;
+	public final CustomClass cc;
 
 	public final int arrayDimensions;
 
 	public InternalName() {
-		qualifiedName = "" + ReturnValue.VOID_REP;
-		this.clazz = null;
-		this.base = null;
+		clazz = null;
+		base = null;
+		cc = null;
 		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
 	}
 
@@ -52,7 +52,7 @@ public class InternalName implements ToName, CommonText {
 			clazz = c;
 			base = null;
 		}
-		qualifiedName = null;
+		cc = null;
 		if(arrayDimensions < MIN_DIMENSIONS || arrayDimensions > MAX_DIMENSIONS)
 			throw new IllegalArgumentException("arrayDimensions must be within " + MIN_DIMENSIONS + " & " + MAX_DIMENSIONS);
 		this.arrayDimensions = arrayDimensions;
@@ -64,8 +64,8 @@ public class InternalName implements ToName, CommonText {
 
 	public InternalName(final BaseType base, final int arrayDimensions) {
 		this.base = base;
-		this.clazz = null;
-		this.qualifiedName = null;
+		clazz = null;
+		cc = null;
 		this.arrayDimensions = arrayDimensions;
 	}
 
@@ -73,22 +73,15 @@ public class InternalName implements ToName, CommonText {
 		this(base, DEFAULT_ARRAY_DIMENSIONS);
 	}
 
-	public InternalName(CustomClass cc) {
-		this.qualifiedName = (cc.pkg + cc.name).replace('.', '/');
+	public InternalName(final CustomClass cc) {
+		this.cc = cc;
 		clazz = null;
 		base = null;
 		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
 	}
 
-	private InternalName(String name) {
-		this.qualifiedName = name;
-		this.clazz = null;
-		base = null;
-		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
-	}
-
 	public boolean isCustom() {
-		return qualifiedName != null && !qualifiedName.equals("" + ReturnValue.VOID_REP);
+		return cc != null;
 	}
 
 	public boolean isClassType() {
@@ -126,20 +119,12 @@ public class InternalName implements ToName, CommonText {
 				return String.class.getName().replace('.', '/');
 			else
 				return toBaseType().rep;
-		} else if(clazz != null)
+		} else if(isClassType())
 			return clazz.getName().replace('.', '/');
-		else if(isCustom()) {
-			return qualifiedName;
-		} else
-			throw new IllegalStateException("Both clazz and base can not be null in an instance of InternalName");
-	}
-
-	public void pushDefault(Actor actor) {
-		if(isBaseType()) {
-			toBaseType().defaultValue.push(actor);
-		} else {
-			actor.visitInsn(ACONST_NULL);
-		}
+		else if(isCustom())
+			return cc.qualifiedName();
+		else
+			return "" + ReturnValue.VOID_REP;
 	}
 
 	@Override
@@ -180,21 +165,25 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName toArray(final int dimensions) {
-		if(clazz != null)
+		if(isClassType())
 			return new InternalName(clazz, dimensions);
-		else if(base != null)
+		else if(isBaseType())
 			return new InternalName(base, dimensions);
+		else if(isCustom())
+			return new InternalName(cc);
 		else
-			return new InternalName(qualifiedName);
+			throw new IllegalArgumentException("This InternalName represents void, which is not a valid array type.");
 	}
 
 	public InternalName withoutArray() {
-		if(clazz != null)
+		if(isClassType())
 			return new InternalName(clazz);
-		else if(base != null)
+		else if(isBaseType())
 			return new InternalName(base);
+		else if(isCustom())
+			return new InternalName(cc);
 		else
-			return new InternalName(qualifiedName);
+			return new InternalName();
 	}
 
 }

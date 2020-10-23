@@ -6,18 +6,31 @@ import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Opcodes;
 
+import static com.xarql.kdl.Text.nonNull;
+
 public class CustomClass implements ToName, Pushable {
 
 	public final String pkg;
 	public final String name;
 
 	public CustomClass(String pkg, String name) {
-		this.pkg = pkg;
+		this.pkg = nonNull(pkg);
+		if(name == null)
+			throw new NullPointerException("A CustomClass' name must not be null");
+		if(name.trim().isEmpty())
+			throw new IllegalArgumentException("A CustomClass' name must not be empty");
 		this.name = name;
 	}
 
 	public CustomClass(String name) {
 		this(null, name);
+	}
+
+	public String qualifiedName() {
+		if(!pkg.isEmpty())
+			return (pkg + '.' + name).replace('.', '/');
+		else
+			return name;
 	}
 
 	@Override
