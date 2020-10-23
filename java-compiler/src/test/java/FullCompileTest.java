@@ -11,6 +11,7 @@ public class FullCompileTest {
 			new CompilationDispatcher(null, null, null).dispatchQuietly();
 			assert true;
 		} catch(Exception e) {
+			e.printStackTrace();
 			assert false;
 		}
 	}
