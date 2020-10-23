@@ -13,7 +13,7 @@ public class FibonacciTest {
 			arguments.add("" + n);
 			outputs.add("" + fib(n));
 		}
-		new StandardKdlTest("test/kdl/sample", "Fibonacci", arguments, outputs);
+		new StandardKdlTest("Fibonacci", arguments, outputs);
 	}
 
 	static int fib(int n) {

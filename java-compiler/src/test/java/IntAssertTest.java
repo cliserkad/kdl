@@ -6,7 +6,7 @@ public class IntAssertTest {
 
 	@Test
 	public void testIntAssert() {
-		new StandardKdlTest("test/kdl/assert", "IntAssert").testKDL();
+		new StandardKdlTest("IntAssert").testKDL();
 	}
 
 }

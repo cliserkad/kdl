@@ -6,25 +6,23 @@ import static com.xarql.kdl.BestList.list;
 
 public class StringTemplateTest {
 
-	public static final String PATH = "test/kdl/basics/string_template";
-
 	@Test
 	public void testTemplate() {
-		new StandardKdlTest(PATH, "StringTemplate", null, list("STR is val1 and a is val2")).testKDL();
+		new StandardKdlTest("StringTemplate", null, list("STR is val1 and a is val2")).testKDL();
 	}
 
 	@Test
 	public void testEscape() {
-		new StandardKdlTest(PATH, "StringTemplate2", null, list("$10 is less than $55 because 10 < 55$$$ money money money $$$")).testKDL();
+		new StandardKdlTest("StringTemplate2", null, list("$10 is less than $55 because 10 < 55$$$ money money money $$$")).testKDL();
 	}
 
 	@Test
 	public void testStore() {
-		new StandardKdlTest(PATH, "StringTemplate3", null, list("Template with val1 and val2 stored to a string")).testKDL();
+		new StandardKdlTest("StringTemplate3", null, list("Template with val1 and val2 stored to a string")).testKDL();
 	}
 
 	@Test
 	public void testVarsEndingInNum() {
-		new StandardKdlTest(PATH, "StringTemplate4", null, list("99 is lower than 230")).testKDL();
+		new StandardKdlTest("StringTemplate4", null, list("99 is lower than 230")).testKDL();
 	}
 }

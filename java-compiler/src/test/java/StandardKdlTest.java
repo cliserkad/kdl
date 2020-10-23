@@ -10,28 +10,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StandardKdlTest {
 
-	public static final String JAVA_CMD = "java -cp src/";
+	public static final String JAVA_CMD = "java -cp target/classes ";
 
-	public final String className;
-	public final String pathExtension;
+	public final String clazz;
 	private final BestList<String> arguments;
 	private final BestList<String> expectedOutputs;
 
 	/**
 	 * Makes a StandardKdlTest
 	 *
-	 * @param pathExtension   extension on /src/test/kdl for java classpath
-	 * @param className       name of class
+	 * @param clazz       name of class
 	 * @param arguments       a list of sets of command line arguments
 	 * @param expectedOutputs a list of expected outputs for each set of arguments
 	 */
-	public StandardKdlTest(final String pathExtension, final String className, final BestList<String> arguments, final BestList<String> expectedOutputs) {
-		if(pathExtension == null)
-			this.pathExtension = "";
-		else
-			this.pathExtension = pathExtension;
-
-		this.className = className;
+	public StandardKdlTest(final String clazz, final BestList<String> arguments, final BestList<String> expectedOutputs) {
+		this.clazz = clazz;
 
 		if(arguments != null)
 			this.arguments = arguments;
@@ -51,11 +44,10 @@ public class StandardKdlTest {
 	 * Makes a StandardKdlTest that has no arguments and no output. Use this
 	 * constructor for .kdl files that use assert instead of printing.
 	 *
-	 * @param pathExtension extension on /src/test/kdl for java classpath
-	 * @param className     name of class
+	 * @param clazz     name of class
 	 */
-	public StandardKdlTest(final String pathExtension, final String className) {
-		this(pathExtension, className, null, null);
+	public StandardKdlTest(final String clazz) {
+		this(clazz, null, null);
 	}
 
 	public void testKDL() {
@@ -64,7 +56,7 @@ public class StandardKdlTest {
 			new CompilationDispatcher(null, new RegexFileFilter(fileName()), null).dispatchQuietly();
 			// run .class file
 			for(int i = 0; i < arguments.size(); i++) {
-				ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + pathExtension + " " + className + " " + arguments.get(i));
+				ProcessOutput process = ProcessOutput.runProcess(JAVA_CMD + clazz + " " + arguments.get(i));
 				if(!process.getErrors().isEmpty()) {
 					System.err.println("Encountered error running " + process.getCommand() + " @ " + System.getProperty("user.dir"));
 					for(String s : process.getErrors())
@@ -84,10 +76,10 @@ public class StandardKdlTest {
 	 * @return className + ".kdl"
 	 */
 	public String fileName() {
-		if(className.contains("."))
-			return ".*" + className.substring(className.lastIndexOf('.') + 1) + ".kdl";
+		if(clazz.contains("."))
+			return ".*" + clazz.substring(clazz.lastIndexOf('.') + 1) + ".kdl";
 		else
-			return className + ".kdl";
+			return clazz + ".kdl";
 	}
 
 }

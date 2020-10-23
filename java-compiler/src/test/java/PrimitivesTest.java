@@ -11,12 +11,12 @@ public class PrimitivesTest {
 
 	@Test
 	public void testTheOnesThatAreNormal() {
-		new StandardKdlTest("test/kdl/basics", "Primitives", null, list(OUTPUT0)).testKDL();
+		new StandardKdlTest("Primitives", null, list(OUTPUT0)).testKDL();
 	}
 
 	@Test
 	public void testTheOnesThatPissMeOff() {
-		new StandardKdlTest("test/kdl/basics", "AllPrimitives", null, list(OUTPUT1)).testKDL();
+		new StandardKdlTest("AllPrimitives", null, list(OUTPUT1)).testKDL();
 	}
 
 }

@@ -8,7 +8,7 @@ public class HelloWorldTest {
 
 	@Test
 	public void testHelloWorld() {
-		new StandardKdlTest("test/kdl", "HelloWorld", null, list("hello world")).testKDL();
+		new StandardKdlTest("HelloWorld", null, list("hello world")).testKDL();
 	}
 
 }

@@ -8,7 +8,7 @@ public class StringIndexTest {
 
 	@Test
 	public void testStringIndex() {
-		new StandardKdlTest("test/kdl/misc", "StringIndex", null, list("l")).testKDL();
+		new StandardKdlTest("StringIndex", null, list("l")).testKDL();
 	}
 
 }

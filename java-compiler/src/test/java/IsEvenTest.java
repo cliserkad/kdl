@@ -16,7 +16,7 @@ public class IsEvenTest {
 		for(int n : NUMS)
 			outputs.add(isEven(n));
 
-		new StandardKdlTest("test/kdl/sample", "IsEven", arguments, outputs);
+		new StandardKdlTest("IsEven", arguments, outputs);
 	}
 
 	public String isEven(int n) {

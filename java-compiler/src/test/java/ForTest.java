@@ -6,16 +6,14 @@ import static com.xarql.kdl.BestList.list;
 
 public class ForTest {
 
-	public static final String EXTENSION = "test/kdl/flow/for";
-
 	@Test
 	public void testForRange() {
-		new StandardKdlTest(EXTENSION, "ForRange", null, list("01234567890123456789123456789")).testKDL();
+		new StandardKdlTest("ForRange", null, list("01234567890123456789123456789")).testKDL();
 	}
 
 	@Test
 	public void testForArgs() {
-		new StandardKdlTest(EXTENSION, "ForArgs", list("hello world"), list("helloworld")).testKDL();
+		new StandardKdlTest("ForArgs", list("hello world"), list("helloworld")).testKDL();
 	}
 
 }
