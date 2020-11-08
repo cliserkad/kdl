@@ -8,6 +8,7 @@ import com.xarql.kdl.names.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.objectweb.asm.*;
 
@@ -21,19 +22,20 @@ import java.util.Set;
 import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.BaseType.*;
 
-public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
+public class CompilationUnit extends kdlBaseListener implements CommonText {
 
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
+	public static final int PASSES = 3;
 
 	// used to generate a numerical id
 	private static int unitCount = 0;
-	public final TrackedMap<Constant, kdl.ConstantDefContext> constants;
-	public final TrackedMap<StaticField, kdl.FieldDefContext> fields;
-	// set in constructor
-	private final ClassWriter cw;
+	public final static TrackedMap<Constant, kdl.ConstantDefContext> constants = new TrackedMap<>();
+	public final static TrackedMap<StaticField, kdl.FieldDefContext> fields = new TrackedMap<>();
+	public final static Set<MethodHeader> methods = new HashSet<>();
+
 	private final Set<InternalName> imports;
-	private final Set<MethodHeader> methods;
+	private final ClassWriter cw;
 	private final int id;
 	// input and output
 	private File sourceFile;
@@ -43,6 +45,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private CustomClass clazz;
 	private boolean nameSet;
 	private String pkgName;
+	private ParseTree tree;
 
 	// pass 1 collects imports, classname, and constant names, methodNames
 	// pass 2 assigns values to constants
@@ -52,12 +55,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	private CompilationUnit() {
 		pass = 0;
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
-		constants = new TrackedMap<>();
 		imports = new HashSet<>();
-		methods = new HashSet<>();
-		fields = new TrackedMap<>();
 		id = unitCount++;
 		addImport(String.class);
+		tree = null;
 	}
 
 	public CompilationUnit(File sourceFile, File outputDir) {
@@ -99,43 +100,28 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.name, stringValueOf.descriptor(), false);
 	}
 
-	public void runSilent() throws Exception {
-		run0();
+	public boolean pass() throws Exception {
+		return pass(CompilationDispatcher.DEFAULT_QUIET);
 	}
 
-	@Override
-	public void run() {
-		try {
-			System.out.println("Compiled " + run0());
-		} catch(Exception e) {
-			System.err.println("CompilationUnit " + unitName() + " aborted.");
-			e.printStackTrace();
-		}
-	}
-
-	private String run0() throws Exception {
-		// load source code
+	public boolean pass(boolean quiet) throws Exception {
 		if(sourceCode == null)
 			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
-		compile();
-		if(outputDir != null)
-			write(outputDir);
-		else
-			write();
-		return clazz.name;
-	}
+		if(tree == null)
+			tree = makeParseTree(sourceCode);
 
-	public CompilationUnit compile() throws Exception {
-		final ParseTree tree = makeParseTree(sourceCode);
 		newPass();
-		ParseTreeWalker.DEFAULT.walk(this, tree);
-		addImport(getClazz().toInternalName());
-		newPass();
-		ParseTreeWalker.DEFAULT.walk(this, tree);
-		newPass();
-		ParseTreeWalker.DEFAULT.walk(this, tree);
-		cw.visitEnd();
-		return this;
+		ParseTreeWalker.DEFAULT.walk((ParseTreeListener) this, tree);
+
+		if(pass == 1) {
+			addImport(getClazz().toInternalName());
+		} else if(pass == 3) {
+			write(outputDir);
+			if(!quiet)
+				System.out.println("Compiled " + unitName());
+			return true;
+		}
+		return false;
 	}
 
 	public String unitName() {
@@ -171,6 +157,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public CompilationUnit write(File destination) throws IOException {
+		cw.visitEnd();
+		if(destination == null)
+			write();
+
 		// check input file name
 		if(sourceFile != null && !sourceFile.getName().replace(".kdl", "").equalsIgnoreCase(clazz.name))
 			throw new IllegalArgumentException(INCORRECT_FILE_NAME + " file:" + sourceFile.getName() + " class:" + clazz.name);
@@ -183,7 +173,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return this;
 	}
 
-	public CompilationUnit write() throws IOException, NullPointerException {
+	public CompilationUnit write() throws IOException {
 		if(sourceFile == null)
 			throw new NullPointerException("write() without params in CompilationUnit if the unit wasn't created with a file.");
 		return write(outputDir);
