@@ -90,8 +90,8 @@ public class Literal<Type> extends BasePushable implements CommonText {
 							out.add(actor.unit.getConstant(target));
 						else if(actor.unit.getCurrentScope().contains(target))
 							out.add(actor.unit.getLocalVariable(target));
-						else if(actor.unit.fields.contains(new ObjectField(target, null, false, actor.unit.getClazz())))
-							out.add(actor.unit.fields.equivalentKey(new ObjectField(target, null, false, actor.unit.getClazz())));
+						else if(actor.unit.fields().contains(new ObjectField(target, null, false, actor.unit.getClazz())))
+							out.add(actor.unit.fields().equivalentKey(new ObjectField(target, null, false, actor.unit.getClazz())));
 						else
 							throw new IllegalArgumentException(
 									target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);

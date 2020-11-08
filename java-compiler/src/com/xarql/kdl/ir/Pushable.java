@@ -64,7 +64,7 @@ public interface Pushable extends ToName {
 		else if(val.newObject() != null)
 			return new NewObject(val.newObject(), actor);
 		else if(val.staticField() != null)
-			return actor.unit.fields.equivalentKey(new StaticField(val.staticField().VARNAME().getText(), actor.unit.resolveAgainstImports(val.staticField().CLASSNAME().getText())));
+			return actor.unit.fields().equivalentKey(new StaticField(val.staticField().VARNAME().getText(), actor.unit.resolveAgainstImports(val.staticField().CLASSNAME().getText())));
 		else
 			throw new UnimplementedException("a type of Pushable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
 	}

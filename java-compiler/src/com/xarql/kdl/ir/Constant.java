@@ -5,6 +5,8 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.Opcodes;
 
+import java.util.Objects;
+
 public class Constant extends BasePushable {
 
 	public final String name;
@@ -35,7 +37,12 @@ public class Constant extends BasePushable {
 
 	@Override
 	public String toString() {
-		return "Constant: " + name + " --> " + type;
+		return "Constant: " + name + " @ " + owner + " --> " + type;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name, owner);
 	}
 
 	@Override

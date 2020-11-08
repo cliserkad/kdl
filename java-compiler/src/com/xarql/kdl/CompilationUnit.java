@@ -30,10 +30,8 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 
 	// used to generate a numerical id
 	private static int unitCount = 0;
-	public final static TrackedMap<Constant, kdl.ConstantDefContext> constants = new TrackedMap<>();
-	public final static TrackedMap<StaticField, kdl.FieldDefContext> fields = new TrackedMap<>();
-	public final static Set<MethodHeader> methods = new HashSet<>();
 
+	private final CompilationDispatcher owner;
 	private final Set<InternalName> imports;
 	private final ClassWriter cw;
 	private final int id;
@@ -52,7 +50,8 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 	// pass 3 defines methods
 	private int pass;
 
-	private CompilationUnit() {
+	private CompilationUnit(CompilationDispatcher owner) {
+		this.owner = owner;
 		pass = 0;
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		imports = new HashSet<>();
@@ -61,18 +60,18 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 		tree = null;
 	}
 
-	public CompilationUnit(File sourceFile, File outputDir) {
-		this();
+	public CompilationUnit(CompilationDispatcher owner, File sourceFile, File outputDir) {
+		this(owner);
 		this.sourceFile = sourceFile;
 		this.outputDir = outputDir;
 	}
 
-	public CompilationUnit(File sourceFile) {
-		this(sourceFile, null);
+	public CompilationUnit(CompilationDispatcher owner, File sourceFile) {
+		this(owner, sourceFile, null);
 	}
 
-	public CompilationUnit(String sourceCode) {
-		this();
+	public CompilationUnit(CompilationDispatcher owner, String sourceCode) {
+		this(owner);
 		this.sourceCode = sourceCode;
 	}
 
@@ -117,6 +116,7 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 			addImport(getClazz().toInternalName());
 		} else if(pass == 3) {
 			write(outputDir);
+
 			if(!quiet)
 				System.out.println("Compiled " + unitName());
 			return true;
@@ -196,35 +196,49 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 		pass++;
 	}
 
+	public TrackedMap<Constant, kdl.ConstantDefContext> constants() {
+		return owner.constants;
+	}
+
+	public TrackedMap<StaticField, kdl.FieldDefContext> fields() {
+		return owner.fields;
+	}
+
+	public Set<MethodHeader> methods() {
+		return owner.methods;
+	}
+
 	@Override
 	public void enterClazz(final kdl.ClazzContext ctx) {
 		if(getPass() == 1) {
 			setClassName(ctx.CLASSNAME().getText());
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 		} else if(getPass() == 2) {
-			if(!constants.isEmpty()) {
+			if(!constants().isEmpty()) {
 				MethodHeader staticInit = MethodHeader.STATIC_INIT.withOwner(clazz);
 				addMethodDef(staticInit);
 				Actor actor = new Actor(defineMethod(staticInit), this);
 
-				for(Constant c : constants.keys()) {
-					try {
-						final kdl.ConstantDefContext cDef = constants.get(c);
-						final Pushable pushable = Pushable.parse(actor, cDef.value());
-						final Constant unsetConst = new Constant(c.name, pushable.toInternalName(), clazz.toInternalName());
-						addConstant(unsetConst);
-						constants.put(unsetConst, cDef);
-						pushable.push(actor);
-						actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, pushable.toInternalName().objectString());
-					} catch(Exception e) {
-						printException(e);
+				for(Constant c : constants().keys()) {
+					if(c.owner.equals(getClazz().toInternalName())) {
+						try {
+							final kdl.ConstantDefContext cDef = constants().get(c);
+							final Pushable pushable = Pushable.parse(actor, cDef.value());
+							final Constant unsetConst = new Constant(c.name, pushable.toInternalName(), clazz.toInternalName());
+							addConstant(unsetConst);
+							constants().put(unsetConst, cDef);
+							pushable.push(actor);
+							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, pushable.toInternalName().objectString());
+						} catch (Exception e) {
+							printException(e);
+						}
 					}
 				}
 				getCurrentScope().end(ctx.stop.getLine(), actor, staticInit.returns);
 			}
 
-			for(StaticField f : fields.keys()) {
-				if(f instanceof ObjectField) {
+			for(StaticField f : fields().keys()) {
+				if(f.ownerType.equals(getClazz().toInternalName()) && f instanceof ObjectField) {
 					final FieldVisitor fv;
 					final Object defaultValue;
 					if(f.type.toBaseType() == STRING)
@@ -256,8 +270,8 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 			try {
 				final Details details = new Details(ctx.variableDeclaration().details(), this);
 				final ObjectField field = new ObjectField(details, getClazz());
-				if(!fields.contains(field))
-					fields.put(field, ctx);
+				if(!fields().contains(field))
+					fields().put(field, ctx);
 				else
 					throw new IllegalArgumentException("The field named " + details.name + " was already declared within " + getClazz());
 			} catch(Exception e) {
@@ -273,10 +287,10 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 		if(getPass() == 1) {
 			final String name = ctx.CONSTNAME().toString();
 			final Constant unsetConst = new Constant(name, InternalName.PLACEHOLDER, getClazz().toInternalName());
-			if(!constants.contains(unsetConst))
-				constants.put(unsetConst, ctx);
+			if(!constants().contains(unsetConst))
+				constants().put(unsetConst, ctx);
 			else
-				throw new IllegalArgumentException("The const named " + name + " was already declared within " + getClazz());
+				throw new IllegalArgumentException(unsetConst + " was already declared");
 		}
 	}
 
@@ -359,14 +373,14 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 	public void addImport(Class<?> clazz) {
 		imports.add(new InternalName(clazz));
 		for(Method method : clazz.getMethods()) {
-			methods.add(new MethodHeader(clazz, method));
+			methods().add(new MethodHeader(clazz, method));
 		}
 		for(java.lang.reflect.Field field : clazz.getFields()) {
 			final Details details = new Details(field.getName(), new InternalName(field.getType()), (field.getModifiers() & ACC_FINAL) == ACC_FINAL);
 			if((field.getModifiers() & ACC_STATIC) == ACC_STATIC) {
-				fields.add(new StaticField(details, new InternalName(clazz)), null);
+				fields().add(new StaticField(details, new InternalName(clazz)), null);
 			} else {
-				fields.add(new ObjectField(details, new InternalName(clazz)), null);
+				fields().add(new ObjectField(details, new InternalName(clazz)), null);
 			}
 		}
 	}
@@ -478,17 +492,13 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 	}
 
 	public MethodHeader addMethodDef(MethodHeader md) {
-		if(!methods.add(md))
+		if(!methods().add(md))
 			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
 		return md;
 	}
 
-	public Set<MethodHeader> getMethods() {
-		return methods;
-	}
-
 	public boolean hasConstant(final String name) {
-		for(Constant c : constants.keys()) {
+		for(Constant c : constants().keys()) {
 			if(c.name.equals(name))
 				return true;
 		}
@@ -496,7 +506,7 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 	}
 
 	public Constant getConstant(final String name) {
-		for(Constant c : constants.keys()) {
+		for(Constant c : constants().keys()) {
 			if(c.name.equals(name))
 				return c;
 		}
@@ -529,7 +539,7 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 	}
 
 	public MethodVisitor defineMethod(MethodHeader md) {
-		for(MethodHeader def : methods) {
+		for(MethodHeader def : methods()) {
 			if(def.equals(md)) {
 				final MethodVisitor mv = cw.visitMethod(md.access, md.name, md.descriptor(), null, null);
 				currentScope = new Scope("Method " + md.name + " of class " + clazz, mv);
@@ -566,12 +576,12 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 		actor.visitVarInsn(ALOAD, 0);
 		actor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 
-		for(StaticField f : fields.keys()) {
+		for(StaticField f : fields().keys()) {
 			if(f instanceof ObjectField) {
 				// push "this"
 				actor.visitVarInsn(ALOAD, 0);
-				if(fields.get(f).variableDeclaration().ASSIGN() != null) {
-					final Expression xpr = new Expression(fields.get(f).variableDeclaration().expression(), actor);
+				if(fields().get(f).variableDeclaration().ASSIGN() != null) {
+					final Expression xpr = new Expression(fields().get(f).variableDeclaration().expression(), actor);
 					xpr.push(actor);
 				} else {
 					if(f.type.isBaseType())

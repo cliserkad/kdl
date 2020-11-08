@@ -21,7 +21,7 @@ public class StaticField extends Details implements Assignable {
 	@Override
 	public Pushable push(Actor actor) throws Exception {
 		if(type == null) {
-			StaticField proper = actor.unit.fields.equivalentKey(this);
+			StaticField proper = actor.unit.fields().equivalentKey(this);
 			return proper.push(actor);
 		} else {
 			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.nameString(), name, type.objectString());

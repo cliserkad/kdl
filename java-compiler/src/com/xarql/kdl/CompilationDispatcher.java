@@ -1,11 +1,16 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.antlr.kdl;
+import com.xarql.kdl.ir.Constant;
+import com.xarql.kdl.ir.StaticField;
 import com.xarql.kdl.names.CommonText;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class CompilationDispatcher implements CommonText {
 
@@ -20,6 +25,10 @@ public class CompilationDispatcher implements CommonText {
 	private final File input;
 	private final FileFilter filter;
 	private final File output;
+
+	public final TrackedMap<Constant, kdl.ConstantDefContext> constants = new TrackedMap<>();
+	public final TrackedMap<StaticField, kdl.FieldDefContext> fields = new TrackedMap<>();
+	public final Set<MethodHeader> methods = new HashSet<>();
 
 	public CompilationDispatcher(final File input, final FileFilter filter, final File output) {
 		if(input == null)
@@ -106,7 +115,7 @@ public class CompilationDispatcher implements CommonText {
 				registerCompilationUnits(sub, units);
 			}
 		} else if(filter.accept(f))
-			units.add(new CompilationUnit(f, output));
+			units.add(new CompilationUnit(this, f, output));
 		return units;
 	}
 
