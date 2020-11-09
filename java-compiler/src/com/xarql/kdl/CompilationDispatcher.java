@@ -8,6 +8,7 @@ import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -94,6 +95,8 @@ public class CompilationDispatcher implements CommonText {
 				// continue
 			}
 		}
+		for(CompilationUnit unit : units)
+			unit.write();
 		return this;
 	}
 
@@ -120,6 +123,14 @@ public class CompilationDispatcher implements CommonText {
 				threadPool.awaitTermination(10, TimeUnit.MINUTES);
 			} catch (InterruptedException e) {
 				// continue
+			}
+		}
+		for(CompilationUnit unit : units) {
+			try {
+				unit.write();
+			} catch(IOException e) {
+				System.err.println(e.getMessage());
+				e.printStackTrace();
 			}
 		}
 		System.out.println("Finished compiling in " + et);

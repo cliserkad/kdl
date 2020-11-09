@@ -26,7 +26,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
-	public static final int PASSES = 4;
+	public static final int PASSES = 3;
 
 	// used to generate a numerical id
 	private static int unitCount = 0;
@@ -106,17 +106,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			tree = makeParseTree(sourceCode);
 
 		newPass();
-		if(pass < PASSES)
-			ParseTreeWalker.DEFAULT.walk((ParseTreeListener) this, tree);
+		ParseTreeWalker.DEFAULT.walk((ParseTreeListener) this, tree);
 
-
-		if(pass == 1) {
+		if(pass == 1)
 			addImport(getClazz().toInternalName());
-		} else if(pass == PASSES) {
-			write(outputDir);
-			return true;
-		}
-		return false;
+
+		return pass >= PASSES;
 	}
 
 	@Override
