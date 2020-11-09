@@ -577,7 +577,7 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 		actor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 
 		for(StaticField f : fields().keys()) {
-			if(f instanceof ObjectField) {
+			if(f.ownerType.equals(getClazz().toInternalName()) && f instanceof ObjectField) {
 				// push "this"
 				actor.visitVarInsn(ALOAD, 0);
 				if(fields().get(f).variableDeclaration().ASSIGN() != null) {

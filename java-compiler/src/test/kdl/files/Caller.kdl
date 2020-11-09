@@ -1,0 +1,7 @@
+path test.kdl.files;
+
+type Caller {
+    main {
+        println(Container.CONST_MSG)
+    }
+}

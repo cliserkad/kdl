@@ -1,0 +1,5 @@
+path test.kdl.files;
+
+type Container {
+    const CONST_MSG: "This message came from Container.kdl"
+}
