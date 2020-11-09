@@ -22,11 +22,11 @@ import java.util.Set;
 import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.BaseType.*;
 
-public class CompilationUnit extends kdlBaseListener implements CommonText {
+public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
 
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
-	public static final int PASSES = 3;
+	public static final int PASSES = 4;
 
 	// used to generate a numerical id
 	private static int unitCount = 0;
@@ -100,28 +100,32 @@ public class CompilationUnit extends kdlBaseListener implements CommonText {
 	}
 
 	public boolean pass() throws Exception {
-		return pass(CompilationDispatcher.DEFAULT_QUIET);
-	}
-
-	public boolean pass(boolean quiet) throws Exception {
 		if(sourceCode == null)
 			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 		if(tree == null)
 			tree = makeParseTree(sourceCode);
 
 		newPass();
-		ParseTreeWalker.DEFAULT.walk((ParseTreeListener) this, tree);
+		if(pass < PASSES)
+			ParseTreeWalker.DEFAULT.walk((ParseTreeListener) this, tree);
+
 
 		if(pass == 1) {
 			addImport(getClazz().toInternalName());
-		} else if(pass == 3) {
+		} else if(pass == PASSES) {
 			write(outputDir);
-
-			if(!quiet)
-				System.out.println("Compiled " + unitName());
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public void run() {
+		try {
+			pass();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public String unitName() {

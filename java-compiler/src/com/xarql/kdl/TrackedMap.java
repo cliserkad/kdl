@@ -1,6 +1,7 @@
 package com.xarql.kdl;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A container that has both a list and a map to use them as one. This was
@@ -22,14 +23,14 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	 * The container retains the relationship between keys and elements. Elements
 	 * are always retrieved using a key
 	 */
-	private final HashMap<K, E> container;
+	private final ConcurrentHashMap<K, Optional<E>> container;
 
 	/**
 	 * Creates a TrackedHashMap() and sets the tracker's capacity to 0.
 	 */
 	public TrackedMap() {
 		tracker = new ArrayList<>();
-		container = new HashMap<>();
+		container = new ConcurrentHashMap<>();
 	}
 
 	// Stats
@@ -165,7 +166,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	 * @return The element that is being retrieved
 	 */
 	public E get(K key) {
-		return container.get(key);
+		return container.get(key).orElse(null);
 	}
 
 	/**
@@ -177,7 +178,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	 * @return The element at the given index
 	 */
 	public E get(int i) {
-		return container.get(key(i));
+		return container.get(key(i)).orElse(null);
 	}
 
 	/**
@@ -187,7 +188,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	 * @return A random element.
 	 */
 	public E getRandom() {
-		return container.get(randomKey());
+		return container.get(randomKey()).orElse(null);
 	}
 
 	// Adding
@@ -201,7 +202,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 	public void add(K key, E element) {
 		if(!contains(key)) {
 			tracker.add(key);
-			container.put(key, element);
+			container.put(key, Optional.ofNullable(element));
 		}
 	}
 
@@ -215,7 +216,7 @@ public class TrackedMap<K, E> implements Iterable<E> {
 		if(contains(key))
 			remove(key);
 		tracker.add(key);
-		container.put(key, element);
+		container.put(key, Optional.ofNullable(element));
 	}
 
 	// Removing
