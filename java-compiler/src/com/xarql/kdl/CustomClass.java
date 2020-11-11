@@ -9,6 +9,8 @@ import org.objectweb.asm.Opcodes;
 import static com.xarql.kdl.Text.nonNull;
 
 public class CustomClass implements ToName, Pushable {
+	public static final char INTERNAL_SEPARATOR = '/';
+	public static final char SOURCE_SEPARATOR = '.';
 
 	public final String pkg;
 	public final String name;
@@ -27,8 +29,12 @@ public class CustomClass implements ToName, Pushable {
 	}
 
 	public String qualifiedName() {
+		return fullName().replace(SOURCE_SEPARATOR, INTERNAL_SEPARATOR);
+	}
+
+	public String fullName() {
 		if(!pkg.isEmpty())
-			return (pkg + '.' + name).replace('.', '/');
+			return pkg + SOURCE_SEPARATOR + name;
 		else
 			return name;
 	}

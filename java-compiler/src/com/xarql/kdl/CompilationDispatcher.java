@@ -9,8 +9,10 @@ import org.apache.commons.io.filefilter.RegexFileFilter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -31,6 +33,8 @@ public class CompilationDispatcher implements CommonText {
 	private final FileFilter filter;
 	private final File output;
 
+	private ClassLoader classLoader;
+
 	public final TrackedMap<Constant, kdl.ConstantDefContext> constants = new TrackedMap<>();
 	public final TrackedMap<StaticField, kdl.FieldDefContext> fields = new TrackedMap<>();
 	public final Set<MethodHeader> methods = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -48,6 +52,7 @@ public class CompilationDispatcher implements CommonText {
 			this.output = DEFAULT_OUTPUT;
 		else
 			this.output = output;
+		classLoader = null;
 	}
 
 	public static void main(String[] args) {
@@ -95,11 +100,13 @@ public class CompilationDispatcher implements CommonText {
 				// continue
 			}
 		}
-		for(CompilationUnit unit : units)
-			unit.write();
+		writeAndVerify(units);
 		return this;
 	}
 
+	/**
+	 * Prints input and output directories to System.out
+	 */
 	public void printDirs() {
 		System.out.println("Input Directory: " + input);
 		System.out.println("Output Directory: " + output);
@@ -125,15 +132,49 @@ public class CompilationDispatcher implements CommonText {
 				// continue
 			}
 		}
-		for(CompilationUnit unit : units) {
-			try {
-				unit.write();
-			} catch(IOException e) {
-				System.err.println(e.getMessage());
-				e.printStackTrace();
-			}
+		try {
+			writeAndVerify(units);
+		} catch(IOException e) {
+			System.err.println("Failed to write .class file:");
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+		} catch(ClassNotFoundException e) {
+			System.err.println(".class file was not loadable");
+			System.err.println(e.getMessage());
+			e.printStackTrace();
 		}
 		System.out.println("Finished compiling in " + et);
+	}
+
+	/**
+	 * Writes units that have been through all passes to disk, then tries to load them in to the Java runtime
+	 * environment, which effectively verifies them.
+	 *
+	 * @param units prepared units
+	 * @throws IOException when a unit can't be written
+	 * @throws ClassNotFoundException when a unit is invalid
+	 */
+	public void writeAndVerify(final BestList<CompilationUnit> units) throws IOException, ClassNotFoundException {
+		for(CompilationUnit unit : units) {
+			unit.write();
+			getClassLoader().loadClass(unit.getClazz().fullName());
+		}
+	}
+
+	/**
+	 * Creates a ClassLoader at the output directory for verification of compiled .class files
+	 * @return an appropriate ClassLoader
+	 * @throws MalformedURLException when output is a bad directory
+	 */
+	public ClassLoader getClassLoader() throws MalformedURLException {
+		if(classLoader == null) {
+			URL url = output.toURI().toURL();
+			URL[] urls = new URL[]{url};
+
+			// Create a new class loader at the output directory
+			classLoader = new URLClassLoader(urls);
+		}
+		return classLoader;
 	}
 
 	public BestList<CompilationUnit> registerCompilationUnits() {

@@ -155,7 +155,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return tree;
 	}
 
-	public CompilationUnit write(File destination) throws IOException {
+	public File write(File destination) throws IOException {
 		cw.visitEnd();
 		if(destination == null)
 			write();
@@ -169,10 +169,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		destination.createNewFile();
 
 		Files.write(destination.toPath(), cw.toByteArray());
-		return this;
+		return destination;
 	}
 
-	public CompilationUnit write() throws IOException {
+	public File write() throws IOException {
 		if(sourceFile == null)
 			throw new NullPointerException("write() without params in CompilationUnit if the unit wasn't created with a file.");
 		return write(outputDir);
