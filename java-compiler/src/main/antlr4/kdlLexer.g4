@@ -9,7 +9,7 @@ COMMENT: '//' .*? '\n' -> channel(HIDDEN);
 BLOCK_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
 
 // skip over whitespace
-WS : [ \t\r\n]+ -> skip;
+WS: [ \t\r\n]+ -> skip;
 
 QUOTE: '"';
 STRING_LIT: QUOTE (~["\\] | '\\' .)* QUOTE;
@@ -28,6 +28,7 @@ SIZE: 'size';
 ASSERT: 'assert';
 WHILE: 'while';
 FOR: 'for';
+THIS: 'this';
 
 // base types
 BOOLEAN: 'boolean';
@@ -60,8 +61,6 @@ MUTABLE: '~';
 // comparator
 NOT_EQUAL: '!=';
 EQUAL: '=';
-REF_NOT_EQUAL: '!?';
-REF_EQUAL: '?=';
 LESS_THAN: '<';
 MORE_THAN: '>';
 LESS_OR_EQUAL: '<=';
@@ -75,22 +74,18 @@ MULTIPLY: '*';
 MODULUS: '%';
 
 // appenders
-AND: '&';
-OR: '|';
+BIT_AND: '&';
+BIT_OR: '|';
 
-DIGIT               : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
-fragment UPLETTER   : [A-Z];
-fragment DNLETTER   : [a-z];
-fragment LETTER     : UPLETTER | DNLETTER;
-fragment ALPHANUM   : LETTER | DIGIT;
-UNDERSCORE : '_';
-fragment DNTEXT     : DNLETTER+;
+AND: '&&';
+OR: '||';
 
-CONSTNAME : UPLETTER (UPLETTER | DIGIT | UNDERSCORE)+;
-CLASSNAME : UPLETTER+ DNLETTER (LETTER | DIGIT)+;
-VARNAME   : DNLETTER (LETTER | DIGIT)*;
+DIGIT: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
+UNDERSCORE: '_';
 
-QUALIFIED_NAME: (DNTEXT '.')+ CLASSNAME;
-PATH_LIT: DNTEXT ('.' DNTEXT)* SEMICOLON;
+PATH_LIT: IDENTIFIER ('.' IDENTIFIER)* SEMICOLON;
 
 CHAR_LIT: '\'' . '\'';
+
+// match anything that is unmatched and has no syntax characters
+IDENTIFIER: ~([\r\n\t&|+<>=?!*.~:;,(){}'"/%]|'['|']')+;

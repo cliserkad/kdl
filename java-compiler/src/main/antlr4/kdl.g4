@@ -8,68 +8,60 @@ options {
     tokenVocab = kdlLexer;
 }
 
-arrayLength: VARNAME DOT SIZE;
-
 // literals
 bool: TRUE | FALSE;
-decimalNumber: DIGIT? (DIGIT | SEPARATOR | UNDERSCORE)* DOT DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
+fraction: DIGIT? (DIGIT | SEPARATOR | UNDERSCORE)* DOT DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
 integer: DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
-literal: bool | CHAR_LIT | STRING_LIT | integer | decimalNumber;
+literal: bool | CHAR_LIT | STRING_LIT | integer | fraction | R_NULL;
 
-statement: methodCallStatement | variableDeclaration | assignment | returnStatement | conditional | newObject;
-methodCallStatement: methodCall;
+statement: methodCall | variableDeclaration | assignment | returnStatement | conditional;
 block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
-for_loop: FOR VARNAME ASSIGN range block;
-for_each_loop: FOR VARNAME ASSIGN expression block;
+for_loop: FOR IDENTIFIER ASSIGN range block;
+for_each_loop: FOR IDENTIFIER ASSIGN expression block;
 range: expression? DOT DOT expression;
 
 // conditionals
 conditional: r_if | assertion | r_while | for_loop | for_each_loop;
 r_if: R_IF condition block r_else?;
-r_else: R_ELSE (block | statement);
+r_else: R_ELSE block;
 assertion: ASSERT condition;
 r_while: WHILE condition block;
 
-constant: (CLASSNAME DOT)? CONSTNAME;
-field: VARNAME (DOT VARNAME)*;
-staticField: CLASSNAME DOT VARNAME;
-variable: VARNAME;
-value: methodCall | arrayLength| literal | variable | constant | field | staticField | indexAccess | subSequence | R_NULL | newObject;
-newObject: CLASSNAME + parameterSet;
+member: IDENTIFIER | indexAccess | subSequence;
+value: (literal (DOT value)?) | member (DOT member)?;
 operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
 expression: value (operator expression)?;
 
 condition: expression (comparator expression)?;
-comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
+comparator: EQUAL | NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 appender: AND | OR;
 
-variableDeclaration: details (SEPARATOR VARNAME)* (ASSIGN expression)?;
-assignment: (VARNAME | field) ((ASSIGN expression) | operatorAssign);
-operatorAssign: operator ASSIGN value;
-details: type MUTABLE? VARNAME;
-indexAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
-subSequence: VARNAME BRACE_OPEN range BRACE_CLOSE;
+variableDeclaration: details (SEPARATOR IDENTIFIER)* (ASSIGN expression)?;
+assignment: member operator? ASSIGN expression;
+details: type MUTABLE? IDENTIFIER;
+indexAccess: IDENTIFIER BRACE_OPEN expression BRACE_CLOSE;
+subSequence: IDENTIFIER BRACE_OPEN range BRACE_CLOSE;
 
 // method calls
-methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet;
-parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
+methodCall: value DOT argumentSet;
+argumentSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
-methodDefinition: (details | VARNAME MUTABLE?) paramSet block;
-paramSet: PARAM_OPEN ((VARNAME | param) (SEPARATOR param)*)? PARAM_CLOSE;
-param: details (ASSIGN value)?;
+methodDefinition: (details | IDENTIFIER MUTABLE?) parameterSet block;
+parameterSet: PARAM_OPEN ((THIS | param) (SEPARATOR param)*)? PARAM_CLOSE;
+param: details (ASSIGN expression)?;
 
 returnStatement: RETURN expression;
 
-type: (basetype | CLASSNAME) (BRACE_OPEN BRACE_CLOSE)*;
+type: (basetype | IDENTIFIER) (BRACE_OPEN BRACE_CLOSE)*;
 basetype: BOOLEAN | BYTE | SHORT | CHAR | INT | FLOAT | LONG | DOUBLE | STRING;
 
 source: path? use* clazz EOF;
-use: USE QUALIFIED_NAME;
+use: USE IDENTIFIER;
 path: PATH PATH_LIT;
-clazz: TYPE CLASSNAME BODY_OPEN (constantDef | fieldDef | main | methodDefinition)* BODY_CLOSE;
-constantDef: CONST CONSTNAME ASSIGN value;
+clazz: TYPE IDENTIFIER BODY_OPEN (constantDef | fieldDef | main | methodDefinition)* BODY_CLOSE;
+constantDef: CONST IDENTIFIER ASSIGN expression;
 fieldDef: variableDeclaration;
 main: MAIN block;
