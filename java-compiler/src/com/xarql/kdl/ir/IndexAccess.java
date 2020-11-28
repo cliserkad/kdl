@@ -28,31 +28,31 @@ public class IndexAccess extends BasePushable implements CommonText {
 	}
 
 	@Override
-	public IndexAccess push(final Actor visitor) throws Exception {
-		visitor.visitVarInsn(ALOAD, variable.localIndex);
+	public IndexAccess push(final Actor actor) throws Exception {
+		actor.visitVarInsn(ALOAD, variable.localIndex);
 		// throw error if value within [ ] isn't an int
 		if(index.toBaseType().ordinal() > INT.ordinal())
 			throw new IncompatibleTypeException("The input for an array access must be an integer");
 		else
-			index.push(visitor);
+			index.push(actor);
 
 		if(variable.isArray()) {
 			if(variable.type.isBaseType()) {
 				switch(variable.type.toBaseType()) {
 					case INT:
 					case BOOLEAN:
-						visitor.visitInsn(IALOAD);
+						actor.visitInsn(IALOAD);
 						break;
 					case STRING:
-						visitor.visitInsn(AALOAD);
+						actor.visitInsn(AALOAD);
 						break;
 					default:
 						throw new UnimplementedException(SWITCH_BASETYPE);
 				}
 			} else
-				visitor.visitInsn(AALOAD);
+				actor.visitInsn(AALOAD);
 		} else if(variable.toBaseType() == BaseType.STRING)
-			STRING_CHAR_AT.invoke(visitor);
+			STRING_CHAR_AT.push(actor);
 		else
 			throw new IllegalArgumentException(variable + " is not an array nor a string");
 		return this;

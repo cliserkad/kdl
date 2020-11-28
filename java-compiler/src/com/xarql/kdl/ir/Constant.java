@@ -1,13 +1,18 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
+import com.xarql.kdl.BestList;
+import com.xarql.kdl.Member;
+import com.xarql.kdl.TrackedMap;
 import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.Opcodes;
 
+import java.util.List;
 import java.util.Objects;
 
-public class Constant extends BasePushable {
+public class Constant extends BasePushable implements Member {
 
 	public final String name;
 	public final InternalName type;
@@ -63,6 +68,11 @@ public class Constant extends BasePushable {
 	public Pushable push(final Actor actor) {
 		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.nameString(), name, type.objectString());
 		return this;
+	}
+
+	@Override
+	public Details details() {
+		return new Details(name, type, false);
 	}
 
 }

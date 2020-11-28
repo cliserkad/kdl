@@ -48,16 +48,16 @@ public class StringTemplate extends BasePushable {
 
 	@Override
 	public Pushable push(final Actor actor) throws Exception {
-		ExpressionHandler.createStringBuilder(actor);
+		Expression.createStringBuilder(actor);
 		for(Pushable p : elements) {
 			if(p instanceof Constant)
 				p = actor.unit.getConstant(((Constant) p).name);
 			InternalName type = p.pushType(actor);
 			if(!type.equals(InternalName.STRING))
 				CompilationUnit.convertToString(type, actor);
-			ExpressionHandler.SB_APPEND.invoke(actor);
+			Expression.SB_APPEND.push(actor);
 		}
-		ExpressionHandler.SB_TO_STRING.invoke(actor);
+		Expression.SB_TO_STRING.push(actor);
 		return this;
 	}
 

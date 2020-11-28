@@ -8,9 +8,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static com.xarql.kdl.BestList.list;
-
-public class MethodHeader implements CommonText, ToName {
+public class MethodHeader implements CommonText, ToName, Member {
 
 	public static final MethodHeader MAIN = new MethodHeader(new InternalName(Object.class), "main", toParamList(new InternalName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
 	public static final MethodHeader TO_STRING = new MethodHeader(new InternalName(Object.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
@@ -74,8 +72,8 @@ public class MethodHeader implements CommonText, ToName {
 		this.access = method.getModifiers();
 	}
 
-	public MethodHeader withOwner(final CustomClass cc) {
-		return new MethodHeader(new InternalName(cc), name, params, returns, access);
+	public MethodHeader withOwner(final Type dc) {
+		return new MethodHeader(dc.toInternalName(), name, params, returns, access);
 	}
 
 	public MethodHeader withOwner(final InternalName owner) {
@@ -164,18 +162,9 @@ public class MethodHeader implements CommonText, ToName {
 			return false;
 	}
 
-	private MethodHeader invoke0(final int type, final MethodVisitor visitor) {
+	private MethodHeader invoke(final int type, final MethodVisitor visitor) {
 		visitor.visitMethodInsn(type, owner.nameString(), name, descriptor(), false);
 		return this;
-	}
-
-	public MethodHeader invoke(MethodVisitor visitor) {
-		if((access & ACC_STATIC) == ACC_STATIC)
-			return invoke0(INVOKESTATIC, visitor);
-		else if((access & ACC_PRIVATE) == ACC_PRIVATE || name.equals(S_INIT))
-			return invoke0(INVOKESPECIAL, visitor);
-		else
-			return invoke0(INVOKEVIRTUAL, visitor);
 	}
 
 	public boolean isStatic() {
@@ -192,5 +181,26 @@ public class MethodHeader implements CommonText, ToName {
 
 	@Override public BaseType toBaseType() {
 		return returns.toBaseType();
+	}
+
+	@Override
+	public Details details() {
+		// methods are not modifiable at runtime
+		return new Details(name, toInternalName(), false);
+	}
+
+	@Override
+	public Pushable push(Actor actor) throws Exception {
+		if((access & ACC_STATIC) == ACC_STATIC)
+			return invoke(INVOKESTATIC, actor);
+		else if((access & ACC_PRIVATE) == ACC_PRIVATE || name.equals(S_INIT))
+			return invoke(INVOKESPECIAL, actor);
+		else
+			return invoke(INVOKEVIRTUAL, actor);
+	}
+
+	@Override
+	public InternalName pushType(Actor actor) throws Exception {
+		return push(actor).toInternalName();
 	}
 }

@@ -1,9 +1,7 @@
 package com.xarql.kdl.ir;
 
-import com.xarql.kdl.Actor;
-import com.xarql.kdl.UnimplementedException;
+import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 
@@ -40,33 +38,25 @@ public interface Pushable extends ToName {
 	 * Attempts to parse a Resolvable symbol
 	 *
 	 * @param actor any Actor
-	 * @param val   The symbol
+	 * @param member member context
 	 * @return A Resolvable whose actual type corresponds to the symbol
 	 * @throws UnimplementedException thrown if missing a symbol from the grammar
 	 */
-	public static Pushable parse(final Actor actor, final kdl.ValueContext val) throws Exception {
-		if(val.literal() != null)
-			return Literal.parseLiteral(val.literal(), actor);
-		else if(val.constant() != null)
-			return actor.unit.getConstant(val.constant().CONSTNAME().getText());
-		else if(val.variable() != null)
-			return actor.unit.getLocalVariable(val.variable().VARNAME().getText());
-		else if(val.indexAccess() != null)
-			return new IndexAccess(actor.unit.getLocalVariable(val.indexAccess().VARNAME().getText()), new Expression(val.indexAccess().expression(), actor));
-		else if(val.subSequence() != null)
-			return new SubSequence(val.subSequence(), actor);
-		else if(val.arrayLength() != null)
-			return new ArrayLength(actor.unit.getLocalVariable(val.arrayLength().VARNAME().getText()));
-		else if(val.R_NULL() != null)
-			return new Null();
-		else if(val.methodCall() != null)
-			return new MethodCall(val.methodCall(), actor);
-		else if(val.newObject() != null)
-			return new NewObject(val.newObject(), actor);
-		else if(val.staticField() != null)
-			return actor.unit.fields().equivalentKey(new StaticField(val.staticField().VARNAME().getText(), actor.unit.resolveAgainstImports(val.staticField().CLASSNAME().getText())));
+	public static Pushable parse(final Actor actor, final kdl.MemberContext member) throws Exception {
+		if(member.literal() != null)
+			return Literal.parseLiteral(member.literal(), actor);
+		else if(member.member() != null)
+			return Member.parseMember(member.member(), actor);
 		else
-			throw new UnimplementedException("a type of Pushable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
+			throw new UnimplementedException("a type of Pushable wasn't parsed correctly\n The input text was \"" + member.getText() + "\"");
+	}
+
+	public static Pushable parseID(Type sourceType, String id, boolean isMethod) throws SymbolResolutionException {
+		for(Member m : sourceType.members()) {
+			if(m.details().name.equals(id) && (m instanceof MethodHeader) == isMethod)
+				return m;
+		}
+		throw new SymbolResolutionException("Couldn't find identifier " + id + " within " + sourceType);
 	}
 
 }

@@ -7,8 +7,9 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.Member;
 
-public class Variable extends Details implements Assignable, CommonText {
+public class Variable extends Details implements Assignable, Member, CommonText {
 
 	public static final boolean DEFAULT_MUTABLE = false;
 
@@ -146,6 +147,11 @@ public class Variable extends Details implements Assignable, CommonText {
 			actor.visitInsn(ACONST_NULL);
 			actor.visitVarInsn(ASTORE, localIndex);
 		}
+		return this;
+	}
+
+	@Override
+	public Details details() {
 		return this;
 	}
 

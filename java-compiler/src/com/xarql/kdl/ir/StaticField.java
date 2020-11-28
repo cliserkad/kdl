@@ -1,11 +1,14 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
+import com.xarql.kdl.Member;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.Opcodes;
 
-public class StaticField extends Details implements Assignable {
+import java.util.Objects;
+
+public class StaticField extends Details implements Assignable, Member {
 
 	public final InternalName ownerType;
 
@@ -21,7 +24,7 @@ public class StaticField extends Details implements Assignable {
 	@Override
 	public Pushable push(Actor actor) throws Exception {
 		if(type == null) {
-			StaticField proper = actor.unit.fields().equivalentKey(this);
+			StaticField proper = actor.unit.type.fields.equivalentKey(this);
 			return proper.push(actor);
 		} else {
 			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.nameString(), name, type.objectString());
@@ -51,15 +54,24 @@ public class StaticField extends Details implements Assignable {
 
 	@Override
 	public boolean equals(Object object) {
-		if(object instanceof StaticField) {
+		if(object != null && object instanceof StaticField) {
 			final StaticField other = (StaticField) object;
 			return other.ownerType.equals(ownerType) && other.name.equals(name);
 		} else
 			return false;
 	}
 
+	@Override
+	public int hashCode() {
+		return Objects.hash(ownerType, name);
+	}
+
 	public String toString() {
 		return ownerType.nameString() + " " + super.toString();
 	}
 
+	@Override
+	public Details details() {
+		return this;
+	}
 }

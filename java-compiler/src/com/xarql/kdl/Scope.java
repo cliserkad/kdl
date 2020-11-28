@@ -83,11 +83,11 @@ public class Scope implements Opcodes {
 		return false;
 	}
 
-	public Variable getVariable(String name) {
+	public Variable getVariable(String name) throws SymbolResolutionException {
 		for(Variable lv : variables)
 			if(lv.name.equals(name))
 				return lv;
-		throw new IllegalArgumentException("The variable with name " + name + " does not exist in " + this);
+		throw new SymbolResolutionException("The variable with name " + name + " does not exist in " + this);
 	}
 
 	public int nextIndex() {

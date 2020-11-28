@@ -43,7 +43,7 @@ public class Details implements ToName {
 	}
 
 	public Details(final kdl.DetailsContext ctx, final CompilationUnit unit) throws Exception {
-		String name = ctx.VARNAME().getText();
+		String name = ctx.IDENTIFIER().getText();
 
 		InternalName type;
 		if(ctx.type().basetype() != null) {
@@ -68,7 +68,7 @@ public class Details implements ToName {
 			else
 				throw new UnimplementedException(CommonText.SWITCH_BASETYPE);
 		} else {
-			type = unit.resolveAgainstImports(ctx.type().getText());
+			type = unit.type.resolveImport(ctx.type().getText()).toInternalName();
 			if(type == null)
 				throw new IllegalArgumentException("Couldn't recognize type");
 		}
@@ -138,6 +138,7 @@ public class Details implements ToName {
 			return false;
 	}
 
+	@Override
 	public String toString() {
 		final String name;
 		if(this.name != null)

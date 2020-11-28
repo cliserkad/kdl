@@ -69,7 +69,7 @@ MORE_OR_EQUAL: '>=';
 // operators
 PLUS: '+';
 MINUS: '-';
-DIVIDE: '/';
+SLASH: '/';
 MULTIPLY: '*';
 MODULUS: '%';
 
@@ -83,9 +83,7 @@ OR: '||';
 DIGIT: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 UNDERSCORE: '_';
 
-PATH_LIT: IDENTIFIER ('.' IDENTIFIER)* SEMICOLON;
-
 CHAR_LIT: '\'' . '\'';
 
 // match anything that is unmatched and has no syntax characters
-IDENTIFIER: ~([\r\n\t&|+<>=?!*.~:;,(){}'"/%]|'['|']')+;
+IDENTIFIER: ~([\r\t\n &|+<>=?!*.~:;,(){}'"/%]|'['|']')+;

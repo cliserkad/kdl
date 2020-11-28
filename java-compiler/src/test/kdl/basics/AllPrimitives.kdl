@@ -4,9 +4,9 @@ type AllPrimitives {
     double d: 92348934.824837624734
     boolean b: true
     byte b2: 120
-    short s: 32 000
+    short s: 32000
     char c: 'C'
-    int i: 64 000
+    int i: 64000
     float f: 1.5
     string str: "string"
 

@@ -16,6 +16,10 @@ public class ObjectField extends StaticField implements Assignable {
 		this.owner = owner;
 	}
 
+	public ObjectField(String name, Pushable owner) {
+		this(name, null, Variable.DEFAULT_MUTABLE, owner);
+	}
+
 	public ObjectField(String name, InternalName type, boolean mutable, Pushable owner) {
 		this(new Details(name, type, mutable), owner);
 	}

@@ -22,7 +22,7 @@ public class MethodTarget {
 	}
 
 	public MethodInvocation resolve(Actor actor) throws SymbolResolutionException {
-		return resolveAgainst(actor.unit.methods());
+		return resolveAgainst(actor.unit.type.methods);
 	}
 
 	public MethodInvocation resolveAgainst(Set<MethodHeader> methods) throws SymbolResolutionException {

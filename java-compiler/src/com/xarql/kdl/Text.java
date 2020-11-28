@@ -189,8 +189,34 @@ public class Text {
 		return output;
 	}
 
-	public static boolean firstLetterIsUppercase(String in) {
+	public static boolean isFirstLetterUppercase(String in) {
 		return !isEmpty(in) && Character.isUpperCase(in.charAt(0));
+	}
+
+	public static boolean isFirstLetterLowercase(String in) {
+		return !isEmpty(in) && Character.isLowerCase(in.charAt(0));
+	}
+
+	public static boolean hasUppercase(String in) {
+		if(isEmpty(in))
+			return false;
+		else {
+			for(int i = 0; i < in.length(); i++)
+				if(Character.isUpperCase(in.charAt(i)))
+					return false;
+			return true;
+		}
+	}
+
+	public static boolean hasLowercase(String in) {
+		if(isEmpty(in))
+			return false;
+		else {
+			for(int i = 0; i < in.length(); i++)
+				if(Character.isLowerCase(in.charAt(i)))
+					return false;
+				return true;
+		}
 	}
 
 }

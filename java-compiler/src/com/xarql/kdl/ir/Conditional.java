@@ -89,28 +89,28 @@ public abstract class Conditional implements Opcodes {
 	 * Writes the instructions needed to determine that the String on the stack is
 	 * not null and not empty. Expects that a String is at the top of the stack.
 	 */
-	public final void testStringUsability(final MethodVisitor visitor) {
+	public final void testStringUsability(final Actor actor) throws Exception {
 		Label isEmpty = new Label();
-		visitor.visitInsn(DUP); // duplicate string
-		visitor.visitJumpInsn(IFNONNULL, isEmpty); // test against null; destroys first copy. Could jump to isEmpty
-		visitor.visitInsn(POP); // remove unnecessary copy as no check will take place
-		visitor.visitJumpInsn(GOTO, labelSet.onFalse); // skip isEmpty check
+		actor.visitInsn(DUP); // duplicate string
+		actor.visitJumpInsn(IFNONNULL, isEmpty); // test against null; destroys first copy. Could jump to isEmpty
+		actor.visitInsn(POP); // remove unnecessary copy as no check will take place
+		actor.visitJumpInsn(GOTO, labelSet.onFalse); // skip isEmpty check
 
 		// use isEmpty() on the second copy of the string
-		visitor.visitLabel(isEmpty);
-		new MethodHeader(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).invoke(visitor);
+		actor.visitLabel(isEmpty);
+		new MethodHeader(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).push(actor);
 
 		// negative vs positive jump
 		if(condition.positive)
-			visitor.visitJumpInsn(IFEQ, labelSet.onTrue); // if the string is not empty, then skip to true clause
+			actor.visitJumpInsn(IFEQ, labelSet.onTrue); // if the string is not empty, then skip to true clause
 		else
-			visitor.visitJumpInsn(IFNE, labelSet.onFalse); // if the string is empty, then skip to false clause
+			actor.visitJumpInsn(IFNE, labelSet.onFalse); // if the string is empty, then skip to false clause
 	}
 
-	public final void testStrings(final MethodVisitor visitor) throws Exception {
+	public final void testStrings(final Actor actor) throws Exception {
 		switch(condition.cmp) {
 			case EQUAL:
-				MethodHeader.EQUALS.withOwner(InternalName.STRING).invoke(visitor);
+				MethodHeader.EQUALS.withOwner(InternalName.STRING).push(actor);
 				break;
 			default:
 				throw new UnimplementedException("Only == has been implemented for strings");
@@ -118,9 +118,9 @@ public abstract class Conditional implements Opcodes {
 
 		// negative vs positive jump
 		if(condition.positive)
-			visitor.visitJumpInsn(IFNE, labelSet.onTrue); // if the strings are not equal, then skip to true clause
+			actor.visitJumpInsn(IFNE, labelSet.onTrue); // if the strings are not equal, then skip to true clause
 		else
-			visitor.visitJumpInsn(IFEQ, labelSet.onFalse); // if the string are equal, then skip to false clause
+			actor.visitJumpInsn(IFEQ, labelSet.onFalse); // if the string are equal, then skip to false clause
 	}
 
 	public final void testIntegers(final MethodVisitor visitor) throws Exception {

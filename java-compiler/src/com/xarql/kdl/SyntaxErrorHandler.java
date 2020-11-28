@@ -19,8 +19,19 @@ public class SyntaxErrorHandler extends BaseErrorListener {
 	}
 
 	public void printErrors() {
-		for(SyntaxException e : errors)
-			System.err.println("Within " + unit.unitName() + ": " + e.getMessage());
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Encountered syntax errors while parsing within ");
+		if(unit.isFromFile())
+			builder.append(unit.sourcePath());
+		else
+			builder.append(unit.unitName());
+		builder.append("\n");
+		for(SyntaxException e : errors) {
+			builder.append("\t");
+			builder.append(e.getMessage());
+			builder.append("\n");
+		}
+		System.err.print(builder.toString());
 	}
 
 	@Override

@@ -54,7 +54,7 @@ public class MethodInvocation implements Pushable {
 			if(header.paramTypes()[i] == InternalName.STRING)
 				CompilationUnit.convertToString(argType, actor);
 		}
-		header.invoke(actor);
+		header.push(actor);
 		return this;
 	}
 

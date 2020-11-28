@@ -20,7 +20,7 @@ public class SubSequence extends BasePushable {
 	public final Range range;
 
 	public SubSequence(final kdl.SubSequenceContext ctx, final Actor actor) throws Exception {
-		this(actor.unit.getLocalVariable(ctx.VARNAME().getText()), new Range(ctx.range(), actor));
+		this(actor.unit.getLocalVariable(ctx.IDENTIFIER().getText()), new Range(ctx.range(), actor));
 	}
 
 	public SubSequence(final Variable variable, final Range range) {
@@ -34,7 +34,7 @@ public class SubSequence extends BasePushable {
 			variable.push(visitor);
 			range.min.push(visitor);
 			range.max.push(visitor);
-			SUB_STRING.invoke(visitor);
+			SUB_STRING.push(visitor);
 		} else {
 			throw new UnimplementedException("Subsequence only implemented for strings");
 		}

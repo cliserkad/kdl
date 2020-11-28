@@ -18,7 +18,7 @@ public class BestList<E> extends ArrayList<E> {
 		add(elements);
 	}
 
-	public BestList(Iterable<E> elements) {
+	public BestList(Iterable<? extends E> elements) {
 		super();
 		add(elements);
 	}
@@ -38,7 +38,7 @@ public class BestList<E> extends ArrayList<E> {
 		return output;
 	}
 
-	public final boolean add(Iterable<E> input) {
+	public final boolean add(Iterable<? extends E> input) {
 		boolean output = true;
 		for(E e : input)
 			if(!add(e))
@@ -49,6 +49,10 @@ public class BestList<E> extends ArrayList<E> {
 	public final void removeAmount(int amount) {
 		for(int i = 0; i < amount; i++)
 			remove(0);
+	}
+
+	public final E last() {
+		return get(size() - 1);
 	}
 
 	/**

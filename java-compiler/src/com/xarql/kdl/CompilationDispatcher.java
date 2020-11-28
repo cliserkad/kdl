@@ -1,9 +1,7 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.ir.Constant;
-import com.xarql.kdl.ir.StaticField;
 import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.InternalName;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import java.io.File;
@@ -12,7 +10,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -35,9 +33,7 @@ public class CompilationDispatcher implements CommonText {
 
 	private ClassLoader classLoader;
 
-	public final TrackedMap<Constant, kdl.ConstantDefContext> constants = new TrackedMap<>();
-	public final TrackedMap<StaticField, kdl.FieldDefContext> fields = new TrackedMap<>();
-	public final Set<MethodHeader> methods = Collections.newSetFromMap(new ConcurrentHashMap<>());
+	public final Set<Type> types = new HashSet<>();
 
 	public CompilationDispatcher(final File input, final FileFilter filter, final File output) {
 		if(input == null)
@@ -78,6 +74,17 @@ public class CompilationDispatcher implements CommonText {
 			else
 				dispatcher.dispatch();
 		}
+	}
+
+	public Type getType(InternalName name) {
+		for(Type dc : types)
+			if(dc.toInternalName().equals(name))
+				return dc;
+			return null;
+	}
+
+	public boolean containsType(InternalName name) {
+		return getType(name) != null;
 	}
 
 	public CompilationDispatcher dispatch() {
@@ -157,7 +164,7 @@ public class CompilationDispatcher implements CommonText {
 	public void writeAndVerify(final BestList<CompilationUnit> units) throws IOException, ClassNotFoundException {
 		for(CompilationUnit unit : units) {
 			unit.write();
-			getClassLoader().loadClass(unit.getClazz().fullName());
+			getClassLoader().loadClass(unit.getType().qualifiedName().replace(Type.SOURCE_SEPARATOR, CompilationUnit.JAVA_SOURCE_SEPARATOR));
 		}
 	}
 

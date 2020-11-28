@@ -11,43 +11,24 @@ public class MethodCall extends BasePushable implements CommonText {
 
 	public final MethodInvocation invocation;
 
-	public MethodCall(kdl.MethodCallContext ctx, Actor actor) throws Exception {
-		// parse methodCall alone
-		final String methodName = ctx.VARNAME(ctx.VARNAME().size() - 1).getText();
+	public MethodCall(Pushable source, kdl.MethodCallContext ctx, Actor actor) throws Exception {
+		// get the method's id
+		final String methodName = ctx.IDENTIFIER().getText();
 
-		// determine which class owns the method being called
-		final Pushable source;
-		final InternalName owner;
-		boolean requireStatic;
-		if(ctx.CLASSNAME() != null) {
-			source = null;
-			owner = actor.unit.resolveAgainstImports(ctx.CLASSNAME().getText());
-			requireStatic = true;
-		} else if(ctx.VARNAME().size() > 1) {
-			source = actor.unit.getLocalVariable(ctx.VARNAME(0).getText());
-			owner = source.toInternalName();
-			requireStatic = false;
-		} else if(actor.unit.getCurrentScope().contains("this")) {
-			source = actor.unit.getLocalVariable("this");
-			owner = actor.unit.getClazz().toInternalName();
-			requireStatic = false;
-		} else {
-			source = null;
-			owner = actor.unit.getClazz().toInternalName();
-			requireStatic = true;
+		// determine which object is the source of the call
+		if(source == null) {
+			source = actor.unit.type;
 		}
 
-		final BestList<Pushable> args = parseArguments(ctx.parameterSet(), actor);
+		// parse the args
+		final BestList<Pushable> args = parseArguments(ctx.argumentSet(), actor);
 
-		MethodTarget known = new MethodTarget(owner, methodName, argTypes(args), requireStatic);
+		// build a method target and attempt to resolve it
+		MethodTarget known = new MethodTarget(source.toInternalName(), methodName, argTypes(args), false);
 		invocation = known.resolve(actor).withOwner(source).withArgs(args);
 	}
 
-	public MethodCall(kdl.MethodCallStatementContext ctx, Actor actor) throws Exception {
-		this(ctx.methodCall(), actor);
-	}
-
-	public static BestList<Pushable> parseArguments(kdl.ParameterSetContext ctx, Actor actor) throws Exception {
+	public static BestList<Pushable> parseArguments(kdl.ArgumentSetContext ctx, Actor actor) throws Exception {
 		final BestList<Pushable> arguments = new BestList<>();
 		if(ctx != null && ctx.expression().size() > 0) {
 			for(kdl.ExpressionContext xpr : ctx.expression()) {

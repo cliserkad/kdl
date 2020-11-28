@@ -1,6 +1,8 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
+import com.xarql.kdl.Member;
+import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
@@ -69,8 +71,8 @@ public class Literal<Type> extends BasePushable implements CommonText {
 				return new Literal<>((int) val);
 			else
 				return new Literal<>(val);
-		} else if(ctx.decimalNumber() != null) {
-			final double val = Double.parseDouble(removeSpacers(ctx.decimalNumber().getText()));
+		} else if(ctx.fraction() != null) {
+			final double val = Double.parseDouble(removeSpacers(ctx.fraction().getText()));
 			if(val < Float.MAX_VALUE && val > Float.MIN_VALUE)
 				return new Literal<>((float) val);
 			else
@@ -86,20 +88,13 @@ public class Literal<Type> extends BasePushable implements CommonText {
 							out.add(prev);
 						prev = "";
 						final String target = resolveMixin(found, i);
-						if(actor.unit.hasConstant(target))
-							out.add(actor.unit.getConstant(target));
-						else if(actor.unit.getCurrentScope().contains(target))
-							out.add(actor.unit.getLocalVariable(target));
-						else if(actor.unit.fields().contains(new ObjectField(target, null, false, actor.unit.getClazz())))
-							out.add(actor.unit.fields().equivalentKey(new ObjectField(target, null, false, actor.unit.getClazz())));
-						else
-							throw new IllegalArgumentException(
-									target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);
+						Member m = resolveVar(target, actor);
+						out.add(m);
 						i += target.length();
 					} else
 						prev += MIXIN;
 				} else if(found.charAt(i) == ESCAPE) {
-
+					// for escape sequences
 				} else
 					prev += found.charAt(i);
 			}
@@ -111,6 +106,15 @@ public class Literal<Type> extends BasePushable implements CommonText {
 				return out;
 		} else
 			throw new UnimplementedException(SWITCH_BASETYPE);
+	}
+
+	public static Member resolveVar(String target, Actor actor) {
+		actor.unit.getType().members().get(target);
+		for(Member m : actor.unit.getType().members()) {
+			if(m.details().name.equals(target) && !(m instanceof MethodHeader))
+				return m;
+		}
+		throw new IllegalArgumentException(target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);
 	}
 
 	public static String removeSpacers(final String s) {

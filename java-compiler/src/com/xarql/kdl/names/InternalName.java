@@ -1,7 +1,6 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.Actor;
-import com.xarql.kdl.CustomClass;
+import com.xarql.kdl.Type;
 import com.xarql.kdl.PlaceHolder;
 
 public class InternalName implements ToName, CommonText {
@@ -33,14 +32,14 @@ public class InternalName implements ToName, CommonText {
 
 	public final Class<?> clazz;
 	public final BaseType base;
-	public final CustomClass cc;
+	public final Type dc;
 
 	public final int arrayDimensions;
 
 	public InternalName() {
 		clazz = null;
 		base = null;
-		cc = null;
+		dc = null;
 		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
 	}
 
@@ -52,7 +51,7 @@ public class InternalName implements ToName, CommonText {
 			clazz = c;
 			base = null;
 		}
-		cc = null;
+		dc = null;
 		if(arrayDimensions < MIN_DIMENSIONS || arrayDimensions > MAX_DIMENSIONS)
 			throw new IllegalArgumentException("arrayDimensions must be within " + MIN_DIMENSIONS + " & " + MAX_DIMENSIONS);
 		this.arrayDimensions = arrayDimensions;
@@ -65,7 +64,7 @@ public class InternalName implements ToName, CommonText {
 	public InternalName(final BaseType base, final int arrayDimensions) {
 		this.base = base;
 		clazz = null;
-		cc = null;
+		dc = null;
 		this.arrayDimensions = arrayDimensions;
 	}
 
@@ -73,15 +72,22 @@ public class InternalName implements ToName, CommonText {
 		this(base, DEFAULT_ARRAY_DIMENSIONS);
 	}
 
-	public InternalName(final CustomClass cc) {
-		this.cc = cc;
+	public InternalName(final Type dc) {
+		this.dc = dc;
 		clazz = null;
 		base = null;
 		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
 	}
 
+	public Object defaultValue() {
+		if(isBaseType())
+			return toBaseType().defaultValue;
+		else
+			return null;
+	}
+
 	public boolean isCustom() {
-		return cc != null;
+		return dc != null;
 	}
 
 	public boolean isClassType() {
@@ -122,9 +128,16 @@ public class InternalName implements ToName, CommonText {
 		} else if(isClassType())
 			return clazz.getName().replace('.', '/');
 		else if(isCustom())
-			return cc.qualifiedName();
+			return dc.qualifiedName();
 		else
 			return "" + ReturnValue.VOID_REP;
+	}
+
+	public String name() {
+		if(nameString().contains("/"))
+			return nameString().substring(0, nameString().indexOf('/'));
+		else
+			return nameString();
 	}
 
 	@Override
@@ -170,7 +183,7 @@ public class InternalName implements ToName, CommonText {
 		else if(isBaseType())
 			return new InternalName(base, dimensions);
 		else if(isCustom())
-			return new InternalName(cc);
+			return new InternalName(dc);
 		else
 			throw new IllegalArgumentException("This InternalName represents void, which is not a valid array type.");
 	}
@@ -181,7 +194,7 @@ public class InternalName implements ToName, CommonText {
 		else if(isBaseType())
 			return new InternalName(base);
 		else if(isCustom())
-			return new InternalName(cc);
+			return new InternalName(dc);
 		else
 			return new InternalName();
 	}
