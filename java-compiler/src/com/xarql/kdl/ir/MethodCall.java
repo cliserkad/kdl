@@ -7,7 +7,7 @@ import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 
-public class MethodCall extends BasePushable implements CommonText {
+public class MethodCall implements Pushable, CommonText {
 
 	public final MethodInvocation invocation;
 
@@ -32,7 +32,7 @@ public class MethodCall extends BasePushable implements CommonText {
 		final BestList<Pushable> arguments = new BestList<>();
 		if(ctx != null && ctx.expression().size() > 0) {
 			for(kdl.ExpressionContext xpr : ctx.expression()) {
-				Expression xpr1 = new Expression(xpr, actor);
+				Expression xpr1 = new Expression(actor.unit.type, xpr, actor);
 				arguments.add(xpr1);
 			}
 		}

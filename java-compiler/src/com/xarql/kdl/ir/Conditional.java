@@ -44,10 +44,10 @@ public abstract class Conditional implements Opcodes {
 	}
 
 	private void check(final Actor actor) throws Exception {
-		final BaseType aType = condition.a.pushType(actor).toBaseType();
+		final BaseType aType = condition.a.push(actor).toBaseType();
 		// if the condition has two values
 		if(condition.b != null) { // if there are two values
-			final BaseType bType = condition.b.pushType(actor).toBaseType();
+			final BaseType bType = condition.b.push(actor).toBaseType();
 
 			// check type compatibility
 			if(!aType.compatibleNoDirection(bType))

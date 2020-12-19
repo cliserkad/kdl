@@ -1,7 +1,6 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.Member;
 import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
@@ -9,7 +8,7 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 
-public class Literal<Type> extends BasePushable implements CommonText {
+public class Literal<Type> implements Pushable, CommonText {
 
 	public static final char MIXIN = '$';
 	public static final char QUOTE = '\"';
@@ -88,7 +87,7 @@ public class Literal<Type> extends BasePushable implements CommonText {
 							out.add(prev);
 						prev = "";
 						final String target = resolveMixin(found, i);
-						Member m = resolveVar(target, actor);
+						Member m = resolveVar(new Identifier(target), actor);
 						out.add(m);
 						i += target.length();
 					} else
@@ -108,7 +107,7 @@ public class Literal<Type> extends BasePushable implements CommonText {
 			throw new UnimplementedException(SWITCH_BASETYPE);
 	}
 
-	public static Member resolveVar(String target, Actor actor) {
+	public static Member resolveVar(Identifier target, Actor actor) {
 		actor.unit.getType().members().get(target);
 		for(Member m : actor.unit.getType().members()) {
 			if(m.details().name.equals(target) && !(m instanceof MethodHeader))

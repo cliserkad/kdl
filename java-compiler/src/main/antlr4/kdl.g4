@@ -29,7 +29,7 @@ r_else: R_ELSE block;
 assertion: ASSERT condition;
 r_while: WHILE condition block;
 
-value: literal | IDENTIFIER | methodCall | indexAccess;
+value: literal | IDENTIFIER | methodCall | indexAccess | subSequence;
 operator: PLUS | MINUS | SLASH | MULTIPLY | MODULUS | DOT;
 expression: value (operator? expression)?;
 
@@ -41,6 +41,7 @@ variableDeclaration: details (SEPARATOR IDENTIFIER)* (ASSIGN expression)?;
 assignment: expression operator? ASSIGN expression;
 details: type MUTABLE? IDENTIFIER;
 
+subSequence: BRACE_OPEN range BRACE_CLOSE;
 indexAccess: BRACE_OPEN expression BRACE_CLOSE;
 
 methodCall: IDENTIFIER argumentSet;

@@ -5,7 +5,7 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
 
-public class Null extends BasePushable implements CommonText {
+public class Null implements Pushable, CommonText {
 
 	@Override
 	public Pushable push(final Actor visitor) throws Exception {

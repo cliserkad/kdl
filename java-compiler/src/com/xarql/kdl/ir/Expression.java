@@ -9,7 +9,7 @@ import com.xarql.kdl.names.ReturnValue;
 
 import static com.xarql.kdl.names.BaseType.STRING;
 
-public class Expression extends BasePushable implements CommonText {
+public class Expression implements Pushable, CommonText {
 	public static final MethodHeader INIT_STRING_BUILDER = new MethodHeader(new InternalName(StringBuilder.class), MethodHeader.S_INIT, null, null, ACC_PUBLIC);
 	public static final MethodHeader SB_APPEND = new MethodHeader(new InternalName(StringBuilder.class), "append", MethodHeader.toParamList(new InternalName(String.class)), new ReturnValue(new InternalName(StringBuilder.class)), ACC_PUBLIC);
 	public static final MethodHeader SB_TO_STRING = new MethodHeader(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
@@ -26,10 +26,10 @@ public class Expression extends BasePushable implements CommonText {
 		this.operator = operator;
 	}
 
-	public Expression(kdl.ExpressionContext ctx, Actor actor) throws Exception {
-		this.a = Pushable.parse(actor, ctx.member());
+	public Expression(Type parent, kdl.ExpressionContext ctx, Actor actor) throws Exception {
+		this.a = Pushable.parse(actor, parent, ctx.value());
 		if(ctx.expression() != null)
-			this.b = new Expression(ctx.expression(), actor);
+			this.b = new Expression(actor.unit.type.resolveImportOrFail(a.toInternalName().name()), ctx.expression(), actor);
 		else
 			this.b = null;
 		if(ctx.operator() != null)
@@ -43,6 +43,10 @@ public class Expression extends BasePushable implements CommonText {
 
 	public boolean isSingleValue() {
 		return a != null && b == null && operator == null;
+	}
+
+	public Assignable declaringMember() throws Exception {
+		return null;
 	}
 
 	@Override

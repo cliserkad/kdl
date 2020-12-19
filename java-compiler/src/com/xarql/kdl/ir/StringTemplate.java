@@ -8,7 +8,7 @@ import com.xarql.kdl.names.InternalName;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StringTemplate extends BasePushable {
+public class StringTemplate implements Pushable {
 
 	private final List<Pushable> elements;
 
@@ -51,8 +51,8 @@ public class StringTemplate extends BasePushable {
 		Expression.createStringBuilder(actor);
 		for(Pushable p : elements) {
 			if(p instanceof Constant)
-				p = actor.unit.getConstant(((Constant) p).name);
-			InternalName type = p.pushType(actor);
+				p = actor.unit.getConstant(((Constant) p).name.text);
+			InternalName type = p.push(actor).toInternalName();
 			if(!type.equals(InternalName.STRING))
 				CompilationUnit.convertToString(type, actor);
 			Expression.SB_APPEND.push(actor);

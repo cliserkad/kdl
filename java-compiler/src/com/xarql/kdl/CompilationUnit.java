@@ -17,8 +17,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Stack;
 
-import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.Type.SOURCE_SEPARATOR;
 import static com.xarql.kdl.names.BaseType.*;
 
@@ -34,6 +34,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public final int id;
 	public final CompilationDispatcher owner;
 	public Type type;
+	public Stack<Pushable> operandStack;
 
 	// input and output
 	private final ClassWriter cw;
@@ -57,6 +58,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		type = new Type();
 		addImport(String.class);
 		tree = null;
+		operandStack = new Stack<>();
 	}
 
 	public CompilationUnit(CompilationDispatcher owner, File sourceFile, File outputDir) {
@@ -219,12 +221,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					if(c.owner.equals(getType().toInternalName())) {
 						try {
 							final kdl.ConstantDefContext cDef = type.constants.get(c);
-							final Expression expression = new Expression(cDef.expression(), actor);
-							final Constant unsetConst = new Constant(c.name, expression.toInternalName(), type.toInternalName());
+							final Expression expression = new Expression(type, cDef.expression(), actor);
+							final Constant unsetConst = new Constant(c.name.text, expression.toInternalName(), type.toInternalName());
 							addConstant(unsetConst);
 							type.constants.put(unsetConst, cDef);
 							expression.push(actor);
-							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, expression.toInternalName().objectString());
+							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name.text, expression.toInternalName().objectString());
 						} catch (Exception e) {
 							printException(e);
 						}
@@ -239,7 +241,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					int modifier = 0;
 					if(f.mutable)
 						modifier = ACC_FINAL;
-					fv = cw.visitField(ACC_PUBLIC + modifier, f.name, f.type.objectString(), null, f.type.defaultValue());
+					fv = cw.visitField(ACC_PUBLIC + modifier, f.name.text, f.type.objectString(), null, f.type.defaultValue());
 					fv.visitEnd();
 				}
 			}
@@ -283,24 +285,20 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, Actor actor) throws Exception {
-		new MethodCall(Member.parseMember(ctx.member(), actor), ctx.methodCall(), actor).push(actor);
-	}
-
 	private void consumeAssignment(kdl.AssignmentContext ctx, Actor actor) throws Exception {
 		final Assignable target = Assignable.parse(ctx, actor);
 		final InternalName resultType;
 		if(ctx.operator() != null)
-			resultType = new Expression(target, new Expression(ctx.expression(), actor), Operator.match(ctx.operator().getText())).pushType(actor);
+			resultType = new Expression(target, new Expression(type, ctx.expression().get(1), actor), Operator.match(ctx.operator().getText())).push(actor).toInternalName();
 		else
-			resultType = new Expression(ctx.expression(), actor).pushType(actor);
+			resultType = new Expression(type, ctx.expression().get(1), actor).push(actor).toInternalName();
 		target.assign(resultType, actor);
 	}
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, Actor actor) throws Exception {
 		final Variable target = getCurrentScope().newVariable(new Details(ctx.details(), this));
 		if(ctx.ASSIGN() != null) {
-			target.assign(new Expression(ctx.expression(), actor).pushType(actor), actor);
+			target.assign(new Expression(type, ctx.expression(), actor).push(actor).toInternalName(), actor);
 		} else
 			target.assignDefault(actor);
 	}
@@ -310,8 +308,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			consumeVariableDeclaration(ctx.variableDeclaration(), actor);
 		} else if(ctx.assignment() != null) {
 			consumeAssignment(ctx.assignment(), actor);
-		} else if(ctx.methodCallStatement() != null) {
-			consumeMethodCallStatement(ctx.methodCallStatement(), actor);
+		} else if(ctx.expression() != null) {
+			new Expression(type, ctx.expression(), actor).push(actor);
 		} else if(ctx.conditional() != null) {
 			// forward to the handler to partition code
 			ConditionalHandler.handle(ctx.conditional(), actor);
@@ -320,7 +318,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(ctx.returnStatement().expression() == null)
 				rv = null;
 			else
-				rv = new ReturnValue(new Expression(ctx.returnStatement().expression(), actor).push(actor));
+				rv = new ReturnValue(new Expression(type, ctx.returnStatement().expression(), actor).push(actor));
 			actor.writeReturn(rv);
 		} else
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
@@ -375,7 +373,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			// parse parameters
 			final BestList<Param> params = new BestList<>();
 			for(kdl.ParamContext param : ctx.parameterSet().param())
-				params.add(new Param(new Details(param.details(), this), param.member()));
+				params.add(new Param(new Details(param.details(), this), param.expression()));
 
 			// check if the method accesses any fields
 			final boolean initializer;
@@ -393,7 +391,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			}
 
 
-			MethodHeader def = new MethodHeader(type.toInternalName(), details.name, params, rv, ACC_PUBLIC + staticModifier);
+			MethodHeader def = new MethodHeader(type.toInternalName(), details.name.text, params, rv, ACC_PUBLIC + staticModifier);
 
 			if(getPass() == 2) {
 				addMethodDef(def);
@@ -405,7 +403,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					getCurrentScope().newVariable("this", getType().toInternalName());
 				// parameters will always occupy the first few slots
 				for(Param param : params)
-					getCurrentScope().newVariable(param.name, param.type);
+					getCurrentScope().newVariable(param.name.text, param.type);
 
 				if(initializer) {
 					// call Object.super(this);
@@ -424,7 +422,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 						final MethodHeader defaultProvider = new MethodHeader(type.toInternalName(), details.name + "_" + param.name, null, returnValue, def.access + Opcodes.ACC_SYNTHETIC);
 						addMethodDef(defaultProvider);
 						final Actor defaultWriter = new Actor(defineMethod(defaultProvider), this);
-						Pushable.parse(actor, param.defaultValue).push(defaultWriter);
+						new Expression(type, param.defaultValue, actor).push(defaultWriter);
 						defaultWriter.writeReturn(returnValue);
 						getCurrentScope().end(ctx.start.getLine(), defaultWriter, returnValue);
 					}
@@ -526,7 +524,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			defaultValue = c.toBaseType().defaultValue.value;
 		else
 			defaultValue = null;
-		fv = cw.visitField(CONST_ACCESS, c.name, c.type.objectString(), null, defaultValue);
+		fv = cw.visitField(CONST_ACCESS, c.name.text, c.type.objectString(), null, defaultValue);
 		fv.visitEnd();
 		return fv;
 	}
@@ -548,7 +546,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				// push "this"
 				actor.visitVarInsn(ALOAD, 0);
 				if(type.fields.get(f).variableDeclaration().ASSIGN() != null) {
-					final Expression xpr = new Expression(type.fields.get(f).variableDeclaration().expression(), actor);
+					final Expression xpr = new Expression(type, type.fields.get(f).variableDeclaration().expression(), actor);
 					xpr.push(actor);
 				} else {
 					if(f.type.isBaseType())
@@ -556,7 +554,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					else
 						actor.visitInsn(ACONST_NULL);
 				}
-				actor.visitFieldInsn(PUTFIELD, getType().toInternalName().nameString(), f.name, f.type.objectString());
+				actor.visitFieldInsn(PUTFIELD, getType().toInternalName().nameString(), f.name.text, f.type.objectString());
 			}
 		}
 		final Label finish = new Label();

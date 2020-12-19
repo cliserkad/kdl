@@ -2,7 +2,6 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ToName;
 
 /**
@@ -24,31 +23,28 @@ public interface Pushable extends ToName {
 	public Pushable push(final Actor actor) throws Exception;
 
 	/**
-	 * Pushes this value on to the stack. Returns the type of the value. Should call
-	 * push().
-	 *
-	 * @param actor any Actor
-	 * @return pushed value type
-	 * @throws Exception if pushing is impossible
-	 * @see Pushable#push(Actor)
-	 */
-	public InternalName pushType(final Actor actor) throws Exception;
-
-	/**
 	 * Attempts to parse a Resolvable symbol
 	 *
 	 * @param actor any Actor
-	 * @param member member context
+	 * @param value value context
 	 * @return A Resolvable whose actual type corresponds to the symbol
 	 * @throws UnimplementedException thrown if missing a symbol from the grammar
 	 */
-	public static Pushable parse(final Actor actor, final kdl.MemberContext member) throws Exception {
-		if(member.literal() != null)
-			return Literal.parseLiteral(member.literal(), actor);
-		else if(member.member() != null)
-			return Member.parseMember(member.member(), actor);
+	public static Pushable parse(final Actor actor, final kdl.ValueContext value) throws Exception {
+		if(value.literal() != null)
+			return Literal.parseLiteral(value.literal(), actor);
 		else
-			throw new UnimplementedException("a type of Pushable wasn't parsed correctly\n The input text was \"" + member.getText() + "\"");
+			return parse(actor, actor.unit.type, value);
+	}
+
+	public static Pushable parse(final Actor actor, final Type parentType, final kdl.ValueContext value) throws Exception {
+		if(value.IDENTIFIER() != null) {
+			return parseID(actor.unit.type, value.IDENTIFIER().getText(), false);
+		} else if(value.methodCall() != null) {
+			return parseID(actor.unit.type, value.methodCall().IDENTIFIER().getText(), true);
+		}
+		else
+			throw new UnimplementedException("a type of Pushable wasn't parsed correctly\n The input text was \"" + value.getText() + "\"");
 	}
 
 	public static Pushable parseID(Type sourceType, String id, boolean isMethod) throws SymbolResolutionException {

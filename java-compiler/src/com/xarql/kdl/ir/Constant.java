@@ -1,30 +1,23 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.BestList;
-import com.xarql.kdl.Member;
-import com.xarql.kdl.TrackedMap;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.Opcodes;
 
-import java.util.List;
 import java.util.Objects;
 
-public class Constant extends BasePushable implements Member {
+public class Constant extends Details implements Member {
 
-	public final String name;
-	public final InternalName type;
 	public final InternalName owner;
 
 	public Constant(final String name, final InternalName type, final InternalName owner) {
+		super(name, type, false);
 		if(name == null || name.isEmpty())
 			throw new IllegalArgumentException("Constant name may not be empty");
-		this.name = name;
 		if(type == null)
 			throw new NullPointerException();
-		this.type = type;
 		if(owner == null)
 			throw new NullPointerException();
 		this.owner = owner;
@@ -66,13 +59,13 @@ public class Constant extends BasePushable implements Member {
 
 	@Override
 	public Pushable push(final Actor actor) {
-		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.nameString(), name, type.objectString());
+		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.nameString(), name.text, type.objectString());
 		return this;
 	}
 
 	@Override
 	public Details details() {
-		return new Details(name, type, false);
+		return this;
 	}
 
 }

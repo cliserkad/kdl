@@ -11,30 +11,29 @@ import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.BestList.list;
 
-public class SubSequence extends BasePushable {
-
+public class SubSequence implements Pushable {
 	public static final MethodHeader SUB_STRING = new MethodHeader(InternalName.STRING, "substring", MethodHeader.toParamList(InternalName.INT, InternalName.INT), ReturnValue.STRING,
 			Opcodes.ACC_PUBLIC);
 
-	public final Variable variable;
+	public final Pushable operand;
 	public final Range range;
 
 	public SubSequence(final kdl.SubSequenceContext ctx, final Actor actor) throws Exception {
-		this(actor.unit.getLocalVariable(ctx.IDENTIFIER().getText()), new Range(ctx.range(), actor));
+		this(new Range(ctx.range(), actor), actor);
 	}
 
-	public SubSequence(final Variable variable, final Range range) {
-		this.variable = variable;
+	public SubSequence(final Range range, final Actor actor) {
+		operand = actor.unit.operandStack.pop();
 		this.range = range;
 	}
 
 	@Override
-	public SubSequence push(Actor visitor) throws Exception {
-		if(!variable.isArray() && variable.toBaseType() == BaseType.STRING) {
-			variable.push(visitor);
-			range.min.push(visitor);
-			range.max.push(visitor);
-			SUB_STRING.push(visitor);
+	public SubSequence push(Actor actor) throws Exception {
+		if(!operand.toInternalName().isArray() && operand.toBaseType() == BaseType.STRING) {
+			operand.push(actor);
+			range.min.push(actor);
+			range.max.push(actor);
+			SUB_STRING.push(actor);
 		} else {
 			throw new UnimplementedException("Subsequence only implemented for strings");
 		}
@@ -43,17 +42,17 @@ public class SubSequence extends BasePushable {
 
 	@Override
 	public InternalName toInternalName() {
-		return variable.toInternalName();
+		return operand.toInternalName();
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return variable.isBaseType();
+		return operand.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return variable.toBaseType();
+		return operand.toBaseType();
 	}
 
 }

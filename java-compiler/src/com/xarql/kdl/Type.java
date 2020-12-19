@@ -53,16 +53,16 @@ public class Type implements ToName, Member {
         }
     }
 
-    public TrackedMap<String, Member> members() {
-        TrackedMap<String, Member> out = new TrackedMap<>();
+    public TrackedMap<Identifier, Member> members() {
+        TrackedMap<Identifier, Member> out = new TrackedMap<>();
         for(Constant c : constants.keys())
             out.add(c.name, c);
         for(StaticField f : fields.keys())
             out.add(f.name, f);
         for(MethodHeader m : methods)
-            out.add(m.name, m);
+            out.add(m.details().name, m);
         for(Type t : imports)
-            out.add(t.name, t);
+            out.add(t.details().name, t);
         return out;
     }
 
@@ -182,13 +182,9 @@ public class Type implements ToName, Member {
     }
 
     @Override
-    public InternalName pushType(Actor actor) throws Exception {
-        return push(actor).toInternalName();
-    }
-
-    @Override
     public Details details() {
         // mutable is false as the class file is not allowed to change during runtime
         return new Details(qualifiedName(), toInternalName(), false);
     }
+
 }

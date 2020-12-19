@@ -1,7 +1,6 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.Member;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.Opcodes;
@@ -27,19 +26,14 @@ public class StaticField extends Details implements Assignable, Member {
 			StaticField proper = actor.unit.type.fields.equivalentKey(this);
 			return proper.push(actor);
 		} else {
-			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.nameString(), name, type.objectString());
+			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.nameString(), name.text, type.objectString());
 			return this;
 		}
 	}
 
 	@Override
-	public InternalName pushType(Actor actor) throws Exception {
-		return push(actor).toInternalName();
-	}
-
-	@Override
 	public StaticField assign(InternalName incomingType, Actor actor) throws Exception {
-		actor.visitFieldInsn(Opcodes.PUTSTATIC, ownerType.nameString(), name, type.objectString());
+		actor.visitFieldInsn(Opcodes.PUTSTATIC, ownerType.nameString(), name.text, type.objectString());
 		return this;
 	}
 

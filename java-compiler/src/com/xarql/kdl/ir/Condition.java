@@ -59,9 +59,9 @@ public class Condition {
 
 	public static Condition parseCondition(kdl.ConditionContext ctx, Actor actor) throws Exception {
 		if(ctx.expression().size() > 1)
-			return new Condition(new Expression(ctx.expression(0), actor), new Expression(ctx.expression(1), actor), Comparator.match(ctx.comparator().getText()));
+			return new Condition(new Expression(actor.unit.type, ctx.expression(0), actor), new Expression(actor.unit.type, ctx.expression(1), actor), Comparator.match(ctx.comparator().getText()));
 		else
-			return new Condition(new Expression(ctx.expression(0), actor));
+			return new Condition(new Expression(actor.unit.type, ctx.expression(0), actor));
 	}
 
 }

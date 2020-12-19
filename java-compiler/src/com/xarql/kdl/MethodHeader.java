@@ -1,5 +1,7 @@
 package com.xarql.kdl;
 
+import com.xarql.kdl.ir.Identifier;
+import com.xarql.kdl.ir.Member;
 import com.xarql.kdl.ir.Param;
 import com.xarql.kdl.ir.Pushable;
 import com.xarql.kdl.names.*;
@@ -199,8 +201,4 @@ public class MethodHeader implements CommonText, ToName, Member {
 			return invoke(INVOKEVIRTUAL, actor);
 	}
 
-	@Override
-	public InternalName pushType(Actor actor) throws Exception {
-		return push(actor).toInternalName();
-	}
 }

@@ -47,7 +47,7 @@ public class Scope implements Opcodes {
 	}
 
 	public Variable newVariable(final Details details) {
-		return newVariable(details.name, details.type, details.mutable);
+		return newVariable(details.name.text, details.type, details.mutable);
 	}
 
 	public Variable addLocalVariable(Variable lv) {
@@ -69,7 +69,7 @@ public class Scope implements Opcodes {
 
 		visitor.visitLabel(end);
 		for(Variable lv : getVariables())
-			visitor.visitLocalVariable(lv.name, lv.type.toString(), null, start, end, lv.localIndex);
+			visitor.visitLocalVariable(lv.name.text, lv.type.toString(), null, start, end, lv.localIndex);
 		visitor.visitMaxs(0, 0);
 		visitor.visitEnd();
 

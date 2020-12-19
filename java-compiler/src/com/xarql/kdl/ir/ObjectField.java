@@ -33,15 +33,15 @@ public class ObjectField extends StaticField implements Assignable {
 	public ObjectField assign(InternalName incomingType, Actor actor) throws Exception {
 		if(owner == null)
 			throw new NullPointerException(NO_OWNER);
-		final InternalName ownerType = owner.pushType(actor);
+		final InternalName ownerType = owner.push(actor).toInternalName();
 		actor.visitInsn(Opcodes.SWAP);
-		actor.visitFieldInsn(Opcodes.PUTFIELD, ownerType.nameString(), name, type.objectString());
+		actor.visitFieldInsn(Opcodes.PUTFIELD, ownerType.nameString(), name.text, type.objectString());
 		return this;
 	}
 
 	@Override
 	public ObjectField assignDefault(Actor actor) throws Exception {
-		final InternalName incomingType = type.toBaseType().defaultValue.pushType(actor);
+		final InternalName incomingType = type.toBaseType().defaultValue.push(actor).toInternalName();
 		assign(incomingType, actor);
 		return this;
 	}
@@ -50,14 +50,9 @@ public class ObjectField extends StaticField implements Assignable {
 	public Pushable push(Actor actor) throws Exception {
 		if(owner == null)
 			throw new NullPointerException(NO_OWNER);
-		final InternalName ownerType = owner.pushType(actor);
-		actor.visitFieldInsn(Opcodes.GETFIELD, ownerType.nameString(), name, type.objectString());
+		final InternalName ownerType = owner.push(actor).toInternalName();
+		actor.visitFieldInsn(Opcodes.GETFIELD, ownerType.nameString(), name.text, type.objectString());
 		return this;
-	}
-
-	@Override
-	public InternalName pushType(Actor actor) throws Exception {
-		return push(actor).toInternalName();
 	}
 
 }

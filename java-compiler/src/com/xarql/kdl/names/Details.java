@@ -4,6 +4,7 @@ import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
+import com.xarql.kdl.ir.Identifier;
 
 public class Details implements ToName {
 
@@ -14,7 +15,7 @@ public class Details implements ToName {
 
 	public static final String CHEVRON_REGEX = "[<>]";
 
-	public final String name;
+	public final Identifier name;
 	public final InternalName type;
 	public final boolean mutable;
 
@@ -25,7 +26,7 @@ public class Details implements ToName {
 	}
 
 	public Details(final String name, final InternalName type, final boolean mutable) {
-		this.name = name;
+		this.name = new Identifier(name);
 		this.type = type;
 		this.mutable = mutable;
 	}
@@ -80,7 +81,7 @@ public class Details implements ToName {
 			type = type.toArray(dimensions);
 		}
 
-		this.name = name;
+		this.name = new Identifier(name);
 		this.type = type;
 		this.mutable = ctx.MUTABLE() != null;
 	}
@@ -142,7 +143,7 @@ public class Details implements ToName {
 	public String toString() {
 		final String name;
 		if(this.name != null)
-			name = this.name;
+			name = this.name.text;
 		else
 			name = "???";
 

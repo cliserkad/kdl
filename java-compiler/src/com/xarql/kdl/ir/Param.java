@@ -5,9 +5,9 @@ import com.xarql.kdl.names.Details;
 
 public class Param extends Details {
 
-	public final kdl.MemberContext defaultValue;
+	public final kdl.ExpressionContext defaultValue;
 
-	public Param(Details details, kdl.MemberContext defaultValue) {
+	public Param(Details details, kdl.ExpressionContext defaultValue) {
 		super(details);
 		this.defaultValue = defaultValue;
 	}

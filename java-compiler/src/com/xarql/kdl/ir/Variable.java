@@ -7,7 +7,6 @@ import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.Member;
 
 public class Variable extends Details implements Assignable, Member, CommonText {
 
@@ -57,8 +56,8 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 
 	@Override
 	public Variable push(final Actor visitor) throws UnimplementedException {
-		if(type.isBaseType() && !type.isArray()) {
-			switch(type.toBaseType()) {
+		if (type.isBaseType() && !type.isArray()) {
+			switch (type.toBaseType()) {
 				case BOOLEAN:
 				case BYTE:
 				case SHORT:
@@ -84,11 +83,6 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 		} else
 			visitor.visitVarInsn(ALOAD, localIndex);
 		return this;
-	}
-
-	@Override
-	public InternalName pushType(final Actor visitor) throws Exception {
-		return push(visitor).toInternalName();
 	}
 
 	@Override
@@ -142,7 +136,7 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 	@Override
 	public Assignable assignDefault(Actor actor) throws Exception {
 		if(isBaseType())
-			assign(toBaseType().defaultValue.pushType(actor), actor);
+			assign(toBaseType().defaultValue.push(actor).toInternalName(), actor);
 		else {
 			actor.visitInsn(ACONST_NULL);
 			actor.visitVarInsn(ASTORE, localIndex);

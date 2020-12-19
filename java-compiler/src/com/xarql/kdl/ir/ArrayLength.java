@@ -8,22 +8,22 @@ import com.xarql.kdl.names.InternalName;
 /**
  * Represents the access of an array's length.
  */
-public class ArrayLength extends BasePushable implements CommonText {
+public class ArrayLength implements Pushable, CommonText {
 
-	public final Variable array;
+	public final Pushable array;
 
-	public ArrayLength(final Variable array) {
+	public ArrayLength(final Pushable array) {
 		this.array = array;
 	}
 
 	/**
 	 * Pushes an int to the stack that is equal to the array's length
 	 *
-	 * @param visitor any MethodVisitor
+	 * @param actor any Actor
 	 * @throws Exception unused
 	 */
 	@Override
-	public Pushable push(Actor actor) throws Exception {
+	public ArrayLength push(Actor actor) throws Exception {
 		array.push(actor);
 		actor.visitInsn(ARRAYLENGTH);
 		return this;
@@ -38,8 +38,6 @@ public class ArrayLength extends BasePushable implements CommonText {
 	}
 
 	/**
-	 * Determines if this will provide a base type
-	 *
 	 * @return true
 	 */
 	@Override
@@ -48,8 +46,6 @@ public class ArrayLength extends BasePushable implements CommonText {
 	}
 
 	/**
-	 * An array's length is always an INT
-	 *
 	 * @return BaseType.INT
 	 */
 	@Override

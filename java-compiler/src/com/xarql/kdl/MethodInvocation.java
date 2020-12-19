@@ -63,11 +63,6 @@ public class MethodInvocation implements Pushable {
 	}
 
 	@Override
-	public InternalName pushType(Actor actor) throws Exception {
-		return push(actor).toInternalName();
-	}
-
-	@Override
 	public InternalName toInternalName() {
 		return header.returns.toInternalName();
 	}
