@@ -14,7 +14,7 @@ fraction: DIGIT? (DIGIT | SEPARATOR | UNDERSCORE)* DOT DIGIT (DIGIT | SEPARATOR 
 integer: DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
 literal: bool | CHAR_LIT | STRING_LIT | integer | fraction | R_NULL;
 
-statement: methodCallStatement | variableDeclaration | assignment | returnStatement | conditional;
+statement: expression | variableDeclaration | assignment | returnStatement | conditional;
 block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
@@ -29,31 +29,29 @@ r_else: R_ELSE block;
 assertion: ASSERT condition;
 r_while: WHILE condition block;
 
-member: literal | IDENTIFIER | indexAccess | subSequence | methodCall;
+value: literal | IDENTIFIER | methodCall | indexAccess;
 operator: PLUS | MINUS | SLASH | MULTIPLY | MODULUS | DOT;
-expression: member (operator expression)?;
+expression: value (operator? expression)?;
 
 condition: expression (comparator expression)?;
 comparator: EQUAL | NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
 appender: AND | OR;
 
 variableDeclaration: details (SEPARATOR IDENTIFIER)* (ASSIGN expression)?;
-assignment: member operator? ASSIGN expression;
+assignment: expression operator? ASSIGN expression;
 details: type MUTABLE? IDENTIFIER;
-indexAccess: IDENTIFIER BRACE_OPEN expression BRACE_CLOSE;
-subSequence: IDENTIFIER BRACE_OPEN range BRACE_CLOSE;
 
-// method calls
-methodCallStatement: member? methodCall;
+indexAccess: BRACE_OPEN expression BRACE_CLOSE;
+
 methodCall: IDENTIFIER argumentSet;
 argumentSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
 methodDefinition: (details | IDENTIFIER MUTABLE?) parameterSet block;
 parameterSet: PARAM_OPEN ((THIS | param) (SEPARATOR param)*)? PARAM_CLOSE;
-param: details (ASSIGN member)?;
+param: details (ASSIGN expression)?;
 
-returnStatement: RETURN expression;
+returnStatement: RETURN expression?;
 
 type: (basetype | IDENTIFIER) (BRACE_OPEN BRACE_CLOSE)*;
 basetype: BOOLEAN | BYTE | SHORT | CHAR | INT | FLOAT | LONG | DOUBLE | STRING;
