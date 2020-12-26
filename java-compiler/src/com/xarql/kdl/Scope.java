@@ -87,7 +87,7 @@ public class Scope implements Opcodes {
 		for(Variable lv : variables)
 			if(lv.name.equals(name))
 				return lv;
-		throw new SymbolResolutionException("The variable with name " + name + " does not exist in " + this);
+		throw new SymbolResolutionException("The variable \"" + name + "\" does not exist in " + this);
 	}
 
 	public int nextIndex() {

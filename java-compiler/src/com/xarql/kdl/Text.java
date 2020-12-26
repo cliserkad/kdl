@@ -5,38 +5,89 @@ public class Text {
 	public static final char[] PUNCTUATION_MARKS = { ':', '.', ',', ';', '?', '!', '"', '\'' };
 	public static final char[] ESCAPE_CHARS = { '\n', '\t', '\r', '\f' }; // newline, tab, return, feed
 
+	/**
+	 * Determines if a character is in the range a-z
+	 */
 	public static boolean a_z(char c) {
-		int val = c;
-		return val > 96 && val < 123;
-	}
-
-	public static boolean A_Z(char c) {
-		int val = c;
-		return val > 64 && val < 91;
+		return c > 96 && c < 123;
 	}
 
 	/**
-	 * Tests to see if a character is part of ASCII or not
-	 *
-	 * @param c any char
-	 * @return whether ASCII contains c
+	 * @see Text#a_z(char)
 	 */
-	public static boolean isAscii(char c) {
-		int val = c;
-		if(val > 31 && val < 127) // standard ascii characters
-			return true;
-
-		// if c is an escape character such as newline or tab
-		for(int i = 0; i < ESCAPE_CHARS.length; i++)
-			if(c == ESCAPE_CHARS[i])
-				return true;
-
-		return false; // default
+	public static boolean a_z(String text) {
+		for(int i = 0; i < text.length(); i++)
+			if(!a_z(text.charAt(i)))
+				return false;
+		return true;
 	}
 
+	/**
+	 * Determines if a character is in the range A-Z
+	 */
+	public static boolean A_Z(char c) {
+		return c > 64 && c < 91;
+	}
+
+	/**
+	 * @see Text#A_Z(char)
+	 */
+	public static boolean A_Z(String text) {
+		for(int i = 0; i < text.length(); i++)
+			if(!A_Z(text.charAt(i)))
+				return false;
+		return true;
+	}
+
+	/**
+	 * Determines if a character is a standard typable character
+	 */
+	public static boolean isTypable(char c) {
+		return c > 31 && c < 127;
+	}
+
+	/**
+	 * @see Text#isTypable(char)
+	 */
+	public static boolean isTypable(String text) {
+		for(int i = 0; i < text.length(); i++)
+			if(!isTypable(text.charAt(i)))
+				return false;
+		return true;
+	}
+
+	/**
+	 * Determines if a character has 7 or less significant bits.
+	 * Therefore, if a character is part of ASCII.
+	 */
+	public static boolean isAscii(char c) {
+		return c < 128;
+	}
+
+	/**
+	 * @see Text#isAscii(char)
+	 */
 	public static boolean isAscii(String text) {
 		for(int i = 0; i < text.length(); i++)
 			if(!isAscii(text.charAt(i)))
+				return false;
+		return true;
+	}
+
+	/**
+	 * Determines if a character has 8 or less significant bits.
+	 * Therefore, if a character is part of extended ASCII.
+	 */
+	public static boolean isAsciiExtended(char c) {
+		return c < 256;
+	}
+
+	/**
+	 * @see Text#isAsciiExtended(char)
+	 */
+	public static boolean isAsciiExtended(String text) {
+		for(int i = 0; i < text.length(); i++)
+			if(!isAsciiExtended(text.charAt(i)))
 				return false;
 		return true;
 	}

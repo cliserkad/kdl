@@ -507,7 +507,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		for(MethodHeader def : type.methods) {
 			if(def.equals(md)) {
 				final MethodVisitor mv = cw.visitMethod(md.access, md.name, md.descriptor(), null, null);
-				currentScope = new Scope("Method " + md.name + " of class " + type, mv);
+				currentScope = new Scope("Method " + md.name + " of class " + type.name, mv);
 				mv.visitCode();
 				return mv;
 			}
