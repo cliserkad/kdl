@@ -21,8 +21,8 @@ public interface Member extends Pushable {
             actor.unit.warn("type names shouldn't start with a digit, but " + id + " was found");
 
         if(sourceType == null) {
-            if(actor.unit.getCurrentScope().contains(id))
-                return actor.unit.getCurrentScope().getVariable(id);
+            if(actor.scope.contains(id))
+                return actor.scope.get(id);
             else
                 sourceType = actor.unit.type;
         }

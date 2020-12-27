@@ -8,10 +8,17 @@ import org.objectweb.asm.Opcodes;
 public class Actor extends MethodVisitor implements Opcodes, CommonText {
 
 	public final CompilationUnit unit;
+	public final Scope scope;
 
-	public Actor(final MethodVisitor methodVisitor, final CompilationUnit unit) {
+	private Actor(final MethodVisitor methodVisitor, final CompilationUnit unit, final String name) {
 		super(Opcodes.ASM8, methodVisitor);
 		this.unit = unit;
+		this.scope = new Scope("Method " + name + " of unit " + unit, methodVisitor);
+	}
+
+	public static Actor build(final MethodHeader methodHeader, final CompilationUnit unit) {
+		final MethodVisitor methodVisitor = unit.cw.visitMethod(methodHeader.access, methodHeader.name, methodHeader.descriptor(), null, null);
+		return new Actor(methodVisitor, unit, methodHeader.name);
 	}
 
 	public void writeReturn(ReturnValue rv) {

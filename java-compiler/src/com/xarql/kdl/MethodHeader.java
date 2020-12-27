@@ -12,7 +12,7 @@ import java.util.List;
 
 public class MethodHeader implements CommonText, ToName, Member {
 
-	public static final MethodHeader MAIN = new MethodHeader(new InternalName(Object.class), "main", toParamList(new InternalName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
+	public static final MethodHeader MAIN = new MethodHeader(new InternalName(Object.class), "main", toParamList(new InternalName(String.class, 1)), ReturnValue.VOID, ACC_PUBLIC + ACC_STATIC);
 	public static final MethodHeader TO_STRING = new MethodHeader(new InternalName(Object.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 	public static final MethodHeader INIT = new MethodHeader(new InternalName(Object.class), "<init>", null, ReturnValue.VOID, ACC_PUBLIC);
 	public static final MethodHeader STATIC_INIT = new MethodHeader(new InternalName(Object.class), "<clinit>", null, ReturnValue.VOID, ACC_PUBLIC + ACC_STATIC + ACC_FINAL);

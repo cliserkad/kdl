@@ -34,7 +34,7 @@ public class Scope implements Opcodes {
 		return start;
 	}
 
-	public Variable newVariable(final String name, final ToName type, final boolean mutable) {
+	public Variable newVar(final String name, final ToName type, final boolean mutable) {
 		Variable var = addLocalVariable(new Variable(name, type.toInternalName(), nextIndex(), mutable));
 		// increment it again to reserve a second slot if its a 64-bit number
 		if(type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
@@ -42,12 +42,12 @@ public class Scope implements Opcodes {
 		return var;
 	}
 
-	public Variable newVariable(final String name, final ToName type) {
-		return newVariable(name, type, Variable.DEFAULT_MUTABLE);
+	public Variable newVar(final String name, final ToName type) {
+		return newVar(name, type, Variable.DEFAULT_MUTABLE);
 	}
 
-	public Variable newVariable(final Details details) {
-		return newVariable(details.name.text, details.type, details.mutable);
+	public Variable newVar(final Details details) {
+		return newVar(details.name.text, details.type, details.mutable);
 	}
 
 	public Variable addLocalVariable(Variable lv) {
@@ -68,7 +68,7 @@ public class Scope implements Opcodes {
 			visitor.visitInsn(NOP);
 
 		visitor.visitLabel(end);
-		for(Variable lv : getVariables())
+		for(Variable lv : all())
 			visitor.visitLocalVariable(lv.name.text, lv.type.toString(), null, start, end, lv.localIndex);
 		visitor.visitMaxs(0, 0);
 		visitor.visitEnd();
@@ -83,7 +83,7 @@ public class Scope implements Opcodes {
 		return false;
 	}
 
-	public Variable getVariable(String name) throws SymbolResolutionException {
+	public Variable get(String name) throws SymbolResolutionException {
 		for(Variable lv : variables)
 			if(lv.name.equals(name))
 				return lv;
@@ -94,7 +94,7 @@ public class Scope implements Opcodes {
 		return index++;
 	}
 
-	public BestList<Variable> getVariables() {
+	public BestList<Variable> all() {
 		BestList<Variable> out = new BestList<>();
 		for(Variable lv : variables)
 			out.add(lv);

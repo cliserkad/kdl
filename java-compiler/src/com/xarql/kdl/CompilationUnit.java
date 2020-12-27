@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Stack;
 
 import static com.xarql.kdl.Type.SOURCE_SEPARATOR;
 import static com.xarql.kdl.names.BaseType.*;
@@ -34,16 +33,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public final int id;
 	public final CompilationDispatcher owner;
 	public Type type;
-	public Stack<Pushable> operandStack;
 
 	// input and output
-	private final ClassWriter cw;
+	public ClassWriter cw;
+	private final List<String> warnings;
 	private File sourceFile;
 	private String sourceCode;
 	private File outputDir;
-	private Scope currentScope;
 	private ParseTree tree;
-	private List<String> warnings;
 
 	// pass 1 collects imports, classname, and constant names, methodNames
 	// pass 2 assigns values to constants
@@ -58,7 +55,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		type = new Type();
 		addImport(String.class);
 		tree = null;
-		operandStack = new Stack<>();
+		warnings = new BestList<>("KDL is an unfinished language and may produce broken class files");
 	}
 
 	public CompilationUnit(CompilationDispatcher owner, File sourceFile, File outputDir) {
@@ -214,8 +211,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		} else if(getPass() == 2) {
 			if(!type.constants.isEmpty()) {
 				MethodHeader staticInit = MethodHeader.STATIC_INIT.withOwner(type);
-				addMethodDef(staticInit);
-				Actor actor = new Actor(defineMethod(staticInit), this);
+				Actor actor = defineMethod(staticInit);
 
 				for(Constant c : type.constants.keys()) {
 					if(c.owner.equals(getType().toInternalName())) {
@@ -232,7 +228,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 						}
 					}
 				}
-				getCurrentScope().end(ctx.stop.getLine(), actor, staticInit.returns);
+				actor.scope.end(ctx.stop.getLine(), actor, staticInit.returns);
 			}
 
 			for(StaticField f : type.fields.keys()) {
@@ -296,7 +292,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, Actor actor) throws Exception {
-		final Variable target = getCurrentScope().newVariable(new Details(ctx.details(), this));
+		final Variable target = actor.scope.newVar(new Details(ctx.details(), this));
 		if(ctx.ASSIGN() != null) {
 			target.assign(new Expression(type, ctx.expression(), actor).push(actor).toInternalName(), actor);
 		} else
@@ -378,7 +374,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			// check if the method accesses any fields
 			final boolean initializer;
 			final int staticModifier;
-			if(details.name.equals(MethodHeader.S_INIT)) {
+			if(details.name.text.equals(MethodHeader.S_INIT)) {
 				staticModifier = 0;
 				initializer = true;
 			} else {
@@ -394,16 +390,16 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			MethodHeader def = new MethodHeader(type.toInternalName(), details.name.text, params, rv, ACC_PUBLIC + staticModifier);
 
 			if(getPass() == 2) {
-				addMethodDef(def);
+				registerMethod(def);
 			} else if(getPass() == 3) {
 				// define user specified method
-				final Actor actor = new Actor(defineMethod(def), this);
+				final Actor actor = defineMethod(def);
 				// instance of owning type will always occupy slot 0
 				if(staticModifier == 0)
-					getCurrentScope().newVariable("this", getType().toInternalName());
+					actor.scope.newVar("this", getType().toInternalName());
 				// parameters will always occupy the first few slots
 				for(Param param : params)
-					getCurrentScope().newVariable(param.name.text, param.type);
+					actor.scope.newVar(param.name.text, param.type);
 
 				if(initializer) {
 					// call Object.super(this);
@@ -413,18 +409,17 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 				consumeBlock(ctx.block(), actor);
 
-				getCurrentScope().end(ctx.stop.getLine(), actor, rv);
+				actor.scope.end(ctx.stop.getLine(), actor, rv);
 
 				// add in helper methods for default values
 				for(Param param : params) {
 					if(param.defaultValue != null) {
 						final ReturnValue returnValue = new ReturnValue(param.toInternalName());
 						final MethodHeader defaultProvider = new MethodHeader(type.toInternalName(), details.name + "_" + param.name, null, returnValue, def.access + Opcodes.ACC_SYNTHETIC);
-						addMethodDef(defaultProvider);
-						final Actor defaultWriter = new Actor(defineMethod(defaultProvider), this);
+						final Actor defaultWriter = defineMethod(defaultProvider);
 						new Expression(type, param.defaultValue, actor).push(defaultWriter);
 						defaultWriter.writeReturn(returnValue);
-						getCurrentScope().end(ctx.start.getLine(), defaultWriter, returnValue);
+						actor.scope.end(ctx.start.getLine(), defaultWriter, returnValue);
 					}
 				}
 			}
@@ -441,24 +436,20 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterMain(final kdl.MainContext ctx) {
 		if(getPass() == 2) {
-			addMethodDef(MethodHeader.MAIN.withOwner(type));
+			registerMethod(MethodHeader.MAIN.withOwner(type));
 		} else if(getPass() == 3) {
-			final Actor actor = new Actor(defineMethod(MethodHeader.MAIN.withOwner(type)), this);
-			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
+			final Actor actor = defineMethod(MethodHeader.MAIN.withOwner(type));
+			actor.scope.newVar("args", new InternalName(String.class, 1));
 			try {
 				consumeBlock(ctx.block(), actor);
 			} catch(Exception e) {
 				printException(e);
 			}
-			getCurrentScope().end(ctx.stop.getLine(), actor, ReturnValue.VOID);
+			actor.scope.end(ctx.stop.getLine(), actor, ReturnValue.VOID);
 		}
 	}
 
-	public Variable getLocalVariable(final String name) throws SymbolResolutionException {
-		return getCurrentScope().getVariable(name.trim());
-	}
-
-	public MethodHeader addMethodDef(MethodHeader md) {
+	public MethodHeader registerMethod(MethodHeader md) {
 		if(!type.methods.add(md))
 			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
 		return md;
@@ -466,7 +457,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	public boolean hasConstant(final String name) {
 		for(Constant c : type.constants.keys()) {
-			if(c.name.equals(name))
+			if(c.name.text.equals(name))
 				return true;
 		}
 		return false;
@@ -474,7 +465,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	public Constant getConstant(final String name) {
 		for(Constant c : type.constants.keys()) {
-			if(c.name.equals(name))
+			if(c.name.text.equals(name))
 				return c;
 		}
 		throw new IllegalArgumentException("Constant " + name + " does not exist");
@@ -503,16 +494,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return type;
 	}
 
-	public MethodVisitor defineMethod(MethodHeader md) {
+	public Actor defineMethod(MethodHeader target) {
 		for(MethodHeader def : type.methods) {
-			if(def.equals(md)) {
-				final MethodVisitor mv = cw.visitMethod(md.access, md.name, md.descriptor(), null, null);
-				currentScope = new Scope("Method " + md.name + " of class " + type.name, mv);
-				mv.visitCode();
-				return mv;
+			if(def.equals(target)) {
+				return Actor.build(def, this);
 			}
 		}
-		throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
+		return Actor.build(registerMethod(target), this);
 	}
 
 	public FieldVisitor addConstant(final Constant c) {
@@ -530,8 +518,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void addDefaultConstructor() throws Exception {
-		addMethodDef(MethodHeader.INIT.withOwner(getType()));
-		final Actor actor = new Actor(defineMethod(MethodHeader.INIT.withOwner(getType())), this);
+		final Actor actor = defineMethod(MethodHeader.INIT.withOwner(getType()));
 		actor.visitCode();
 		final Label start = new Label();
 		actor.visitLabel(start);
@@ -563,10 +550,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		// actor.visitLocalVariable("this", type.toInternalName().objectString(), null, start, finish, 0);
 		actor.visitMaxs(0, 0);
 		actor.visitEnd();
-	}
-
-	public Scope getCurrentScope() {
-		return currentScope;
 	}
 
 }

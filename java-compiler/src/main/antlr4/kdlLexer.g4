@@ -24,7 +24,6 @@ PATH: 'path';
 R_IF: 'if';
 R_ELSE: 'else';
 R_NULL: 'null';
-SIZE: 'size';
 ASSERT: 'assert';
 WHILE: 'while';
 FOR: 'for';

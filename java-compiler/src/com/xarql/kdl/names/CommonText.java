@@ -12,11 +12,6 @@ public interface CommonText extends Opcodes {
 	String KEYWORD_FALSE = "false";
 	String KEYWORD_CLASS = "class";
 
-	// Defaults for BaseTypes
-	int DEFAULT_INT = 0;
-	String DEFAULT_STRING = "";
-	boolean DEFAULT_BOOLEAN = false;
-
 	String EMPTY_STRING = "";
 
 	// handled by ExternalMethodRouter
@@ -24,7 +19,6 @@ public interface CommonText extends Opcodes {
 	String PRINTLN = "println";
 	String ERROR = "error";
 
-	ReturnValue VOID = ReturnValue.VOID;
 	String DEFAULT = "default";
 
 	// Error messages

@@ -23,7 +23,7 @@ public class SubSequence implements Pushable {
 	}
 
 	public SubSequence(final Range range, final Actor actor) {
-		operand = actor.unit.operandStack.pop();
+		operand = null;
 		this.range = range;
 	}
 
