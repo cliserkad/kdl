@@ -4,32 +4,35 @@ lexer grammar kdlLexer;
   package com.xarql.kdl.antlr;
 }
 
-// skip over comments in lexer
+// skip over comments in lexer {
 COMMENT: '//' .*? '\n' -> channel(HIDDEN);
 BLOCK_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
+// }
 
 // skip over whitespace
 WS: [ \t\r\n]+ -> skip;
 
+// quotes {
 QUOTE: '"';
 STRING_LIT: QUOTE (~["\\] | '\\' .)* QUOTE;
+// }
 
-// keywords
+// keywords {
 TYPE: 'type';
 CONST: 'const';
 MAIN: 'main';
 RETURN: 'return';
 USE: 'use';
 PATH: 'path';
-R_IF: 'if';
-R_ELSE: 'else';
-R_NULL: 'null';
+IF: 'if';
+ELSE: 'else';
+NULL: 'null';
 ASSERT: 'assert';
 WHILE: 'while';
 FOR: 'for';
 THIS: 'this';
 
-// base types
+// base types {
 BOOLEAN: 'boolean';
 BYTE: 'byte';
 SHORT: 'short';
@@ -39,45 +42,55 @@ FLOAT: 'float';
 LONG: 'long';
 DOUBLE: 'double';
 STRING: 'string';
+// }
 
-// boolean values
+// boolean values {
 TRUE: 'true';
 FALSE: 'false';
+// }
+// }
 
-// syntax
-BODY_OPEN: '{'; // opening bracket
-BODY_CLOSE: '}'; // closing bracket
-PARAM_OPEN: '('; // opening paren
-PARAM_CLOSE: ')'; // closing paren
-BRACE_OPEN: '[';
-BRACE_CLOSE: ']';
+// syntax {
+CURL_L: '{';
+CURL_R: '}';
+PAREN_L: '(';
+PAREN_R: ')';
+BRACE_L: '[';
+BRACE_R: ']';
 DOT: '.';
-SEPARATOR: ',';
+COMMA: ',';
 SEMICOLON: ';';
-ASSIGN: ':';
-MUTABLE: '~';
+COLON: ':';
+TILDE: '~';
 
-// comparator
+// comparators {
 NOT_EQUAL: '!=';
 EQUAL: '=';
 LESS_THAN: '<';
 MORE_THAN: '>';
 LESS_OR_EQUAL: '<=';
 MORE_OR_EQUAL: '>=';
+// }
 
-// operators
+// operators {
 PLUS: '+';
 MINUS: '-';
 SLASH: '/';
 MULTIPLY: '*';
 MODULUS: '%';
+// }
 
-// appenders
+// bitwise {
 BIT_AND: '&';
 BIT_OR: '|';
+// }
 
+// appenders {
 AND: '&&';
 OR: '||';
+// }
+
+// }
 
 DIGIT: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 UNDERSCORE: '_';
