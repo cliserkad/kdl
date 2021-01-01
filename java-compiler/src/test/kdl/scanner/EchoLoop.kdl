@@ -1,7 +1,7 @@
-path test.kdl.scanner;
+path test/kdl/scanner
 
-use java.util.Scanner
-use java.lang.System
+use java/util/Scanner
+use java/lang/System
 
 type EchoLoop {
   main {

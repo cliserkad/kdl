@@ -29,7 +29,7 @@ r_else: R_ELSE block;
 assertion: ASSERT condition;
 r_while: WHILE condition block;
 
-value: literal | IDENTIFIER | methodCall | indexAccess | subSequence;
+value: literal | IDENTIFIER | methodCall | indexAccess | subSequence | THIS;
 operator: PLUS | MINUS | SLASH | MULTIPLY | MODULUS | DOT;
 expression: value (operator? expression)?;
 

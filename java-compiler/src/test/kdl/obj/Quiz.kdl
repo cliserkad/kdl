@@ -1,7 +1,7 @@
-path test.kdl.obj;
+path test/kdl/obj
 
-use java.util.Scanner
-use java.lang.System
+use java/util/Scanner
+use java/lang/System
 
 type Quiz {
   int~ score: 0

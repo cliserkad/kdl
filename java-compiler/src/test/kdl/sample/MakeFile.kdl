@@ -1,7 +1,7 @@
-path test.kdl.sample;
+path test/kdl/sample
 
-use java.io.File
-use test.kdl.sample.FileUtil
+use java/io/File
+use test/kdl/sample/FileUtil
 
 type MakeFile {
   main {
