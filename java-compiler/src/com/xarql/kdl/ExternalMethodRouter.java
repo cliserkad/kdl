@@ -24,7 +24,7 @@ public class ExternalMethodRouter implements CommonText {
 		// add println method to class
 		actor = unit.defineMethod(unit.registerMethod(PRINTLN_MTD.withOwner(unit.getType()).withAccess(ACC_PUBLIC + ACC_STATIC)));
 		actor.scope.newVar(arg, new InternalName(String.class));
-		actor.visitFieldInsn(GETSTATIC, new InternalName(System.class).nameString(), "out", new InternalName(PrintStream.class).objectString());
+		actor.visitFieldInsn(GETSTATIC, new InternalName(System.class).qualifiedName(), "out", new InternalName(PrintStream.class).arrayName());
 		actor.visitVarInsn(ALOAD, actor.scope.get(arg).localIndex); // load input
 		PRINTLN_MTD.push(actor);
 		actor.scope.end(1, actor, ReturnValue.VOID);
@@ -32,7 +32,7 @@ public class ExternalMethodRouter implements CommonText {
 		// add print method to class
 		actor = unit.defineMethod(unit.registerMethod(PRINT_MTD.withOwner(unit.getType()).withAccess(ACC_PUBLIC + ACC_STATIC)));
 		actor.scope.newVar(arg, new InternalName(String.class));
-		actor.visitFieldInsn(GETSTATIC, new InternalName(System.class).nameString(), "out", new InternalName(PrintStream.class).objectString());
+		actor.visitFieldInsn(GETSTATIC, new InternalName(System.class).qualifiedName(), "out", new InternalName(PrintStream.class).arrayName());
 		actor.visitVarInsn(ALOAD, actor.scope.get(arg).localIndex); // load input
 		PRINT_MTD.push(actor);
 		actor.scope.end(1, actor, ReturnValue.VOID);
@@ -40,7 +40,7 @@ public class ExternalMethodRouter implements CommonText {
 		// add error method to class
 		actor = unit.defineMethod(unit.registerMethod(ERROR_MTD.withOwner(unit.getType()).withAccess(ACC_PUBLIC + ACC_STATIC)));
 		actor.scope.newVar(arg, new InternalName(String.class));
-		actor.visitFieldInsn(GETSTATIC, new InternalName(System.class).nameString(), "err", new InternalName(PrintStream.class).objectString());
+		actor.visitFieldInsn(GETSTATIC, new InternalName(System.class).qualifiedName(), "err", new InternalName(PrintStream.class).arrayName());
 		actor.visitVarInsn(ALOAD, actor.scope.get(arg).localIndex); // load input
 		PRINTLN_MTD.push(actor);
 		actor.scope.end(1, actor, ReturnValue.VOID);

@@ -1,54 +1,34 @@
 package com.xarql.kdl.names;
 
+import com.xarql.kdl.Path;
+import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.ir.Literal;
 import org.objectweb.asm.Opcodes;
 
 public enum BaseType implements ToName {
 
-	BOOLEAN('Z', new Literal<>(false), Opcodes.T_BOOLEAN), BYTE('B', new Literal<>(0), Opcodes.T_BYTE), SHORT('S', new Literal<>(0), Opcodes.T_SHORT),
-	CHAR('C', new Literal<>(' '), Opcodes.T_CHAR), INT('I', new Literal<>(0), Opcodes.T_INT), FLOAT('F', new Literal<>(0.0F), Opcodes.T_FLOAT),
-	LONG('J', new Literal<>(0L), Opcodes.T_LONG), DOUBLE('D', new Literal<>(0.0D), Opcodes.T_DOUBLE), STRING("Ljava/lang/String;", new Literal<>(""), 0);
+	BOOLEAN('Z', new Literal<>(false), Opcodes.T_BOOLEAN),
+	BYTE('B', new Literal<>(0), Opcodes.T_BYTE),
+	SHORT('S', new Literal<>(0), Opcodes.T_SHORT),
+	CHAR('C', new Literal<>(' '), Opcodes.T_CHAR),
+	INT('I', new Literal<>(0), Opcodes.T_INT),
+	FLOAT('F', new Literal<>(0.0F), Opcodes.T_FLOAT),
+	LONG('J', new Literal<>(0L), Opcodes.T_LONG),
+	DOUBLE('D', new Literal<>(0.0D), Opcodes.T_DOUBLE),
+	STRING("Ljava/lang/String;", new Literal<>(""), 0);
 
-	public final String rep;
+	public final Path rep;
 	public final Literal<?> defaultValue;
 	public final int id;
 
 	BaseType(String rep, Literal<?> defaultValue, int id) {
-		this.rep = rep;
+		this.rep = new Path(rep);
 		this.defaultValue = defaultValue;
 		this.id = id;
 	}
 
 	BaseType(char rep, Literal<?> defaultValue, int id) {
 		this("" + rep, defaultValue, id);
-	}
-
-	public static boolean isClassBaseType(Class<?> clazz) {
-		return matchClass(clazz) != null;
-	}
-
-	public static boolean isBaseType(final Object value) {
-		final Class c = value.getClass();
-		if(c.equals(boolean.class) || c.equals(Boolean.class))
-			return true;
-		else if(c.equals(byte.class) || c.equals(Byte.class))
-			return true;
-		else if(c.equals(short.class) || c.equals(Short.class))
-			return true;
-		else if(c.equals(char.class) || c.equals(Character.class))
-			return true;
-		else if(c.equals(int.class) || c.equals(Integer.class))
-			return true;
-		else if(c.equals(float.class) || c.equals(Float.class))
-			return true;
-		else if(c.equals(long.class) || c.equals(Long.class))
-			return true;
-		else if(c.equals(double.class) || c.equals(Double.class))
-			return true;
-		else if(c.equals(String.class))
-			return true;
-		else
-			return false;
 	}
 
 	/**
@@ -109,17 +89,28 @@ public enum BaseType implements ToName {
 			return null;
 	}
 
+	public static BaseType matchPath(final Path path) {
+		for(BaseType base : values()) {
+			if(base.rep.equals(path))
+				return base;
+		}
+		return null;
+	}
+
 	public static BaseType matchValue(Object value) {
 		return matchClass(value.getClass());
 	}
 
-	@Override
-	public InternalName toInternalName() {
-		return new InternalName(this);
+	public static boolean isBaseType(Class<?> clazz) {
+		return matchClass(clazz) != null;
 	}
 
-	public Literal<?> getDefaultValue() {
-		return defaultValue;
+	public static boolean isBaseType(final Object value) {
+		return matchValue(value) != null;
+	}
+
+	public static boolean isBaseType(final Path path) {
+		return matchPath(path) != null;
 	}
 
 	public boolean compatibleNoDirection(ToName other) {
@@ -146,7 +137,33 @@ public enum BaseType implements ToName {
 
 	@Override
 	public String toString() {
-		return toInternalName().objectString();
+		return toInternalName().arrayName();
+	}
+
+	@Override
+	public InternalName toInternalName() {
+		switch(this) {
+			case BOOLEAN:
+				return InternalName.BOOLEAN;
+			case BYTE:
+				return InternalName.BYTE;
+			case SHORT:
+				return InternalName.SHORT;
+			case CHAR:
+				return InternalName.CHAR;
+			case INT:
+				return InternalName.INT;
+			case FLOAT:
+				return InternalName.FLOAT;
+			case LONG:
+				return InternalName.LONG;
+			case DOUBLE:
+				return InternalName.DOUBLE;
+			case STRING:
+				return InternalName.STRING;
+			default:
+				return null;
+		}
 	}
 
 	@Override

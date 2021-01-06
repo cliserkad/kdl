@@ -1,5 +1,7 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.*;
+import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.MethodHeader;
@@ -18,17 +20,21 @@ public class IndexAccess implements Pushable, CommonText {
 
 	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(InternalName.STRING, "charAt", MethodHeader.toParamList(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
 
-	public final Pushable operand;
+	public final Type operand;
 	public final Pushable index;
 
-	public IndexAccess(final Pushable operand, final Pushable index) {
+	public IndexAccess(final Type operand, final Pushable index) {
 		this.operand = operand;
 		this.index = index;
 	}
 
+	public IndexAccess(final Type operand, kdl.IndexAccessContext ctx, Actor actor) throws Exception {
+		this.operand = operand;
+		index = new Expression(operand, ctx.expression(), actor);
+	}
+
     @Override
 	public IndexAccess push(final Actor actor) throws Exception {
-		operand.push(actor);
 		// throw error if value within [ ] isn't an int
 		if(index.toBaseType().ordinal() > INT.ordinal())
 			throw new IncompatibleTypeException("The input for an array access must be an integer");
@@ -36,8 +42,8 @@ public class IndexAccess implements Pushable, CommonText {
 			index.push(actor);
 
 		if(operand.toInternalName().isArray()) {
-			if(operand.toInternalName().isBaseType()) {
-				switch(operand.toInternalName().toBaseType()) {
+			if(operand.isBaseType()) {
+				switch(operand.toBaseType()) {
 					case INT:
 					case BOOLEAN:
 						actor.visitInsn(IALOAD);

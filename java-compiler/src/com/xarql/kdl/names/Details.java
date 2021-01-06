@@ -149,7 +149,7 @@ public class Details implements ToName {
 
 		final String type;
 		if(this.type != null)
-			type = this.type.nameString();
+			type = this.type.qualifiedName();
 		else
 			type = "null";
 

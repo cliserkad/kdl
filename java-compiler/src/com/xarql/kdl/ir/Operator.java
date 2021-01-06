@@ -1,27 +1,40 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.Text;
+
 public enum Operator {
 
-	PLUS('+'), MINUS('-'), MULTIPLY('*'), DIVIDE('/'), MODULUS('%'), RESOLVE('.');
+	PLUS("+"),
+	MINUS("-"),
+	MULTIPLY("*"),
+	DIVIDE("/"),
+	MODULUS("%"),
+	RESOLVE("."),
+	INDEX_ACCESS("["),
+	NOT("!"),
+	INCREMENT("++"),
+	DECREMENT("--"),
+	BIT_SHIFT_LEFT("<<"),
+	BIT_SHIFT_RIGHT(">>"),
+	BIT_SHIFT_RIGHT_UNSIGNED(">>>"),
+	BIT_OR("|"),
+	BIT_AND("&"),
+	BIT_XOR("^"),
+	OR("||"),
+	AND("&&"),
+	XOR("^^");
 
-	char rep;
+	public final String rep;
 
-	Operator(char rep) {
+	Operator(String rep) {
 		this.rep = rep;
 	}
 
-	public static Operator match(char rep) {
-		for(Operator op : Operator.values())
-			if(op.rep == rep)
-				return op;
-		return null;
-	}
-
 	public static Operator match(String s) {
-		if(s != null && !s.isEmpty()) {
-			return match(s.charAt(0));
-		} else
+		if(Text.isEmpty(s))
 			return null;
+		else
+			return match(s.trim());
 	}
 
 }

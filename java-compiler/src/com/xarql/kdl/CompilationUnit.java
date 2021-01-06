@@ -16,9 +16,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import static com.xarql.kdl.Type.SOURCE_SEPARATOR;
+import static com.xarql.kdl.Type.PATH_SEPARATOR;
 import static com.xarql.kdl.names.BaseType.*;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
@@ -33,6 +35,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public final int id;
 	public final CompilationDispatcher owner;
 	public Type type;
+	public Set<Type> imports = new HashSet<>();
 
 	// input and output
 	public ClassWriter cw;
@@ -222,7 +225,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 							addConstant(unsetConst);
 							type.constants.put(unsetConst, cDef);
 							expression.push(actor);
-							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name.text, expression.toInternalName().objectString());
+							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.qualifiedName(), unsetConst.name.text, expression.toInternalName().arrayName());
 						} catch (Exception e) {
 							printException(e);
 						}
@@ -237,7 +240,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					int modifier = 0;
 					if(f.mutable)
 						modifier = ACC_FINAL;
-					fv = cw.visitField(ACC_PUBLIC + modifier, f.name.text, f.type.objectString(), null, f.type.defaultValue());
+					fv = cw.visitField(ACC_PUBLIC + modifier, f.name.text, f.type.arrayName(), null, f.type.defaultValue());
 					fv.visitEnd();
 				}
 			}
@@ -340,7 +343,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	public void addImport(String text) {
 		try {
-			final Class<?> jvmClass = Class.forName(text.replace(SOURCE_SEPARATOR, JAVA_SOURCE_SEPARATOR));
+			final Class<?> jvmClass = Class.forName(text.replace(PATH_SEPARATOR, JAVA_SOURCE_SEPARATOR));
 			addImport(jvmClass);
 		} catch(Exception e) {
 			printException(e);
@@ -482,7 +485,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			type = type.withName(name);
 
 			// give name to ClassWriter
-			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, type.qualifiedName(), null, InternalName.OBJECT.nameString(), null);
+			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, type.qualifiedName(), null, InternalName.OBJECT.qualifiedName(), null);
 			cw.visitSource(type.name + ".kdl", null);
 
 			return true;
@@ -512,7 +515,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			defaultValue = c.toBaseType().defaultValue.value;
 		else
 			defaultValue = null;
-		fv = cw.visitField(CONST_ACCESS, c.name.text, c.type.objectString(), null, defaultValue);
+		fv = cw.visitField(CONST_ACCESS, c.name.text, c.type.arrayName(), null, defaultValue);
 		fv.visitEnd();
 		return fv;
 	}
@@ -526,7 +529,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 		// call Object.super(this);
 		actor.visitVarInsn(ALOAD, 0);
-		actor.visitMethodInsn(INVOKESPECIAL, InternalName.OBJECT.nameString(), "<init>", "()V", false);
+		actor.visitMethodInsn(INVOKESPECIAL, InternalName.OBJECT.qualifiedName(), "<init>", "()V", false);
 
 		for(StaticField f : type.fields.keys()) {
 			if(f.ownerType.equals(getType().toInternalName()) && f instanceof ObjectField) {
@@ -541,7 +544,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					else
 						actor.visitInsn(ACONST_NULL);
 				}
-				actor.visitFieldInsn(PUTFIELD, getType().toInternalName().nameString(), f.name.text, f.type.objectString());
+				actor.visitFieldInsn(PUTFIELD, getType().toInternalName().qualifiedName(), f.name.text, f.type.arrayName());
 			}
 		}
 		final Label finish = new Label();
@@ -550,6 +553,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		// actor.visitLocalVariable("this", type.toInternalName().objectString(), null, start, finish, 0);
 		actor.visitMaxs(0, 0);
 		actor.visitEnd();
+	}
+
+	public Type resolveImport(String name) {
+		for(Type t : imports)
+			if(t.name.equals(name))
+				return t;
+		return null;
 	}
 
 }

@@ -35,7 +35,7 @@ public class ObjectField extends StaticField implements Assignable {
 			throw new NullPointerException(NO_OWNER);
 		final InternalName ownerType = owner.push(actor).toInternalName();
 		actor.visitInsn(Opcodes.SWAP);
-		actor.visitFieldInsn(Opcodes.PUTFIELD, ownerType.nameString(), name.text, type.objectString());
+		actor.visitFieldInsn(Opcodes.PUTFIELD, ownerType.qualifiedName(), name.text, type.arrayName());
 		return this;
 	}
 
@@ -51,7 +51,7 @@ public class ObjectField extends StaticField implements Assignable {
 		if(owner == null)
 			throw new NullPointerException(NO_OWNER);
 		final InternalName ownerType = owner.push(actor).toInternalName();
-		actor.visitFieldInsn(Opcodes.GETFIELD, ownerType.nameString(), name.text, type.objectString());
+		actor.visitFieldInsn(Opcodes.GETFIELD, ownerType.qualifiedName(), name.text, type.arrayName());
 		return this;
 	}
 

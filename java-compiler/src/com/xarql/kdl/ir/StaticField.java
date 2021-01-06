@@ -26,14 +26,14 @@ public class StaticField extends Details implements Assignable, Member {
 			StaticField proper = actor.unit.type.fields.equivalentKey(this);
 			return proper.push(actor);
 		} else {
-			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.nameString(), name.text, type.objectString());
+			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.qualifiedName(), name.text, type.arrayName());
 			return this;
 		}
 	}
 
 	@Override
 	public StaticField assign(InternalName incomingType, Actor actor) throws Exception {
-		actor.visitFieldInsn(Opcodes.PUTSTATIC, ownerType.nameString(), name.text, type.objectString());
+		actor.visitFieldInsn(Opcodes.PUTSTATIC, ownerType.qualifiedName(), name.text, type.arrayName());
 		return this;
 	}
 
@@ -61,7 +61,7 @@ public class StaticField extends Details implements Assignable, Member {
 	}
 
 	public String toString() {
-		return ownerType.nameString() + " " + super.toString();
+		return ownerType.qualifiedName() + " " + super.toString();
 	}
 
 	@Override

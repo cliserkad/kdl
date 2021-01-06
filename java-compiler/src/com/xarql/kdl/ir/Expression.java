@@ -14,35 +14,56 @@ public class Expression implements Pushable, CommonText {
 	public static final MethodHeader SB_APPEND = new MethodHeader(new InternalName(StringBuilder.class), "append", MethodHeader.toParamList(new InternalName(String.class)), new ReturnValue(new InternalName(StringBuilder.class)), ACC_PUBLIC);
 	public static final MethodHeader SB_TO_STRING = new MethodHeader(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 
-	public final Pushable a;
-	public final Pushable b;
+	public final Pushable value;
 	public final Operator operator;
+	public final Expression expression;
 
-	public Expression(Pushable a, Pushable b, Operator operator) {
-		if(!a.isBaseType() || !b.isBaseType())
+	public Expression(Pushable value, Pushable expression, Operator operator) {
+		if(!value.isBaseType() || !expression.isBaseType())
 			throw new IllegalArgumentException("Expressions may only contain BaseTypes");
-		this.a = a;
-		this.b = b;
+		this.value = value;
 		this.operator = operator;
+		this.expression = expression;
+	}
+
+	public static Pushable resolveID(Identifier id, Type encloser, Actor actor) throws SymbolResolutionException {
+		if(actor.scope.contains(id.text))
+			return actor.scope.get(id.text);
+		else return encloser.members().get(id);
 	}
 
 	public Expression(Type parent, kdl.ExpressionContext ctx, Actor actor) throws Exception {
-		this.a = Pushable.parse(actor, parent, ctx.value());
+		if(ctx.value().literal() != null)
+			value = Literal.parseLiteral(ctx.value().literal(), actor);
+		else if(ctx.value().IDENTIFIER() != null)
+			value = resolveID(new Identifier(ctx.value().IDENTIFIER().getText()), parent, actor);
+		else if(ctx.value().methodCall() != null)
+			value = new MethodCall(parent, ctx.value().methodCall(), actor);
+		else if(ctx.value().THIS() != null) {
+			value = actor.scope.get("this");
+		} else {
+			throw new Exception("Failed to parse value of expression. Check kdl.g4 for updates");
+		}
+
 		if(ctx.expression() != null)
-			this.b = new Expression(actor.unit.type.resolveImportOrFail(a.toInternalName().name()), ctx.expression(), actor);
+			expression = new Expression(parent.resolveImportOrFail(value.toInternalName().name()), ctx.expression(), actor);
 		else
-			this.b = null;
+			this.expression = null;
+
 		if(ctx.operator() != null)
 			operator = Operator.match(ctx.operator().getText());
+		else if(ctx.indexAccess() != null || ctx.subSequence() != null)
+			operator = Operator.INDEX_ACCESS;
 		else
 			operator = null;
-		if(operator != null && b == null) {
+
+		if(operator != null && expression == null) {
 			throw new IllegalStateException("Expressions must have a right side if they have an operator");
 		}
 	}
 
 	public boolean isSingleValue() {
-		return a != null && b == null && operator == null;
+		return value != null && expression == null && operator == null;
 	}
 
 	public Assignable declaringMember() throws Exception {
@@ -52,15 +73,15 @@ public class Expression implements Pushable, CommonText {
 	@Override
 	public Pushable push(Actor actor) throws Exception {
 		if(isSingleValue()) {
-			return a.push(actor);
+			return value.push(actor);
 		} else {
 			switch(toBaseType()) {
 				case INT:
 				case BOOLEAN:
-					computeInt(a, b, operator, actor);
+					computeInt(value, expression, operator, actor);
 					break;
 				case STRING:
-					computeString(a, b, operator, actor);
+					computeString(value, expression, operator, actor);
 					break;
 				default:
 					throw new UnimplementedException(SWITCH_BASETYPE);
@@ -75,7 +96,7 @@ public class Expression implements Pushable, CommonText {
 	 * @param actor
 	 */
 	public static void createStringBuilder(Actor actor) throws Exception {
-		actor.visitTypeInsn(NEW, new InternalName(StringBuilder.class).nameString());
+		actor.visitTypeInsn(NEW, new InternalName(StringBuilder.class).qualifiedName());
 		actor.visitInsn(DUP);
 		INIT_STRING_BUILDER.push(actor);
 	}
@@ -147,21 +168,21 @@ public class Expression implements Pushable, CommonText {
 
 	@Override
 	public InternalName toInternalName() {
-		return a.toInternalName();
+		return value.toInternalName();
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return a.isBaseType();
+		return value.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return a.toBaseType();
+		return value.toBaseType();
 	}
 
 	public String toString() {
-		return a + " " + operator + " " + b;
+		return value + " " + operator + " " + expression;
 	}
 
 }

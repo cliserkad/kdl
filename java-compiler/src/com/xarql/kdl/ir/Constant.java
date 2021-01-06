@@ -59,7 +59,7 @@ public class Constant extends Details implements Member {
 
 	@Override
 	public Pushable push(final Actor actor) {
-		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.nameString(), name.text, type.objectString());
+		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.qualifiedName(), name.text, type.arrayName());
 		return this;
 	}
 

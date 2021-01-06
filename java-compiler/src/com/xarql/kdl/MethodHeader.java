@@ -1,6 +1,5 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.ir.Identifier;
 import com.xarql.kdl.ir.Member;
 import com.xarql.kdl.ir.Param;
 import com.xarql.kdl.ir.Pushable;
@@ -98,14 +97,14 @@ public class MethodHeader implements CommonText, ToName, Member {
 		String out = "";
 		out += "(";
 		for(InternalName in : paramTypes())
-			out += in.objectString();
+			out += in.arrayName();
 		out += ")";
 		out += returns.stringOutput();
 		return out;
 	}
 
 	public String owner() {
-		return owner.nameString();
+		return owner.qualifiedName();
 	}
 
 	public boolean[] availableDefaults() {
@@ -140,9 +139,9 @@ public class MethodHeader implements CommonText, ToName, Member {
 	@Override
 	public String toString() {
 		if(descriptor() != null)
-			return owner.nameString() + "." + name + descriptor();
+			return owner.qualifiedName() + "." + name + descriptor();
 		else
-			return owner.nameString() + "." + name;
+			return owner.qualifiedName() + "." + name;
 	}
 
 	@Override
@@ -165,7 +164,7 @@ public class MethodHeader implements CommonText, ToName, Member {
 	}
 
 	private MethodHeader invoke(final int type, final MethodVisitor visitor) {
-		visitor.visitMethodInsn(type, owner.nameString(), name, descriptor(), false);
+		visitor.visitMethodInsn(type, owner.qualifiedName(), name, descriptor(), false);
 		return this;
 	}
 

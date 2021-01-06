@@ -1,5 +1,9 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.MethodHeader;
+
+import java.lang.reflect.Method;
+
 public class Identifier {
     public static final String VALID_ID_REGEX = "[^\\r\\t\\n &|+<>=?!*.~:;,(){}'\"%]+";
 
@@ -22,7 +26,23 @@ public class Identifier {
     }
 
     public static boolean verify(String text) {
-        return text.matches(VALID_ID_REGEX);
+        if(text.equals(MethodHeader.S_INIT) || text.equals(MethodHeader.S_STATIC_INIT))
+            return true;
+        else
+            return text.matches(VALID_ID_REGEX);
+    }
+
+    /**
+     * Determines equality, based on the id's text. Accepts either a String or an Identifier
+     */
+    public boolean equals(Object obj) {
+        if(obj instanceof String) {
+            return text.equals(obj);
+        } else if(obj instanceof Identifier) {
+            Identifier other = (Identifier) obj;
+            return other.text.equals(text);
+        } else
+            return false;
     }
 
 }

@@ -1,19 +1,19 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.Type;
+import com.xarql.kdl.Path;
 import com.xarql.kdl.PlaceHolder;
 
 public class InternalName implements ToName, CommonText {
 
-	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN);
-	public static final InternalName BYTE = new InternalName(BaseType.BYTE);
-	public static final InternalName SHORT = new InternalName(BaseType.SHORT);
-	public static final InternalName CHAR = new InternalName(BaseType.CHAR);
-	public static final InternalName INT = new InternalName(BaseType.INT);
-	public static final InternalName FLOAT = new InternalName(BaseType.FLOAT);
-	public static final InternalName LONG = new InternalName(BaseType.LONG);
-	public static final InternalName DOUBLE = new InternalName(BaseType.DOUBLE);
-	public static final InternalName STRING = new InternalName(BaseType.STRING);
+	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN.rep);
+	public static final InternalName BYTE = new InternalName(BaseType.BYTE.rep);
+	public static final InternalName SHORT = new InternalName(BaseType.SHORT.rep);
+	public static final InternalName CHAR = new InternalName(BaseType.CHAR.rep);
+	public static final InternalName INT = new InternalName(BaseType.INT.rep);
+	public static final InternalName FLOAT = new InternalName(BaseType.FLOAT.rep);
+	public static final InternalName LONG = new InternalName(BaseType.LONG.rep);
+	public static final InternalName DOUBLE = new InternalName(BaseType.DOUBLE.rep);
+	public static final InternalName STRING = new InternalName(BaseType.STRING.rep);
 	public static final InternalName PLACEHOLDER = new InternalName(PlaceHolder.class);
 
 	public static final InternalName STRING_BUILDER = new InternalName(StringBuilder.class);
@@ -23,6 +23,7 @@ public class InternalName implements ToName, CommonText {
 	public static final InternalName OBJECT = new InternalName(Object.class);
 	public static final InternalName ARRAY = new InternalName(Object.class, 1);
 
+	public static final Path DEFAULT_PATH = null;
 	public static final String OBJECT_SUFFIX = ";";
 	public static final String OBJECT_PREFIX = "L";
 	public static final String ARRAY_PREFIX = "[";
@@ -30,53 +31,38 @@ public class InternalName implements ToName, CommonText {
 	public static final int MIN_DIMENSIONS = 0;
 	public static final int MAX_DIMENSIONS = 255;
 
-	public final Class<?> clazz;
-	public final BaseType base;
-	public final Type dc;
-
+	public final Path path;
 	public final int arrayDimensions;
 
 	public InternalName() {
-		clazz = null;
-		base = null;
-		dc = null;
+		path = DEFAULT_PATH;
 		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
 	}
 
-	public InternalName(final Class<?> c, final int arrayDimensions) {
-		if(BaseType.matchClassStrict(c) != null) {
-			base = BaseType.matchClass(c);
-			clazz = null;
-		} else {
-			clazz = c;
-			base = null;
-		}
-		dc = null;
+	public InternalName(final Path path) {
+		this(path, DEFAULT_ARRAY_DIMENSIONS);
+	}
+
+	public InternalName(final Path path, final int arrayDimensions) {
+		if(path == null || path.size() == 0)
+			throw new IllegalArgumentException("StringPath path may not be null");
 		if(arrayDimensions < MIN_DIMENSIONS || arrayDimensions > MAX_DIMENSIONS)
-			throw new IllegalArgumentException("arrayDimensions must be within " + MIN_DIMENSIONS + " & " + MAX_DIMENSIONS);
+			throw new IllegalArgumentException("int arrayDimensions must be within " + MIN_DIMENSIONS + " & " + MAX_DIMENSIONS);
+		this.path = path;
 		this.arrayDimensions = arrayDimensions;
+	}
+
+	public InternalName(final Class<?> c, final int arrayDimensions) {
+		this(Path.forClass(c), arrayDimensions);
 	}
 
 	public InternalName(final Class<?> c) {
 		this(c, DEFAULT_ARRAY_DIMENSIONS);
 	}
 
-	public InternalName(final BaseType base, final int arrayDimensions) {
-		this.base = base;
-		clazz = null;
-		dc = null;
+	public InternalName(final BaseType baseType, final int arrayDimensions) {
+		this.path = baseType.rep;
 		this.arrayDimensions = arrayDimensions;
-	}
-
-	public InternalName(final BaseType base) {
-		this(base, DEFAULT_ARRAY_DIMENSIONS);
-	}
-
-	public InternalName(final Type dc) {
-		this.dc = dc;
-		clazz = null;
-		base = null;
-		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
 	}
 
 	public Object defaultValue() {
@@ -86,75 +72,84 @@ public class InternalName implements ToName, CommonText {
 			return null;
 	}
 
-	public boolean isCustom() {
-		return dc != null;
-	}
-
-	public boolean isClassType() {
-		return clazz != null;
+	public boolean isVoid() {
+		return path == null;
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return base != null;
+		return BaseType.isBaseType(path);
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return base;
+		return BaseType.matchPath(path);
 	}
 
-	private String objectInstance() {
-		return OBJECT_PREFIX + nameString() + OBJECT_SUFFIX;
-	}
-
-	public String objectString() {
-		String dims = "";
-		for(int i = 0; i < arrayDimensions; i++)
-			dims += ARRAY_PREFIX;
-
+	/**
+	 * Provides the qualified name, surrounded with object markers.
+	 * If this InternalName represents a BaseType which is not string,
+	 * then qualifiedName() is returned.
+	 * Ex: Ljava/lang/String;
+	 */
+	private String objectName() {
 		if(isBaseType() && toBaseType() != BaseType.STRING)
-			return dims + nameString();
+			return qualifiedName();
 		else
-			return dims + objectInstance();
+			return OBJECT_PREFIX + qualifiedName() + OBJECT_SUFFIX;
 	}
 
-	public String nameString() {
-		if(isBaseType()) {
-			if(toBaseType() == BaseType.STRING)
-				return String.class.getName().replace('.', '/');
-			else
-				return toBaseType().rep;
-		} else if(isClassType())
-			return clazz.getName().replace('.', '/');
-		else if(isCustom())
-			return dc.qualifiedName();
+	/**
+	 * Provides the objectName, prefixed with arrayDimensions amount
+	 * of array dimension markers
+	 */
+	public String arrayName() {
+		StringBuilder dims = new StringBuilder();
+		for(int i = 0; i < arrayDimensions; i++)
+			dims.append(ARRAY_PREFIX);
+		dims.append(objectName());
+		return dims.toString();
+	}
+
+	/**
+	 * Provides the qualified name. Ex: java/lang/String
+	 */
+	public String qualifiedName() {
+		if(path != null)
+			return path.toString();
 		else
 			return "" + ReturnValue.VOID_REP;
 	}
 
+	/**
+	 * Provides the type name of this InternalName.
+	 * Ex: String
+	 */
 	public String name() {
-		if(nameString().contains("/"))
-			return nameString().substring(0, nameString().indexOf('/'));
+		if(qualifiedName().contains("/"))
+			return qualifiedName().substring(0, qualifiedName().indexOf('/'));
 		else
-			return nameString();
+			return qualifiedName();
 	}
 
 	@Override
 	public String toString() {
-		return objectString();
+		return arrayName();
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if(o instanceof InternalName) {
+		if(this == o) {
+			return true;
+		} else if(o instanceof InternalName) {
 			InternalName in = (InternalName) o;
-			return in.nameString().equals(nameString());
+			return in.path.equals(path);
 		} else if(o instanceof BaseType) {
-			BaseType bt = (BaseType) o;
-			return bt == this.base;
+			BaseType base = (BaseType) o;
+			return base.toInternalName().equals(this);
+		} else {
+			return false;
 		}
-		return false;
 	}
 
 	@Override
@@ -178,25 +173,19 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName toArray(final int dimensions) {
-		if(isClassType())
-			return new InternalName(clazz, dimensions);
-		else if(isBaseType())
-			return new InternalName(base, dimensions);
-		else if(isCustom())
-			return new InternalName(dc);
-		else
+		if(isVoid())
 			throw new IllegalArgumentException("This InternalName represents void, which is not a valid array type.");
+		else {
+			return new InternalName(path, dimensions);
+		}
 	}
 
 	public InternalName withoutArray() {
-		if(isClassType())
-			return new InternalName(clazz);
-		else if(isBaseType())
-			return new InternalName(base);
-		else if(isCustom())
-			return new InternalName(dc);
-		else
-			return new InternalName();
+		if(isArray()) {
+			return new InternalName(path);
+		} else {
+			return this;
+		}
 	}
 
 }

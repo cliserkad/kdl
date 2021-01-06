@@ -65,7 +65,7 @@ public class ReturnValue implements ToName {
 		if(returnType == null)
 			return "" + VOID_REP;
 		else
-			return returnType.objectString();
+			return returnType.arrayName();
 	}
 
 	@Override

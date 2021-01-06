@@ -18,28 +18,19 @@ import java.util.Set;
  * Immutable version of a custom class's metadata
  */
 public class Type implements ToName, Member {
-    public static final char SOURCE_SEPARATOR = '/';
+    public static final char PATH_SEPARATOR = Path.PATH_SEPARATOR;
 
-    public final String pkg;
-    public final String name;
-
+    public final InternalName name;
     public TrackedMap<Constant, kdl.ConstantDefContext> constants = new TrackedMap<>();
     public TrackedMap<StaticField, kdl.FieldDefContext> fields = new TrackedMap<>();
     public Set<MethodHeader> methods = new HashSet<>();
-    public Set<Type> imports = new HashSet<>();
 
-    public Type(String pkg, String name) {
-        this.pkg = pkg;
+    public Type(InternalName name) {
         this.name = name;
     }
 
-    public Type() {
-        this(null, null);
-    }
-
     public Type(Class<?> clazz) {
-        pkg = clazz.getPackageName();
-        name = clazz.getSimpleName();
+        this.name = new InternalName(clazz);
         for(Method method : clazz.getMethods()) {
             methods.add(new MethodHeader(clazz, method));
         }
@@ -61,16 +52,7 @@ public class Type implements ToName, Member {
             out.add(f.name, f);
         for(MethodHeader m : methods)
             out.add(m.details().name, m);
-        for(Type t : imports)
-            out.add(t.details().name, t);
         return out;
-    }
-
-    public Type resolveImport(String name) {
-        for(Type t : imports)
-            if(t.name.equals(name))
-                return t;
-        return null;
     }
 
     public boolean isTypeImported(String name) {
@@ -85,36 +67,10 @@ public class Type implements ToName, Member {
             throw new SymbolResolutionException("Couldn't recognize type: " + name);
     }
 
-    /**
-     * Returns this Type's name appended to its package path, with appropriate addition of forward slashes.
-     * This is how the JVM expects its names internally, and is equivalent to calling toInternalName().nameString()
-     * @return JVM compatible name
-     */
-    public String qualifiedName() {
-        if(name == null)
-            throw new NullPointerException("A CustomClass' name must not be null");
-        if(name.trim().isEmpty())
-            throw new IllegalStateException("A CustomClass' name must not be empty");
-
-        if(isPackaged())
-            return pkg + SOURCE_SEPARATOR + name;
-        else
-            return name;
-    }
-
-    public boolean isNamed() {
-        return name != null && !name.trim().isEmpty();
-    }
-
-    public boolean isPackaged() {
-        return pkg != null && !pkg.trim().isEmpty();
-    }
-
     public void copyTo(Type other) {
         other.constants = constants;
         other.fields = fields;
         other.methods = methods;
-        other.imports = imports;
     }
 
     /**
@@ -157,7 +113,7 @@ public class Type implements ToName, Member {
 
     @Override
     public String toString() {
-        return toInternalName().objectString();
+        return toInternalName().arrayName();
     }
 
     @Override
@@ -184,7 +140,7 @@ public class Type implements ToName, Member {
     @Override
     public Details details() {
         // mutable is false as the class file is not allowed to change during runtime
-        return new Details(qualifiedName(), toInternalName(), false);
+        return new Details(toInternalName().name(), toInternalName(), false);
     }
 
 }
