@@ -8,10 +8,10 @@ import com.xarql.kdl.names.CommonText;
 public class ConditionalHandler implements CommonText {
 
 	private static kdl.ConditionContext conditionContextof(kdl.ConditionalContext ctx) throws UnimplementedException {
-		if(ctx.r_if() != null)
-			return ctx.r_if().condition();
-		else if(ctx.r_while() != null)
-			return ctx.r_while().condition();
+		if(ctx.branch() != null)
+			return ctx.branch().condition();
+		else if(ctx.loop() != null)
+			return ctx.loop().condition();
 		else if(ctx.assertion() != null)
 			return ctx.assertion().condition();
 		else if(ctx.for_loop() != null)
@@ -26,11 +26,11 @@ public class ConditionalHandler implements CommonText {
 		final Conditional conditional;
 		if(ctx.for_loop() != null)
 			conditional = new ForLoop(ctx.for_loop(), actor);
-		else if(ctx.r_if() != null)
+		else if(ctx.branch() != null)
 			conditional = new IfElse(Condition.parseCondition(cnd, actor), actor);
 		else if(ctx.assertion() != null)
 			conditional = new Assertion(Condition.parseCondition(cnd, actor), actor);
-		else if(ctx.r_while() != null)
+		else if(ctx.loop() != null)
 			conditional = new WhileLoop(Condition.parseCondition(cnd, actor), actor);
 		else
 			throw new UnimplementedException("A type of conditional");

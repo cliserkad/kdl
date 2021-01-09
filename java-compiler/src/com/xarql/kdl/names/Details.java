@@ -2,8 +2,10 @@ package com.xarql.kdl.names;
 
 import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.MethodHeader;
+import com.xarql.kdl.Path;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
+import com.xarql.kdl.ir.Constant;
 import com.xarql.kdl.ir.Identifier;
 
 public class Details implements ToName {
@@ -19,16 +21,21 @@ public class Details implements ToName {
 	public final InternalName type;
 	public final boolean mutable;
 
+	public final boolean constant;
+
+	public Details(final Identifier name, final InternalName type, final boolean mutable) {
+		this.name = name;
+		this.type = type;
+		this.mutable = mutable;
+		constant = false;
+	}
+
 	public Details(final Details details) {
-		this.name = details.name;
-		this.type = details.type;
-		this.mutable = details.mutable;
+		this(details.name, details.type, details.mutable);
 	}
 
 	public Details(final String name, final InternalName type, final boolean mutable) {
-		this.name = new Identifier(name);
-		this.type = type;
-		this.mutable = mutable;
+		this(new Identifier(name), type, mutable);
 	}
 
 	public Details(final String name, final InternalName type) {
@@ -44,49 +51,58 @@ public class Details implements ToName {
 	}
 
 	public Details(final kdl.DetailsContext ctx, final CompilationUnit unit) throws Exception {
-		String name = ctx.IDENTIFIER().getText();
-
-		InternalName type;
-		if(ctx.type().basetype() != null) {
-			if(ctx.type().basetype().BOOLEAN() != null)
-				type = InternalName.BOOLEAN;
-			else if(ctx.type().basetype().BYTE() != null)
-				type = InternalName.BYTE;
-			else if(ctx.type().basetype().SHORT() != null)
-				type = InternalName.SHORT;
-			else if(ctx.type().basetype().CHAR() != null)
-				type = InternalName.CHAR;
-			else if(ctx.type().basetype().INT() != null)
-				type = InternalName.INT;
-			else if(ctx.type().basetype().FLOAT() != null)
-				type = InternalName.FLOAT;
-			else if(ctx.type().basetype().LONG() != null)
-				type = InternalName.LONG;
-			else if(ctx.type().basetype().DOUBLE() != null)
-				type = InternalName.DOUBLE;
-			else if(ctx.type().basetype().STRING() != null)
-				type = InternalName.STRING;
-			else
-				throw new UnimplementedException(CommonText.SWITCH_BASETYPE);
-		} else {
-			type = unit.type.resolveImport(ctx.type().getText()).toInternalName();
-			if(type == null)
-				throw new IllegalArgumentException("Couldn't recognize type");
+		this.constant = ctx.CONST() != null;
+		if(constant) {
+			// type is unknown, as it is determined by the assignment
+			this.type = null;
+			// always immutable
+			this.mutable = false;
+		}
+		else {
+			// determine the type
+			InternalName type;
+			if (ctx.type().basetype() != null) {
+				if (ctx.type().basetype().BOOLEAN() != null)
+					type = InternalName.BOOLEAN;
+				else if (ctx.type().basetype().BYTE() != null)
+					type = InternalName.BYTE;
+				else if (ctx.type().basetype().SHORT() != null)
+					type = InternalName.SHORT;
+				else if (ctx.type().basetype().CHAR() != null)
+					type = InternalName.CHAR;
+				else if (ctx.type().basetype().INT() != null)
+					type = InternalName.INT;
+				else if (ctx.type().basetype().FLOAT() != null)
+					type = InternalName.FLOAT;
+				else if (ctx.type().basetype().LONG() != null)
+					type = InternalName.LONG;
+				else if (ctx.type().basetype().DOUBLE() != null)
+					type = InternalName.DOUBLE;
+				else if (ctx.type().basetype().STRING() != null)
+					type = InternalName.STRING;
+				else
+					throw new UnimplementedException(CommonText.SWITCH_BASETYPE);
+			} else {
+				type = unit.resolveImport(ctx.type().getText()).toInternalName();
+				if (type == null)
+					throw new IllegalArgumentException("Couldn't recognize type");
+			}
+			// detect if the type is an array
+			if (ctx.type().BRACE_L() != null)
+				type = type.toArray(ctx.type().BRACE_L().size());
+			this.type = type;
+			// detect if the value is mutable
+			this.mutable = ctx.TILDE() != null;
 		}
 
-		if(ctx.type().BRACE_OPEN() != null) {
-			int dimensions = 0;
-			for(int i = 0; i < ctx.type().BRACE_OPEN().size(); i++)
-				dimensions++;
-			type = type.toArray(dimensions);
-		}
-
-		this.name = new Identifier(name);
-		this.type = type;
-		this.mutable = ctx.MUTABLE() != null;
+		this.name = new Identifier(ctx.IDENTIFIER().getText());
 	}
 
 	public Details withName(final String name) {
+		return new Details(name, type, mutable);
+	}
+
+	public Details withType(final InternalName type) {
 		return new Details(name, type, mutable);
 	}
 
@@ -94,9 +110,9 @@ public class Details implements ToName {
 	 * Transforms init() and prep() to their respective special names
 	 */
 	public Details filterName() {
-		if(name.equals(MethodHeader.S_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
+		if(name.text.equals(MethodHeader.S_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
 			return withName(MethodHeader.S_INIT);
-		else if(name.equals(MethodHeader.S_STATIC_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
+		else if(name.text.equals(MethodHeader.S_STATIC_INIT.replaceAll(CHEVRON_REGEX, CommonText.EMPTY_STRING)))
 			return withName(MethodHeader.S_STATIC_INIT);
 		else
 			return this;
@@ -149,7 +165,7 @@ public class Details implements ToName {
 
 		final String type;
 		if(this.type != null)
-			type = this.type.qualifiedName();
+			type = this.type.arrayName();
 		else
 			type = "null";
 

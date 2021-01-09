@@ -136,7 +136,7 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 	@Override
 	public Assignable assignDefault(Actor actor) throws Exception {
 		if(isBaseType())
-			assign(toBaseType().defaultValue.push(actor).toInternalName(), actor);
+			assign(toBaseType().getDefaultValue().push(actor).toInternalName(), actor);
 		else {
 			actor.visitInsn(ACONST_NULL);
 			actor.visitVarInsn(ASTORE, localIndex);

@@ -7,27 +7,27 @@ import org.objectweb.asm.Opcodes;
 
 public enum BaseType implements ToName {
 
-	BOOLEAN('Z', new Literal<>(false), Opcodes.T_BOOLEAN),
-	BYTE('B', new Literal<>(0), Opcodes.T_BYTE),
-	SHORT('S', new Literal<>(0), Opcodes.T_SHORT),
-	CHAR('C', new Literal<>(' '), Opcodes.T_CHAR),
-	INT('I', new Literal<>(0), Opcodes.T_INT),
-	FLOAT('F', new Literal<>(0.0F), Opcodes.T_FLOAT),
-	LONG('J', new Literal<>(0L), Opcodes.T_LONG),
-	DOUBLE('D', new Literal<>(0.0D), Opcodes.T_DOUBLE),
-	STRING("Ljava/lang/String;", new Literal<>(""), 0);
+	BOOLEAN('Z', false, Opcodes.T_BOOLEAN),
+	BYTE('B', 0, Opcodes.T_BYTE),
+	SHORT('S', 0, Opcodes.T_SHORT),
+	CHAR('C', ' ', Opcodes.T_CHAR),
+	INT('I', 0, Opcodes.T_INT),
+	FLOAT('F', 0.0F, Opcodes.T_FLOAT),
+	LONG('J', 0L, Opcodes.T_LONG),
+	DOUBLE('D', 0.0D, Opcodes.T_DOUBLE),
+	STRING("Ljava/lang/String;", "", 0);
 
 	public final Path rep;
-	public final Literal<?> defaultValue;
+	private final Object defaultValue;
 	public final int id;
 
-	BaseType(String rep, Literal<?> defaultValue, int id) {
+	BaseType(String rep, Object defaultValue, int id) {
 		this.rep = new Path(rep);
 		this.defaultValue = defaultValue;
 		this.id = id;
 	}
 
-	BaseType(char rep, Literal<?> defaultValue, int id) {
+	BaseType(char rep, Object defaultValue, int id) {
 		this("" + rep, defaultValue, id);
 	}
 
@@ -133,6 +133,10 @@ public enum BaseType implements ToName {
 
 	public boolean compatibleWith(BaseType receiver) {
 		return ordinal() <= receiver.ordinal();
+	}
+
+	public Literal<?> getDefaultValue() {
+		return new Literal<>(defaultValue);
 	}
 
 	@Override

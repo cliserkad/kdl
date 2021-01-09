@@ -96,12 +96,11 @@ QUESTION_MARK: '?';
 	XOR: '^^';
 
 // misc
-HEX_CHAR: [a-fA-F];
-HEX_PREFIX: '0x';
-BIN_PREFIX: '0b';
-DIGIT: [0-9];
-NUMBER: DIGIT (DIGIT | COMMA | '_')*;
+HEX_LIT: '0x' [0-9a-fA-F]*;
+BIN_LIT: '0b' [01] [01,_]*;
+NUMBER: [0-9] [0-9,_]*;
+FRACTION: NUMBER DOT NUMBER;
 
 
 // match anything that is unmatched and has no syntax characters
-IDENTIFIER: ~([0123456789\r\t\n &|+<>=?!*.~:;,(){}'"/%]|'['|']') ~([\r\t\n &|+<>=?!*.~:;,(){}'"/%]|'['|']')+;
+IDENTIFIER: ~([0123456789\r\t\n &|+<>=?!*.~:;,(){}'"/%]|'['|']') ~([\r\t\n &|+<>=?!*.~:;,(){}'"/%]|'['|']')*;

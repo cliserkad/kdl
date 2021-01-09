@@ -164,7 +164,7 @@ public class CompilationDispatcher implements CommonText {
 	public void writeAndVerify(final BestList<CompilationUnit> units) throws IOException, ClassNotFoundException {
 		for(CompilationUnit unit : units) {
 			unit.write();
-			getClassLoader().loadClass(unit.getType().qualifiedName().replace(Type.PATH_SEPARATOR, CompilationUnit.JAVA_SOURCE_SEPARATOR));
+			getClassLoader().loadClass(unit.getType().toInternalName().qualifiedName().replace(Type.PATH_SEPARATOR, CompilationUnit.JAVA_SOURCE_SEPARATOR));
 		}
 	}
 

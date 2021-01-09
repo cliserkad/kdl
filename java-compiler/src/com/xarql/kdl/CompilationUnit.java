@@ -15,7 +15,6 @@ import org.objectweb.asm.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,8 +33,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	public final int id;
 	public final CompilationDispatcher owner;
+	public Path path;
 	public Type type;
-	public Set<Type> imports = new HashSet<>();
+	public Set<Type> imports;
 
 	// input and output
 	public ClassWriter cw;
@@ -55,7 +55,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		pass = 0;
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
 		id = unitCount++;
-		type = new Type();
+		type = null;
+		path = new Path();
+		imports = new HashSet<>();
 		addImport(String.class);
 		tree = null;
 		warnings = new BestList<>("KDL is an unfinished language and may produce broken class files");
@@ -132,13 +134,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return sourceFile != null;
 	}
 
-	public Path sourcePath() {
+	public java.nio.file.Path sourcePath() {
 		return sourceFile.toPath();
 	}
 
 	public String unitName() {
-		if(type != null && type.isNamed())
-			return type.qualifiedName();
+		if(type != null)
+			return type.toInternalName().qualifiedName();
 		else if(sourceFile != null)
 			return sourceFile.getName();
 		else
@@ -174,10 +176,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			write();
 
 		// check input file name
-		if(sourceFile != null && !sourceFile.getName().replace(".kdl", "").equalsIgnoreCase(type.name))
+		if(sourceFile != null && !sourceFile.getName().replace(".kdl", "").equalsIgnoreCase(type.name.name()))
 			throw new IllegalArgumentException(INCORRECT_FILE_NAME + " file:" + sourceFile.getName() + " class:" + type.name);
 
-		destination = new File(destination, type.qualifiedName() + ".class");
+		destination = new File(destination, type.toInternalName().qualifiedName() + ".class");
 		destination.getParentFile().mkdirs();
 		destination.createNewFile();
 
@@ -219,7 +221,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				for(Constant c : type.constants.keys()) {
 					if(c.owner.equals(getType().toInternalName())) {
 						try {
-							final kdl.ConstantDefContext cDef = type.constants.get(c);
+							final kdl.ReservationContext cDef = type.constants.get(c);
 							final Expression expression = new Expression(type, cDef.expression(), actor);
 							final Constant unsetConst = new Constant(c.name.text, expression.toInternalName(), type.toInternalName());
 							addConstant(unsetConst);
@@ -254,33 +256,27 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	@Override
-	public void enterFieldDef(kdl.FieldDefContext ctx) {
-		// collect details
-		if(getPass() == 1) {
+	public void enterReservation(kdl.ReservationContext ctx) {
+		if(getPass() == 1 && ctx.parent.getRuleIndex() == kdl.RULE_clazz) {
 			try {
-				final Details details = new Details(ctx.variableDeclaration().details(), this);
-				final ObjectField field = new ObjectField(details, getType().toInternalName());
-				if(!type.fields.contains(field))
-					type.fields.put(field, ctx);
-				else
-					throw new IllegalArgumentException("The field named " + details.name + " was already declared within " + getType());
+				final Details details = new Details(ctx.details(), this);
+				if(details.constant) {
+					final Constant unsetConst = new Constant(details.name.text, InternalName.PLACEHOLDER, getType().toInternalName());
+					if(!type.constants.contains(unsetConst))
+						type.constants.put(unsetConst, ctx);
+					else
+						throw new IllegalArgumentException(unsetConst + " was already declared");
+				} else {
+					final ObjectField field = new ObjectField(details, getType().toInternalName());
+					if (!type.fields.contains(field))
+						type.fields.put(field, ctx);
+					else
+						throw new IllegalArgumentException("The field named " + details.name + " was already declared within " + getType());
+				}
 			} catch(Exception e) {
 				e.printStackTrace();
 				throw new IllegalArgumentException("Couldn't determine the name, type and mutability of a field at " + ctx.getStart().getLine() + ":" + ctx.getStart().getCharPositionInLine());
 			}
-		}
-	}
-
-	@Override
-	public void enterConstantDef(final kdl.ConstantDefContext ctx) {
-		// collect details
-		if(getPass() == 1) {
-			final String name = ctx.IDENTIFIER().toString();
-			final Constant unsetConst = new Constant(name, InternalName.PLACEHOLDER, getType().toInternalName());
-			if(!type.constants.contains(unsetConst))
-				type.constants.put(unsetConst, ctx);
-			else
-				throw new IllegalArgumentException(unsetConst + " was already declared");
 		}
 	}
 
@@ -294,44 +290,49 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		target.assign(resultType, actor);
 	}
 
-	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, Actor actor) throws Exception {
+	private void consumeVariableDeclaration(kdl.ReservationContext ctx, Actor actor) throws Exception {
 		final Variable target = actor.scope.newVar(new Details(ctx.details(), this));
-		if(ctx.ASSIGN() != null) {
+		if(ctx.COLON() != null) {
 			target.assign(new Expression(type, ctx.expression(), actor).push(actor).toInternalName(), actor);
 		} else
 			target.assignDefault(actor);
 	}
 
-	public void consumeStatement(final kdl.StatementContext ctx, Actor actor) throws Exception {
-		if(ctx.variableDeclaration() != null) {
-			consumeVariableDeclaration(ctx.variableDeclaration(), actor);
-		} else if(ctx.assignment() != null) {
-			consumeAssignment(ctx.assignment(), actor);
-		} else if(ctx.expression() != null) {
-			new Expression(type, ctx.expression(), actor).push(actor);
+	public void consumePart(final kdl.StatementContext ctx, Actor actor) throws Exception {
+		if(ctx.imperative() != null) {
+			if(ctx.imperative().reservation() != null) {
+				consumeVariableDeclaration(ctx.imperative().reservation(), actor);
+			} else if(ctx.imperative().assignment() != null) {
+				consumeAssignment(ctx.imperative().assignment(), actor);
+			} else if(ctx.imperative().expression() != null) {
+				new Expression(type, ctx.imperative().expression(), actor).push(actor);
+			} else if(ctx.imperative().returnStatement() != null) {
+				final ReturnValue rv;
+				if(ctx.imperative().returnStatement().expression() == null)
+					rv = null;
+				else
+					rv = new ReturnValue(new Expression(type, ctx.imperative().returnStatement().expression(), actor).push(actor));
+				actor.writeReturn(rv);
+			} else
+				throw new UnimplementedException("A type of Imperative couldn't be interpreted " + ctx.getText());
 		} else if(ctx.conditional() != null) {
-			// forward to the handler to partition code
 			ConditionalHandler.handle(ctx.conditional(), actor);
-		} else if(ctx.returnStatement() != null) {
-			final ReturnValue rv;
-			if(ctx.returnStatement().expression() == null)
-				rv = null;
-			else
-				rv = new ReturnValue(new Expression(type, ctx.returnStatement().expression(), actor).push(actor));
-			actor.writeReturn(rv);
 		} else
-			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
+			throw new UnimplementedException("A type of Statement couldn't be interpreted " + ctx.getText());
 	}
 
 	public void consumeBlock(final kdl.BlockContext ctx, Actor actor) throws Exception {
-		for(kdl.StatementContext statement : ctx.statement())
-			consumeStatement(statement, actor);
+		for(kdl.StatementContext statement : ctx.statement()) {
+			consumePart(statement, actor);
+		}
 	}
 
 	@Override
 	public void enterPath(final kdl.PathContext ctx) {
-		if(pass == 1)
-			type = type.withPkg(ctx.getText().trim().substring(4).replace(';', ' ').trim());
+		if(pass == 1) {
+			path = path.prepend(ctx.getText().trim().substring(4));
+			type = new Type(new InternalName(path));
+		}
 	}
 
 	@Override
@@ -355,7 +356,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void addImport(Type dc) {
-		type.imports.add(dc);
+		imports.add(dc);
 	}
 
 	@Override
@@ -481,11 +482,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	 * @return success of operation
 	 */
 	public boolean setClassName(final String name) {
-		if(!type.isNamed()) {
-			type = type.withName(name);
+		if(type == null) {
+			path = path.append(name);
+			type = new Type(new InternalName(path));
 
 			// give name to ClassWriter
-			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, type.qualifiedName(), null, InternalName.OBJECT.qualifiedName(), null);
+			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, type.name.qualifiedName(), null, InternalName.OBJECT.qualifiedName(), null);
 			cw.visitSource(type.name + ".kdl", null);
 
 			return true;
@@ -512,7 +514,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(c.toBaseType() == STRING)
 			defaultValue = "placeholder";
 		else if(c.isBaseType())
-			defaultValue = c.toBaseType().defaultValue.value;
+			defaultValue = c.toBaseType().getDefaultValue().value;
 		else
 			defaultValue = null;
 		fv = cw.visitField(CONST_ACCESS, c.name.text, c.type.arrayName(), null, defaultValue);
@@ -535,12 +537,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(f.ownerType.equals(getType().toInternalName()) && f instanceof ObjectField) {
 				// push "this"
 				actor.visitVarInsn(ALOAD, 0);
-				if(type.fields.get(f).variableDeclaration().ASSIGN() != null) {
-					final Expression xpr = new Expression(type, type.fields.get(f).variableDeclaration().expression(), actor);
+				if(type.fields.get(f) != null) {
+					final Expression xpr = new Expression(type, type.fields.get(f).expression(), actor);
 					xpr.push(actor);
 				} else {
 					if(f.type.isBaseType())
-						f.type.toBaseType().defaultValue.push(actor);
+						f.type.toBaseType().getDefaultValue().push(actor);
 					else
 						actor.visitInsn(ACONST_NULL);
 				}
@@ -555,9 +557,18 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		actor.visitEnd();
 	}
 
+	public Type resolveImport(InternalName name) {
+		return resolveImportObject(name);
+	}
+
 	public Type resolveImport(String name) {
+		return resolveImport(name);
+	}
+
+	// private because Object should be a union of String & InternalName
+	private Type resolveImportObject(Object obj) {
 		for(Type t : imports)
-			if(t.name.equals(name))
+			if(t.name.equals(obj))
 				return t;
 		return null;
 	}

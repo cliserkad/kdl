@@ -21,8 +21,8 @@ public class Type implements ToName, Member {
     public static final char PATH_SEPARATOR = Path.PATH_SEPARATOR;
 
     public final InternalName name;
-    public TrackedMap<Constant, kdl.ConstantDefContext> constants = new TrackedMap<>();
-    public TrackedMap<StaticField, kdl.FieldDefContext> fields = new TrackedMap<>();
+    public TrackedMap<Constant, kdl.ReservationContext> constants = new TrackedMap<>();
+    public TrackedMap<StaticField, kdl.ReservationContext> fields = new TrackedMap<>();
     public Set<MethodHeader> methods = new HashSet<>();
 
     public Type(InternalName name) {
@@ -55,44 +55,10 @@ public class Type implements ToName, Member {
         return out;
     }
 
-    public boolean isTypeImported(String name) {
-        return resolveImport(name) != null;
-    }
-
-    public Type resolveImportOrFail(String name) throws SymbolResolutionException {
-        final Type out = resolveImport(name);
-        if(out != null)
-            return out;
-        else
-            throw new SymbolResolutionException("Couldn't recognize type: " + name);
-    }
-
     public void copyTo(Type other) {
         other.constants = constants;
         other.fields = fields;
         other.methods = methods;
-    }
-
-    /**
-     * Creates a new DynamicClass, using the name of this DynamicClass
-     * @param pkg new pkg
-     * @return new DynamicClass
-     */
-    public Type withPkg(String pkg) {
-        Type out = new Type(pkg, name);
-        copyTo(out);
-        return out;
-    }
-
-    /**
-     * Creates a new DynamicClass, using the pkg of this DynamicClass
-     * @param name new name
-     * @return new DynamicClass
-     */
-    public Type withName(String name) {
-        Type out = new Type(pkg, name);
-        copyTo(out);
-        return out;
     }
 
     @Override
@@ -100,15 +66,14 @@ public class Type implements ToName, Member {
         if (this == o) return true;
         if (o != null && o instanceof Type) {
             Type that = (Type) o;
-            return Objects.equals(pkg, that.pkg) &&
-                    Objects.equals(name, that.name);
+            return name.equals(that.name);
         } else
             return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pkg, name);
+        return name.hashCode();
     }
 
     @Override
@@ -118,7 +83,7 @@ public class Type implements ToName, Member {
 
     @Override
     public InternalName toInternalName() {
-        return new InternalName(this);
+        return name;
     }
 
     @Override

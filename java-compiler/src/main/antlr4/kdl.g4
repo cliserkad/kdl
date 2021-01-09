@@ -10,14 +10,11 @@ options {
 
 // literals
 bool: TRUE | FALSE;
-number: DIGIT | NUMBER;
-fraction: number DOT number;
-integer: number | binary | hex;
-binary: BIN_PREFIX number;
-hex: HEX_PREFIX (DIGIT | HEX_CHAR)+;
-literal: bool | CHAR_LIT | STRING_LIT | integer | fraction | NULL;
+integer: NUMBER | BIN_LIT | HEX_LIT;
+literal: bool | CHAR_LIT | STRING_LIT | integer | FRACTION | NULL;
 
-statement: expression | reservation | assignment | returnStatement | conditional;
+imperative: (expression | reservation | assignment | returnStatement) SEMICOLON;
+statement: imperative | conditional;
 block: CURL_L statement* CURL_R;
 
 methodCall: IDENTIFIER argumentSet;
@@ -26,7 +23,7 @@ argumentSet: PAREN_L (expression (COMMA expression)*)? PAREN_R;
 value: literal | IDENTIFIER | methodCall | THIS | indexAccess | subSequence;
 operator: PLUS | MINUS | SLASH | MULTIPLY | MODULUS | DOT | NOT | INCREMENT | DECREMENT
 		| BIT_SHIFT_LEFT | BIT_SHIFT_RIGHT | BIT_SHIFT_RIGHT_UNSIGNED | BIT_AND | BIT_OR | BIT_XOR;
-expression: operator? value (operator expression?)?;
+expression: operator? value expression?;
 indexAccess: BRACE_L expression BRACE_R;
 range: expression? DOT DOT expression;
 subSequence: BRACE_L range BRACE_R;
@@ -41,10 +38,10 @@ for_loop: FOR IDENTIFIER COLON range block;
 for_each_loop: FOR IDENTIFIER COLON expression block;
 
 // conditionals
-conditional: branch | assertion | loop | for_loop | for_each_loop;
+conditional: branch | loop | for_loop | for_each_loop | assertion;
 branch: IF condition block inverse?;
 inverse: ELSE block;
-assertion: ASSERT condition;
+assertion: ASSERT condition SEMICOLON;
 loop: WHILE condition block;
 
 details: (type TILDE? QUESTION_MARK? | CONST) IDENTIFIER;

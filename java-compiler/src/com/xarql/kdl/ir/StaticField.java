@@ -40,7 +40,7 @@ public class StaticField extends Details implements Assignable, Member {
 	@Override
 	public StaticField assignDefault(Actor actor) throws Exception {
 		if(isBaseType())
-			toBaseType().defaultValue.push(actor);
+			toBaseType().getDefaultValue().push(actor);
 		else
 			actor.visitInsn(Opcodes.ACONST_NULL);
 		return assign(type, actor);
@@ -48,7 +48,9 @@ public class StaticField extends Details implements Assignable, Member {
 
 	@Override
 	public boolean equals(Object object) {
-		if(object != null && object instanceof StaticField) {
+		if(this == object)
+			return true;
+		else if(object != null && object instanceof StaticField) {
 			final StaticField other = (StaticField) object;
 			return other.ownerType.equals(ownerType) && other.name.equals(name);
 		} else

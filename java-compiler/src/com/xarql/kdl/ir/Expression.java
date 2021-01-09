@@ -18,12 +18,14 @@ public class Expression implements Pushable, CommonText {
 	public final Operator operator;
 	public final Expression expression;
 
-	public Expression(Pushable value, Pushable expression, Operator operator) {
-		if(!value.isBaseType() || !expression.isBaseType())
-			throw new IllegalArgumentException("Expressions may only contain BaseTypes");
+	public Expression(Pushable value, Expression expression, Operator operator) {
 		this.value = value;
 		this.operator = operator;
 		this.expression = expression;
+	}
+
+	public Expression(Pushable value) {
+		this(value, null, null);
 	}
 
 	public static Pushable resolveID(Identifier id, Type encloser, Actor actor) throws SymbolResolutionException {
@@ -46,14 +48,12 @@ public class Expression implements Pushable, CommonText {
 		}
 
 		if(ctx.expression() != null)
-			expression = new Expression(parent.resolveImportOrFail(value.toInternalName().name()), ctx.expression(), actor);
+			expression = new Expression(actor.unit.resolveImport(value.toInternalName()), ctx.expression(), actor);
 		else
 			this.expression = null;
 
 		if(ctx.operator() != null)
 			operator = Operator.match(ctx.operator().getText());
-		else if(ctx.indexAccess() != null || ctx.subSequence() != null)
-			operator = Operator.INDEX_ACCESS;
 		else
 			operator = null;
 

@@ -70,8 +70,8 @@ public class Literal<Type> implements Pushable, CommonText {
 				return new Literal<>((int) val);
 			else
 				return new Literal<>(val);
-		} else if(ctx.fraction() != null) {
-			final double val = Double.parseDouble(removeSpacers(ctx.fraction().getText()));
+		} else if(ctx.FRACTION() != null) {
+			final double val = Double.parseDouble(removeSpacers(ctx.FRACTION().getText()));
 			if(val < Float.MAX_VALUE && val > Float.MIN_VALUE)
 				return new Literal<>((float) val);
 			else

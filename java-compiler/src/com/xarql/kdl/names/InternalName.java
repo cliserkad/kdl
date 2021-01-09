@@ -3,6 +3,8 @@ package com.xarql.kdl.names;
 import com.xarql.kdl.Path;
 import com.xarql.kdl.PlaceHolder;
 
+import java.util.Objects;
+
 public class InternalName implements ToName, CommonText {
 
 	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN.rep);
@@ -67,7 +69,7 @@ public class InternalName implements ToName, CommonText {
 
 	public Object defaultValue() {
 		if(isBaseType())
-			return toBaseType().defaultValue;
+			return toBaseType().getDefaultValue();
 		else
 			return null;
 	}
@@ -92,7 +94,7 @@ public class InternalName implements ToName, CommonText {
 	 * then qualifiedName() is returned.
 	 * Ex: Ljava/lang/String;
 	 */
-	private String objectName() {
+    public String objectName() {
 		if(isBaseType() && toBaseType() != BaseType.STRING)
 			return qualifiedName();
 		else
@@ -101,7 +103,8 @@ public class InternalName implements ToName, CommonText {
 
 	/**
 	 * Provides the objectName, prefixed with arrayDimensions amount
-	 * of array dimension markers
+	 * of array dimension markers.
+	 * Ex: [[Ljava/lang/String;
 	 */
 	public String arrayName() {
 		StringBuilder dims = new StringBuilder();
@@ -147,9 +150,16 @@ public class InternalName implements ToName, CommonText {
 		} else if(o instanceof BaseType) {
 			BaseType base = (BaseType) o;
 			return base.toInternalName().equals(this);
+		} else if(o instanceof String) {
+			return path.last().equals(o);
 		} else {
 			return false;
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(path, arrayDimensions);
 	}
 
 	@Override

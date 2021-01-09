@@ -2,9 +2,13 @@ package com.xarql.kdl;
 
 import com.xarql.kdl.names.BaseType;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class Path {
+public class Path implements Serializable {
+    // TODO: increment when this file is edited
+    private static final long serialVersionUID = 1L;
+
     public static final char PATH_SEPARATOR = '/';
 
     private final String[] parts;
@@ -48,31 +52,42 @@ public class Path {
         return parts.length;
     }
 
+    public Path prepend(Path p) {
+        String[] newParts = getParts(p.size());
+        for(int i = 0; i < p.size(); i++)
+            newParts[i] = p.part(i);
+        return new Path(newParts);
+    }
+
     public Path prepend(String s) {
-        String[] parts = getParts(1, size() + 1);
-        parts[0] = s;
-        return new Path(parts);
+        return prepend(new Path(s));
+    }
+
+    public Path append(Path p) {
+        String[] newParts = getParts(-p.size());
+        for(int i = 0; i < p.size(); i++)
+            newParts[i + size()] = p.part(i);
+        return new Path(newParts);
     }
 
     public Path append(String s) {
-        String[] parts = getParts(0, size() + 1);
-        parts[parts.length - 1] = s;
-        return new Path(parts);
+        return append(new Path(s));
     }
 
     public String[] getParts() {
-        return getParts(0, size());
+        return getParts(0);
     }
 
     /**
      * Creates a copy of this StringPath's parts.
      *
      * @param offset Amount of null elements to prepend
-     * @param length Desired length of the destination array
      */
-    public String[] getParts(int offset, int length) {
-        String[] parts = new String[length];
-        System.arraycopy(this.parts, 0, parts, offset, length);
+    public String[] getParts(int offset) {
+        final int diff = Math.abs(offset);
+        offset = Math.max(0, offset);
+        String[] parts = new String[size() + diff];
+        System.arraycopy(this.parts, 0, parts, offset, size());
         return parts;
     }
 
@@ -93,6 +108,9 @@ public class Path {
         else if(o instanceof Path) {
             Path that = (Path) o;
             return Arrays.equals(getParts(), that.getParts());
+        } else if(o instanceof String) {
+            Path that = new Path((String) o);
+            return equals(that);
         } else
             return false;
     }
@@ -101,4 +119,5 @@ public class Path {
     public int hashCode() {
         return Arrays.hashCode(getParts());
     }
+
 }
