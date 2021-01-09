@@ -16,7 +16,7 @@ public class Null implements Pushable, CommonText {
 
 	@Override
 	public Type toType() {
-		return TypeDescriptor.OBJECT;
+		return Type.OBJECT;
 	}
 
 	@Override
@@ -29,4 +29,8 @@ public class Null implements Pushable, CommonText {
 		return null;
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return TypeDescriptor.VOID;
+	}
 }

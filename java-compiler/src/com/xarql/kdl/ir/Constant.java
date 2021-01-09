@@ -4,6 +4,7 @@ import com.xarql.kdl.Actor;
 import com.xarql.kdl.Type;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.Details;
+import com.xarql.kdl.names.ToType;
 import com.xarql.kdl.names.TypeDescriptor;
 import org.objectweb.asm.Opcodes;
 
@@ -11,9 +12,9 @@ import java.util.Objects;
 
 public class Constant extends Details implements Member {
 
-	public final TypeDescriptor owner;
+	public final Type owner;
 
-	public Constant(final String name, final TypeDescriptor type, final TypeDescriptor owner) {
+	public Constant(final String name, final TypeDescriptor type, final ToType owner) {
 		super(name, type, false);
 		if(name == null || name.isEmpty())
 			throw new IllegalArgumentException("Constant name may not be empty");
@@ -21,7 +22,7 @@ public class Constant extends Details implements Member {
 			throw new NullPointerException();
 		if(owner == null)
 			throw new NullPointerException();
-		this.owner = owner;
+		this.owner = owner.toType();
 	}
 
 	@Override
@@ -55,12 +56,12 @@ public class Constant extends Details implements Member {
 
 	@Override
 	public Type toType() {
-		return descriptor;
+		return descriptor.toType();
 	}
 
 	@Override
 	public Pushable push(final Actor actor) {
-		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.qualifiedName(), name.text, descriptor.arrayName());
+		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.toTypeDescriptor().qualifiedName(), name.text, descriptor.arrayName());
 		return this;
 	}
 

@@ -14,7 +14,7 @@ public class Path implements Serializable {
     private final String[] parts;
 
     public Path() {
-        this.parts = new String[0];
+        this(new String[0]);
     }
 
     public Path(String...parts) {
@@ -22,16 +22,19 @@ public class Path implements Serializable {
             this.parts = new String[0];
         else
             this.parts = parts;
+        if(parts == null)
+            throw new IllegalArgumentException("parts may not be null");
     }
 
     public Path(String raw) {
         this(raw.split("" + PATH_SEPARATOR));
+        System.out.println("raw: " + raw + "\nis" + Arrays.toString(raw.split("" + PATH_SEPARATOR)));
     }
 
     public static Path forClass(Class<?> c) {
         BaseType base = BaseType.matchClassStrict(c);
         if(base != null)
-            return base.rep;
+            return base.toType().name;
         else
             return new Path(c.getCanonicalName().replace(CompilationUnit.JAVA_SOURCE_SEPARATOR, PATH_SEPARATOR));
     }

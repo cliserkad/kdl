@@ -23,7 +23,7 @@ public class MethodCall implements Pushable, CommonText {
 
 		// build a method target and attempt to resolve it
 		MethodTarget known = new MethodTarget(parent, methodName, argTypes(args), false);
-		invocation = known.resolve(actor).withOwner(source).withArgs(args);
+		invocation = known.resolve(actor).withArgs(args);
 	}
 
 	public static BestList<Pushable> parseArguments(kdl.ArgumentSetContext ctx, Actor actor) throws Exception {
@@ -40,7 +40,7 @@ public class MethodCall implements Pushable, CommonText {
 	public BestList<TypeDescriptor> argTypes(BestList<Pushable> args) {
 		final BestList<TypeDescriptor> argTypes = new BestList<>();
 		for(Pushable arg : args)
-			argTypes.add(arg.toType());
+			argTypes.add(arg.toTypeDescriptor());
 		return argTypes;
 	}
 
@@ -78,4 +78,8 @@ public class MethodCall implements Pushable, CommonText {
 		return out;
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return invocation.toTypeDescriptor();
+	}
 }

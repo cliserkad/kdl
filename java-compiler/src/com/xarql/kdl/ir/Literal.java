@@ -6,6 +6,7 @@ import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.TypeDescriptor;
 
 public class Literal<Type> implements Pushable, CommonText {
 
@@ -135,4 +136,8 @@ public class Literal<Type> implements Pushable, CommonText {
 		return s.substring(1, s.length() - 1);
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return BaseType.STRING.toTypeDescriptor();
+	}
 }

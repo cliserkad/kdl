@@ -5,7 +5,6 @@ import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.TypeDescriptor;
-import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -98,7 +97,7 @@ public abstract class Conditional implements Opcodes {
 
 		// use isEmpty() on the second copy of the string
 		actor.visitLabel(isEmpty);
-		new MethodHeader(TypeDescriptor.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).push(actor);
+		new MethodHeader(BaseType.STRING, "isEmpty", null, BaseType.BOOLEAN.toTypeDescriptor(), ACC_PUBLIC + ACC_STATIC).push(actor);
 
 		// negative vs positive jump
 		if(condition.positive)
@@ -110,7 +109,7 @@ public abstract class Conditional implements Opcodes {
 	public final void testStrings(final Actor actor) throws Exception {
 		switch(condition.cmp) {
 			case EQUAL:
-				MethodHeader.EQUALS.withOwner(TypeDescriptor.STRING).push(actor);
+				MethodHeader.EQUALS.withOwner(BaseType.STRING.toType()).push(actor);
 				break;
 			default:
 				throw new UnimplementedException("Only == has been implemented for strings");

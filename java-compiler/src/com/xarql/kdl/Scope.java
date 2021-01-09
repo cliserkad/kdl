@@ -1,11 +1,7 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.ir.Variable;
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.Details;
-import com.xarql.kdl.names.ReturnValue;
-import com.xarql.kdl.names.ToType;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.*;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -35,15 +31,15 @@ public class Scope implements Opcodes {
 		return start;
 	}
 
-	public Variable newVar(final String name, final ToType type, final boolean mutable) {
-		Variable var = addLocalVariable(new Variable(name, type.toType(), nextIndex(), mutable));
+	public Variable newVar(final String name, final ToTypeDescriptor descriptor, final boolean mutable) {
+		Variable var = addLocalVariable(new Variable(name, descriptor.toTypeDescriptor(), nextIndex(), mutable));
 		// increment it again to reserve a second slot if its a 64-bit number
-		if(type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
+		if(descriptor.toBaseType() == BaseType.LONG || descriptor.toBaseType() == BaseType.DOUBLE)
 			index++;
 		return var;
 	}
 
-	public Variable newVar(final String name, final ToType type) {
+	public Variable newVar(final String name, final ToTypeDescriptor type) {
 		return newVar(name, type, Variable.DEFAULT_MUTABLE);
 	}
 

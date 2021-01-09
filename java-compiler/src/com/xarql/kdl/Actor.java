@@ -1,7 +1,7 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.ReturnValue;
+import com.xarql.kdl.names.TypeDescriptor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -21,11 +21,11 @@ public class Actor extends MethodVisitor implements Opcodes, CommonText {
 		return new Actor(methodVisitor, unit, methodHeader.name);
 	}
 
-	public void writeReturn(ReturnValue rv) {
-		if(rv == null)
+	public void writeReturn(TypeDescriptor yield) {
+		if(TypeDescriptor.VOID.equals(yield))
 			visitInsn(RETURN);
-		else if(rv.isBaseType() && !rv.toType().isArray()) {
-			switch(rv.toBaseType()) {
+		else if(yield.isBaseType() && !yield.isArray()) {
+			switch(yield.toBaseType()) {
 				case BOOLEAN:
 				case BYTE:
 				case CHAR:

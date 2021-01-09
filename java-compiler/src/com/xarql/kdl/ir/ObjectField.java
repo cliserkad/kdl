@@ -12,7 +12,7 @@ public class ObjectField extends StaticField implements Assignable {
 	public final Pushable owner;
 
 	public ObjectField(Details details, Pushable owner) {
-		super(details, owner.toType());
+		super(details, owner.toTypeDescriptor());
 		this.owner = owner;
 	}
 
@@ -33,7 +33,7 @@ public class ObjectField extends StaticField implements Assignable {
 	public ObjectField assign(TypeDescriptor incomingType, Actor actor) throws Exception {
 		if(owner == null)
 			throw new NullPointerException(NO_OWNER);
-		final TypeDescriptor ownerType = owner.push(actor).toType();
+		final TypeDescriptor ownerType = owner.push(actor).toTypeDescriptor();
 		actor.visitInsn(Opcodes.SWAP);
 		actor.visitFieldInsn(Opcodes.PUTFIELD, ownerType.qualifiedName(), name.text, descriptor.arrayName());
 		return this;
@@ -41,7 +41,7 @@ public class ObjectField extends StaticField implements Assignable {
 
 	@Override
 	public ObjectField assignDefault(Actor actor) throws Exception {
-		final TypeDescriptor incomingType = descriptor.toBaseType().getDefaultValue().push(actor).toType();
+		final TypeDescriptor incomingType = descriptor.toBaseType().getDefaultValue().push(actor).toTypeDescriptor();
 		assign(incomingType, actor);
 		return this;
 	}
@@ -50,7 +50,7 @@ public class ObjectField extends StaticField implements Assignable {
 	public Pushable push(Actor actor) throws Exception {
 		if(owner == null)
 			throw new NullPointerException(NO_OWNER);
-		final TypeDescriptor ownerType = owner.push(actor).toType();
+		final TypeDescriptor ownerType = owner.push(actor).toTypeDescriptor();
 		actor.visitFieldInsn(Opcodes.GETFIELD, ownerType.qualifiedName(), name.text, descriptor.arrayName());
 		return this;
 	}

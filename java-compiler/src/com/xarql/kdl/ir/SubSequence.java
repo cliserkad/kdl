@@ -7,12 +7,10 @@ import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.TypeDescriptor;
-import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.Opcodes;
 
 public class SubSequence implements Pushable {
-	public static final MethodHeader SUB_STRING = new MethodHeader(TypeDescriptor.STRING, "substring", MethodHeader.toParamList(TypeDescriptor.INT, TypeDescriptor.INT), ReturnValue.STRING,
-			Opcodes.ACC_PUBLIC);
+	public static final MethodHeader SUB_STRING = new MethodHeader(BaseType.STRING.toType(), "substring", MethodHeader.toParamList(BaseType.INT.toTypeDescriptor(), BaseType.INT.toTypeDescriptor()), BaseType.STRING.toTypeDescriptor(), Opcodes.ACC_PUBLIC);
 
 	public final Pushable operand;
 	public final Range range;
@@ -28,7 +26,7 @@ public class SubSequence implements Pushable {
 
 	@Override
 	public SubSequence push(Actor actor) throws Exception {
-		if(!operand.toType().isArray() && operand.toBaseType() == BaseType.STRING) {
+		if(!operand.toTypeDescriptor().isArray() && operand.toBaseType() == BaseType.STRING) {
 			operand.push(actor);
 			range.min.push(actor);
 			range.max.push(actor);
@@ -54,4 +52,8 @@ public class SubSequence implements Pushable {
 		return operand.toBaseType();
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return new TypeDescriptor(operand.toType(), Math.max(0, operand.toTypeDescriptor().arrayDimensions - 1));
+	}
 }

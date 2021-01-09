@@ -20,9 +20,10 @@ import java.util.List;
 import java.util.Set;
 
 import static com.xarql.kdl.Type.PATH_SEPARATOR;
+import static com.xarql.kdl.Type.get;
 import static com.xarql.kdl.names.BaseType.*;
 
-public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
+public class CompilationUnit extends kdlBaseListener implements Runnable, ToTypeDescriptor, CommonText {
 	public static final char JAVA_SOURCE_SEPARATOR = '.';
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
@@ -95,7 +96,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					actualType = INT.type.toTypeDescriptor();
 				else if(descriptor.toBaseType() == SHORT)
 					actualType = INT.type.toTypeDescriptor();
-				stringValueOf = new MethodHeader(STRING.toTypeDescriptor(), "valueOf", MethodHeader.toParamList(actualType), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
+				stringValueOf = new MethodHeader(STRING.toTypeDescriptor(), "valueOf", MethodHeader.toParamList(actualType), STRING.toTypeDescriptor(), ACC_PUBLIC + ACC_STATIC);
 			}
 		} else
 			stringValueOf = new MethodHeader(STRING.toTypeDescriptor(), "valueOf", MethodHeader.toParamList(TypeDescriptor.OBJECT), STRING.toTypeDescriptor(), ACC_PUBLIC + ACC_STATIC);
@@ -219,15 +220,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				Actor actor = defineMethod(staticInit);
 
 				for(Constant c : type.constants.keys()) {
-					if(c.owner.equals(getType().toType())) {
+					if(c.owner.equals(getType())) {
 						try {
 							final kdl.ReservationContext cDef = type.constants.get(c);
 							final Expression expression = new Expression(type, cDef.expression(), actor);
-							final Constant unsetConst = new Constant(c.name.text, expression.toType(), type.toType());
+							final Constant unsetConst = new Constant(c.name.text, expression.toTypeDescriptor(), type.toTypeDescriptor());
 							addConstant(unsetConst);
 							type.constants.put(unsetConst, cDef);
 							expression.push(actor);
-							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.qualifiedName(), unsetConst.name.text, expression.toType().arrayName());
+							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.toTypeDescriptor().qualifiedName(), unsetConst.name.text, expression.toTypeDescriptor().arrayName());
 						} catch (Exception e) {
 							printException(e);
 						}
@@ -237,7 +238,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			}
 
 			for(StaticField f : type.fields.keys()) {
-				if(f.ownerType.equals(getType().toType()) && f instanceof ObjectField) {
+				if(f.ownerType.equals(getType()) && f instanceof ObjectField) {
 					final FieldVisitor fv;
 					int modifier = 0;
 					if(f.mutable)
@@ -261,13 +262,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			try {
 				final Details details = new Details(ctx.details(), this);
 				if(details.constant) {
-					final Constant unsetConst = new Constant(details.name.text, TypeDescriptor.PLACEHOLDER, getType().toType());
+					final Constant unsetConst = new Constant(details.name.text, TypeDescriptor.PLACEHOLDER, getType());
 					if(!type.constants.contains(unsetConst))
 						type.constants.put(unsetConst, ctx);
 					else
 						throw new IllegalArgumentException(unsetConst + " was already declared");
 				} else {
-					final ObjectField field = new ObjectField(details, getType().toType());
+					final ObjectField field = new ObjectField(details, toTypeDescriptor());
 					if (!type.fields.contains(field))
 						type.fields.put(field, ctx);
 					else
@@ -284,16 +285,16 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		final Assignable target = Assignable.parse(ctx, actor);
 		final TypeDescriptor resultType;
 		if(ctx.operator() != null)
-			resultType = new Expression(target, new Expression(type, ctx.expression().get(1), actor), Operator.match(ctx.operator().getText())).push(actor).toType();
+			resultType = new Expression(target, new Expression(type, ctx.expression().get(1), actor), Operator.match(ctx.operator().getText())).push(actor).toTypeDescriptor();
 		else
-			resultType = new Expression(type, ctx.expression().get(1), actor).push(actor).toType();
+			resultType = new Expression(type, ctx.expression().get(1), actor).push(actor).toTypeDescriptor();
 		target.assign(resultType, actor);
 	}
 
 	private void consumeVariableDeclaration(kdl.ReservationContext ctx, Actor actor) throws Exception {
 		final Variable target = actor.scope.newVar(new Details(ctx.details(), this));
 		if(ctx.COLON() != null) {
-			target.assign(new Expression(type, ctx.expression(), actor).push(actor).toType(), actor);
+			target.assign(new Expression(type, ctx.expression(), actor).push(actor).toTypeDescriptor(), actor);
 		} else
 			target.assignDefault(actor);
 	}
@@ -307,12 +308,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			} else if(ctx.imperative().expression() != null) {
 				new Expression(type, ctx.imperative().expression(), actor).push(actor);
 			} else if(ctx.imperative().returnStatement() != null) {
-				final ReturnValue rv;
+				final TypeDescriptor yield;
 				if(ctx.imperative().returnStatement().expression() == null)
-					rv = null;
+					yield = TypeDescriptor.VOID;
 				else
-					rv = new ReturnValue(new Expression(type, ctx.imperative().returnStatement().expression(), actor).push(actor));
-				actor.writeReturn(rv);
+					yield = new Expression(type, ctx.imperative().returnStatement().expression(), actor).push(actor).toTypeDescriptor();
+				actor.writeReturn(yield);
 			} else
 				throw new UnimplementedException("A type of Imperative couldn't be interpreted " + ctx.getText());
 		} else if(ctx.conditional() != null) {
@@ -329,10 +330,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	@Override
 	public void enterPath(final kdl.PathContext ctx) {
-		if(pass == 1) {
+		if(pass == 1)
 			path = path.prepend(ctx.getText().trim().substring(4));
-			type = new Type(new TypeDescriptor(path));
-		}
 	}
 
 	@Override
@@ -352,7 +351,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public void addImport(Class<?> clazz) {
-		addImport(new Type(clazz));
+		addImport(Type.get(clazz));
 	}
 
 	public void addImport(Type dc) {
@@ -368,7 +367,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				details = new Details(ctx.details(), this).filterName();
 			else
 				details = new Details(ctx.IDENTIFIER().getText(), null).filterName();
-			final ReturnValue rv = new ReturnValue(details.descriptor);
+			final TypeDescriptor rv = details.descriptor;
 
 			// parse parameters
 			final BestList<Param> params = new BestList<>();
@@ -400,7 +399,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				final Actor actor = defineMethod(def);
 				// instance of owning type will always occupy slot 0
 				if(staticModifier == 0)
-					actor.scope.newVar("this", getType().toType());
+					actor.scope.newVar("this", getType());
 				// parameters will always occupy the first few slots
 				for(Param param : params)
 					actor.scope.newVar(param.name.text, param.descriptor);
@@ -418,7 +417,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				// add in helper methods for default values
 				for(Param param : params) {
 					if(param.defaultValue != null) {
-						final ReturnValue returnValue = new ReturnValue(param.toType());
+						final TypeDescriptor returnValue = param.toTypeDescriptor();
 						final MethodHeader defaultProvider = new MethodHeader(type.toType(), details.name + "_" + param.name, null, returnValue, def.access + Opcodes.ACC_SYNTHETIC);
 						final Actor defaultWriter = defineMethod(defaultProvider);
 						new Expression(type, param.defaultValue, actor).push(defaultWriter);
@@ -449,7 +448,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			} catch(Exception e) {
 				printException(e);
 			}
-			actor.scope.end(ctx.stop.getLine(), actor, ReturnValue.VOID);
+			actor.scope.end(ctx.stop.getLine(), actor, TypeDescriptor.VOID);
 		}
 	}
 
@@ -484,10 +483,11 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public boolean setClassName(final String name) {
 		if(type == null) {
 			path = path.append(name);
-			type = new Type(new TypeDescriptor(path));
+			type = Type.get(path);
 
 			// give name to ClassWriter
-			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, type.name.qualifiedName(), null, TypeDescriptor.OBJECT.qualifiedName(), null);
+			// use version 15, as it is the latest with an openJDK implementation
+			cw.visit(V15, ACC_PUBLIC + ACC_SUPER, type.toTypeDescriptor().qualifiedName(), null, TypeDescriptor.OBJECT.qualifiedName(), null);
 			cw.visitSource(type.name + ".kdl", null);
 
 			return true;
@@ -534,7 +534,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		actor.visitMethodInsn(INVOKESPECIAL, TypeDescriptor.OBJECT.qualifiedName(), "<init>", "()V", false);
 
 		for(StaticField f : type.fields.keys()) {
-			if(f.ownerType.equals(getType().toType()) && f instanceof ObjectField) {
+			if(f.ownerType.equals(getType()) && f instanceof ObjectField) {
 				// push "this"
 				actor.visitVarInsn(ALOAD, 0);
 				if(type.fields.get(f) != null) {
@@ -546,7 +546,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					else
 						actor.visitInsn(ACONST_NULL);
 				}
-				actor.visitFieldInsn(PUTFIELD, getType().toType().qualifiedName(), f.name.text, f.descriptor.arrayName());
+				actor.visitFieldInsn(PUTFIELD, toTypeDescriptor().qualifiedName(), f.name.text, f.descriptor.arrayName());
 			}
 		}
 		final Label finish = new Label();
@@ -573,4 +573,23 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		return unitName();
 	}
 
+	@Override
+	public Type toType() {
+		return getType();
+	}
+
+	@Override
+	public boolean isBaseType() {
+		return false;
+	}
+
+	@Override
+	public BaseType toBaseType() {
+		return null;
+	}
+
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return toType().toTypeDescriptor();
+	}
 }

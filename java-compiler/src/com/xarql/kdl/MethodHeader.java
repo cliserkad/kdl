@@ -29,8 +29,8 @@ public class MethodHeader implements CommonText, ToType, Member {
 	public final TypeDescriptor yield;
 	public final int access;
 
-	public MethodHeader(Type owner, String name, BestList<Param> params, TypeDescriptor yield, int access) {
-		this.owner = owner; // TODO: add check against primitives
+	public MethodHeader(ToType owner, String name, BestList<Param> params, TypeDescriptor yield, int access) {
+		this.owner = owner.toType(); // TODO: add check against primitives
 		this.name = Text.checkNotEmpty(name);
 
 		// check paramTypes
@@ -47,16 +47,16 @@ public class MethodHeader implements CommonText, ToType, Member {
 		this.access = access;
 	}
 
-	public MethodHeader(Type owner, String name, TypeDescriptor yield, int access) {
+	public MethodHeader(ToType owner, String name, TypeDescriptor yield, int access) {
 		this(owner, name, null, yield, access);
 	}
 
-	public MethodHeader(Type owner, String name, int access) {
+	public MethodHeader(ToType owner, String name, int access) {
 		this(owner, name, null, null, access);
 	}
 
-	public MethodHeader(Class<?> jvmClass, Method method) {
-		this.owner = Type.get(jvmClass);
+	public MethodHeader(ToType owner, Method method) {
+		this.owner = owner.toType();
 		this.name = method.getName();
 		this.params = new BestList<>();
 		if(method.getParameterTypes().length > 0) {
@@ -69,9 +69,9 @@ public class MethodHeader implements CommonText, ToType, Member {
 			}
 		}
 		if(method.getReturnType().equals(void.class))
-			this.yield = ReturnValue.VOID;
+			this.yield = TypeDescriptor.VOID;
 		else
-			this.yield = new ReturnValue(method.getReturnType());
+			this.yield = new TypeDescriptor(method.getReturnType());
 		this.access = method.getModifiers();
 	}
 
@@ -83,8 +83,8 @@ public class MethodHeader implements CommonText, ToType, Member {
 		return new MethodHeader(owner, name, params, yield, access);
 	}
 
-	public MethodHeader withReturnValue(final ReturnValue returnValue) {
-		return new MethodHeader(owner, name, params, returnValue, access);
+	public MethodHeader withReturnValue(final ToTypeDescriptor returnValue) {
+		return new MethodHeader(owner, name, params, returnValue.toTypeDescriptor(), access);
 	}
 
 	public static void main(String[] args) {
@@ -97,7 +97,7 @@ public class MethodHeader implements CommonText, ToType, Member {
 		for(TypeDescriptor in : paramTypes())
 			out += in.arrayName();
 		out += ")";
-		out += yield.stringOutput();
+		out += yield.arrayName();
 		return out;
 	}
 
@@ -112,7 +112,7 @@ public class MethodHeader implements CommonText, ToType, Member {
 		return out;
 	}
 
-	public static BestList<Param> toParamList(TypeDescriptor...types) {
+	public static BestList<Param> toParamList(ToTypeDescriptor...types) {
 		if(types == null)
 			return null;
 		else {
@@ -120,10 +120,10 @@ public class MethodHeader implements CommonText, ToType, Member {
 		}
 	}
 
-	public static BestList<Param> toParamList(List<TypeDescriptor> types) {
+	public static BestList<Param> toParamList(List<ToTypeDescriptor> types) {
 		final BestList<Param> params = new BestList<>();
 		for(int i = 0; i < types.size(); i++)
-			params.add(new Param(new Details("unknown" + i, types.get(i), true), null));
+			params.add(new Param(new Details("unknown" + i, types.get(i).toTypeDescriptor(), true), null));
 		return params;
 	}
 
@@ -200,6 +200,6 @@ public class MethodHeader implements CommonText, ToType, Member {
 
 	@Override
 	public TypeDescriptor toTypeDescriptor() {
-		return yield.toType();
+		return yield;
 	}
 }

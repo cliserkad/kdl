@@ -8,29 +8,29 @@ import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.ToTypeDescriptor;
 import com.xarql.kdl.names.TypeDescriptor;
-import com.xarql.kdl.names.ReturnValue;
 
-import static com.xarql.kdl.names.BaseType.INT;
+import static com.xarql.kdl.names.BaseType.*;
 
 /**
  * Represents the access of an array's element
  */
 public class IndexAccess implements Pushable, CommonText {
 
-	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(TypeDescriptor.STRING, "charAt", MethodHeader.toParamList(BaseType.INT.toType()), ReturnValue.CHAR, ACC_PUBLIC);
+	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(BaseType.STRING, "charAt", MethodHeader.toParamList(INT.toTypeDescriptor()), CHAR.toTypeDescriptor(), ACC_PUBLIC);
 
-	public final Type operand;
+	public final TypeDescriptor operand;
 	public final Pushable index;
 
-	public IndexAccess(final Type operand, final Pushable index) {
-		this.operand = operand;
+	public IndexAccess(final ToTypeDescriptor operand, final Pushable index) {
+		this.operand = operand.toTypeDescriptor();
 		this.index = index;
 	}
 
-	public IndexAccess(final Type operand, kdl.IndexAccessContext ctx, Actor actor) throws Exception {
-		this.operand = operand;
-		index = new Expression(operand, ctx.expression(), actor);
+	public IndexAccess(final ToTypeDescriptor operand, kdl.IndexAccessContext ctx, Actor actor) throws Exception {
+		this.operand = operand.toTypeDescriptor();
+		index = new Expression(operand.toType(), ctx.expression(), actor);
 	}
 
     @Override
@@ -41,7 +41,7 @@ public class IndexAccess implements Pushable, CommonText {
 		else
 			index.push(actor);
 
-		if(operand.toType().isArray()) {
+		if(operand.isArray()) {
 			if(operand.isBaseType()) {
 				switch(operand.toBaseType()) {
 					case INT:
@@ -65,10 +65,7 @@ public class IndexAccess implements Pushable, CommonText {
 
 	@Override
 	public Type toType() {
-		if(!operand.toType().isArray() && operand.toType().equals(TypeDescriptor.STRING))
-			return TypeDescriptor.CHAR;
-		else
-			return operand.toType();
+		return toTypeDescriptor().toType();
 	}
 
 	@Override
@@ -84,6 +81,14 @@ public class IndexAccess implements Pushable, CommonText {
 	@Override
 	public String toString() {
 		return "IndexAccess --> {\n\t" + operand + "\n\t" + index + "\n}";
+	}
+
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		if(!operand.isArray() && operand.type.equals(STRING.toType()))
+			return CHAR.toTypeDescriptor();
+		else
+			return new TypeDescriptor(operand.type, Math.max(0, operand.arrayDimensions - 1));
 	}
 
 }

@@ -62,27 +62,27 @@ public class Details implements ToDetails {
 			TypeDescriptor type;
 			if (ctx.type().basetype() != null) {
 				if (ctx.type().basetype().BOOLEAN() != null)
-					type = TypeDescriptor.BOOLEAN;
+					type = BaseType.BOOLEAN.toTypeDescriptor();
 				else if (ctx.type().basetype().BYTE() != null)
-					type = TypeDescriptor.BYTE;
+					type = BaseType.BYTE.toTypeDescriptor();
 				else if (ctx.type().basetype().SHORT() != null)
-					type = TypeDescriptor.SHORT;
+					type = BaseType.SHORT.toTypeDescriptor();
 				else if (ctx.type().basetype().CHAR() != null)
-					type = TypeDescriptor.CHAR;
+					type = BaseType.CHAR.toTypeDescriptor();
 				else if (ctx.type().basetype().INT() != null)
-					type = TypeDescriptor.INT;
+					type = BaseType.INT.toTypeDescriptor();
 				else if (ctx.type().basetype().FLOAT() != null)
-					type = TypeDescriptor.FLOAT;
+					type = BaseType.FLOAT.toTypeDescriptor();
 				else if (ctx.type().basetype().LONG() != null)
-					type = TypeDescriptor.LONG;
+					type = BaseType.LONG.toTypeDescriptor();
 				else if (ctx.type().basetype().DOUBLE() != null)
-					type = TypeDescriptor.DOUBLE;
+					type = BaseType.DOUBLE.toTypeDescriptor();
 				else if (ctx.type().basetype().STRING() != null)
-					type = TypeDescriptor.STRING;
+					type = BaseType.STRING.toTypeDescriptor();
 				else
 					throw new UnimplementedException(CommonText.SWITCH_BASETYPE);
 			} else {
-				type = unit.resolveImport(ctx.type().getText()).toType();
+				type = unit.resolveImport(ctx.type().getText()).toTypeDescriptor();
 				if (type == null)
 					throw new IllegalArgumentException("Couldn't recognize type");
 			}

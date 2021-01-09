@@ -6,10 +6,14 @@ import com.xarql.kdl.Type;
 
 import java.util.Objects;
 
-public class TypeDescriptor implements ToType, CommonText {
+/**
+ * Stores a Type and its Array dimensions
+ */
+public class TypeDescriptor implements ToTypeDescriptor, CommonText {
 	public static final TypeDescriptor VOID = new TypeDescriptor();
 	public static final TypeDescriptor INT_WRAPPER = new TypeDescriptor(Integer.class);
 	public static final TypeDescriptor OBJECT = new TypeDescriptor(Object.class);
+	public static final TypeDescriptor PLACEHOLDER = new TypeDescriptor(PlaceHolder.class);
 
 	public static final Type VOID_TYPE = null;
 	public static final String VOID_REP = "V";
@@ -128,7 +132,9 @@ public class TypeDescriptor implements ToType, CommonText {
 
 	@Override
 	public boolean equals(Object o) {
-		if(this == o) {
+		if(o == null) {
+			return this.equals(TypeDescriptor.VOID);
+		} else if(this == o) {
 			return true;
 		} else if(o instanceof TypeDescriptor) {
 			TypeDescriptor in = (TypeDescriptor) o;
@@ -182,6 +188,11 @@ public class TypeDescriptor implements ToType, CommonText {
 		} else {
 			return this;
 		}
+	}
+
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return this;
 	}
 
 }

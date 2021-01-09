@@ -5,14 +5,13 @@ import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.TypeDescriptor;
-import com.xarql.kdl.names.ReturnValue;
 
 import static com.xarql.kdl.names.BaseType.STRING;
 
 public class Expression implements Pushable, CommonText {
-	public static final MethodHeader INIT_STRING_BUILDER = new MethodHeader(new TypeDescriptor(StringBuilder.class), MethodHeader.S_INIT, null, null, ACC_PUBLIC);
-	public static final MethodHeader SB_APPEND = new MethodHeader(new TypeDescriptor(StringBuilder.class), "append", MethodHeader.toParamList(new TypeDescriptor(String.class)), new ReturnValue(new TypeDescriptor(StringBuilder.class)), ACC_PUBLIC);
-	public static final MethodHeader SB_TO_STRING = new MethodHeader(new TypeDescriptor(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
+	public static final MethodHeader INIT_STRING_BUILDER = new MethodHeader(Type.get(StringBuilder.class), MethodHeader.S_INIT, null, null, ACC_PUBLIC);
+	public static final MethodHeader SB_APPEND = new MethodHeader(Type.get(StringBuilder.class), "append", MethodHeader.toParamList(new TypeDescriptor(String.class)), new TypeDescriptor(StringBuilder.class), ACC_PUBLIC);
+	public static final MethodHeader SB_TO_STRING = new MethodHeader(Type.get(StringBuilder.class), "toString", null, BaseType.STRING.toTypeDescriptor(), ACC_PUBLIC);
 
 	public final Pushable value;
 	public final Operator operator;
@@ -39,7 +38,7 @@ public class Expression implements Pushable, CommonText {
 		}
 	}
 
-	public Expression(Pushable parent, kdl.ExpressionContext ctx, Actor actor) throws Exception {
+	public Expression(Type parent, kdl.ExpressionContext ctx, Actor actor) throws Exception {
 		if(ctx.value().literal() != null)
 			value = Literal.parseLiteral(ctx.value().literal(), actor);
 		else if(ctx.value().IDENTIFIER() != null)
@@ -54,7 +53,7 @@ public class Expression implements Pushable, CommonText {
 
 		if(ctx.expression() != null) {
 			try {
-				expression = new Expression(value, ctx.expression(), actor);
+				expression = new Expression(value.toType(), ctx.expression(), actor);
 			} catch(SymbolResolutionException sre) {
 				throw new SymbolResolutionException("When attempting to instantiate nested expression using parent of " + value + ":\n" + sre.getMessage());
 			}
@@ -101,8 +100,6 @@ public class Expression implements Pushable, CommonText {
 
 	/**
 	 * Puts two new StringBuilders on the stack
-	 *
-	 * @param actor
 	 */
 	public static void createStringBuilder(Actor actor) throws Exception {
 		actor.visitTypeInsn(NEW, new TypeDescriptor(StringBuilder.class).qualifiedName());
@@ -194,4 +191,8 @@ public class Expression implements Pushable, CommonText {
 		return value + " " + operator + " " + expression;
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return value.toTypeDescriptor();
+	}
 }

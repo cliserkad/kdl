@@ -12,12 +12,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Immutable version of a custom class's metadata
+ * Stores a Type's metadata
  */
 public class Type implements ToDetails  {
     public static final char PATH_SEPARATOR = Path.PATH_SEPARATOR;
+    public static final Type OBJECT = Type.get(Object.class);
 
-    private static final HashMap<Path, Type> knownTypes = new HashMap<>();
+    private static HashMap<Path, Type> knownTypes;
 
     public final Path name;
     public TrackedMap<Constant, kdl.ReservationContext> constants = new TrackedMap<>();
@@ -31,7 +32,7 @@ public class Type implements ToDetails  {
     private Type(Class<?> clazz) {
         this.name = Path.forClass(clazz);
         for(Method method : clazz.getMethods()) {
-            methods.add(new MethodHeader(clazz, method));
+            methods.add(new MethodHeader(this, method));
         }
         for(Field field : clazz.getFields()) {
             final Details details = new Details(field.getName(), new TypeDescriptor(field.getType()), (field.getModifiers() & Opcodes.ACC_FINAL) == Opcodes.ACC_FINAL);
@@ -44,17 +45,23 @@ public class Type implements ToDetails  {
     }
 
     public static Type get(Class<?> c) {
-        if(knownTypes.containsKey(Path.forClass(c)))
-            return knownTypes.get(Path.forClass(c));
+        if(getKnownTypes().containsKey(Path.forClass(c)))
+            return getKnownTypes().get(Path.forClass(c));
         else
-            return knownTypes.put(Path.forClass(c), new Type(c));
+            return getKnownTypes().put(Path.forClass(c), new Type(c));
     }
 
     public static Type get(Path name) {
-        if(knownTypes.containsKey(name))
-            return knownTypes.get(name);
+        if(getKnownTypes().containsKey(name))
+            return getKnownTypes().get(name);
         else
-            return knownTypes.put(name, new Type(name));
+            return getKnownTypes().put(name, new Type(name));
+    }
+
+    private static HashMap<Path, Type> getKnownTypes() {
+        if(knownTypes == null)
+            knownTypes = new HashMap<>();
+        return knownTypes;
     }
 
     public TrackedMap<Identifier, Member> members() {

@@ -34,7 +34,7 @@ public class StringTemplate implements Pushable {
 
 	@Override
 	public Type toType() {
-		return TypeDescriptor.STRING;
+		return BaseType.STRING.toType();
 	}
 
 	@Override
@@ -53,8 +53,8 @@ public class StringTemplate implements Pushable {
 		for(Pushable p : elements) {
 			if(p instanceof Constant)
 				p = actor.unit.getConstant(((Constant) p).name.text);
-			TypeDescriptor type = p.push(actor).toType();
-			if(!type.equals(TypeDescriptor.STRING))
+			TypeDescriptor type = p.push(actor).toTypeDescriptor();
+			if(!type.equals(BaseType.STRING.toTypeDescriptor()))
 				CompilationUnit.convertToString(type, actor);
 			Expression.SB_APPEND.push(actor);
 		}
@@ -64,15 +64,19 @@ public class StringTemplate implements Pushable {
 
 	@Override
 	public String toString() {
-		String out = "";
+		StringBuilder builder = new StringBuilder();
 		for(Pushable p : elements) {
 			if(p instanceof Literal<?>) {
 				Literal<?> lit = (Literal<?>) p;
-				out += lit.value;
+				builder.append(lit.value);
 			} else
-				out += p;
+				builder.append(p);
 		}
-		return out;
+		return builder.toString();
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return BaseType.STRING.toTypeDescriptor();
+	}
 }

@@ -31,11 +31,11 @@ public class ArrayLength implements Pushable, CommonText {
 	}
 
 	/**
-	 * @return InternalName.INT
+	 * @return BaseType.INT
 	 */
 	@Override
 	public Type toType() {
-		return TypeDescriptor.INT;
+		return BaseType.INT.type;
 	}
 
 	/**
@@ -52,6 +52,11 @@ public class ArrayLength implements Pushable, CommonText {
 	@Override
 	public BaseType toBaseType() {
 		return BaseType.INT;
+	}
+
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return BaseType.INT.toTypeDescriptor();
 	}
 
 }
