@@ -4,15 +4,15 @@ import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 import com.xarql.kdl.names.ReturnValue;
 
 import static com.xarql.kdl.names.BaseType.STRING;
 
 public class Expression implements Pushable, CommonText {
-	public static final MethodHeader INIT_STRING_BUILDER = new MethodHeader(new InternalName(StringBuilder.class), MethodHeader.S_INIT, null, null, ACC_PUBLIC);
-	public static final MethodHeader SB_APPEND = new MethodHeader(new InternalName(StringBuilder.class), "append", MethodHeader.toParamList(new InternalName(String.class)), new ReturnValue(new InternalName(StringBuilder.class)), ACC_PUBLIC);
-	public static final MethodHeader SB_TO_STRING = new MethodHeader(new InternalName(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
+	public static final MethodHeader INIT_STRING_BUILDER = new MethodHeader(new TypeDescriptor(StringBuilder.class), MethodHeader.S_INIT, null, null, ACC_PUBLIC);
+	public static final MethodHeader SB_APPEND = new MethodHeader(new TypeDescriptor(StringBuilder.class), "append", MethodHeader.toParamList(new TypeDescriptor(String.class)), new ReturnValue(new TypeDescriptor(StringBuilder.class)), ACC_PUBLIC);
+	public static final MethodHeader SB_TO_STRING = new MethodHeader(new TypeDescriptor(StringBuilder.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
 
 	public final Pushable value;
 	public final Operator operator;
@@ -25,20 +25,25 @@ public class Expression implements Pushable, CommonText {
 	}
 
 	public Expression(Pushable value) {
-		this(value, null, null);
+		this(value, (Expression) null, null);
 	}
 
 	public static Pushable resolveID(Identifier id, Type encloser, Actor actor) throws SymbolResolutionException {
 		if(actor.scope.contains(id.text))
 			return actor.scope.get(id.text);
-		else return encloser.members().get(id);
+		else {
+			if(encloser.members().get(id) != null)
+				return encloser.members().get(id);
+			else
+				throw new SymbolResolutionException("Couldn't match " + id + " to a member within " + encloser);
+		}
 	}
 
-	public Expression(Type parent, kdl.ExpressionContext ctx, Actor actor) throws Exception {
+	public Expression(Pushable parent, kdl.ExpressionContext ctx, Actor actor) throws Exception {
 		if(ctx.value().literal() != null)
 			value = Literal.parseLiteral(ctx.value().literal(), actor);
 		else if(ctx.value().IDENTIFIER() != null)
-			value = resolveID(new Identifier(ctx.value().IDENTIFIER().getText()), parent, actor);
+			value = resolveID(new Identifier(ctx.value().IDENTIFIER().getText()), parent.toType(), actor);
 		else if(ctx.value().methodCall() != null)
 			value = new MethodCall(parent, ctx.value().methodCall(), actor);
 		else if(ctx.value().THIS() != null) {
@@ -47,9 +52,13 @@ public class Expression implements Pushable, CommonText {
 			throw new Exception("Failed to parse value of expression. Check kdl.g4 for updates");
 		}
 
-		if(ctx.expression() != null)
-			expression = new Expression(actor.unit.resolveImport(value.toInternalName()), ctx.expression(), actor);
-		else
+		if(ctx.expression() != null) {
+			try {
+				expression = new Expression(value, ctx.expression(), actor);
+			} catch(SymbolResolutionException sre) {
+				throw new SymbolResolutionException("When attempting to instantiate nested expression using parent of " + value + ":\n" + sre.getMessage());
+			}
+		} else
 			this.expression = null;
 
 		if(ctx.operator() != null)
@@ -96,7 +105,7 @@ public class Expression implements Pushable, CommonText {
 	 * @param actor
 	 */
 	public static void createStringBuilder(Actor actor) throws Exception {
-		actor.visitTypeInsn(NEW, new InternalName(StringBuilder.class).qualifiedName());
+		actor.visitTypeInsn(NEW, new TypeDescriptor(StringBuilder.class).qualifiedName());
 		actor.visitInsn(DUP);
 		INIT_STRING_BUILDER.push(actor);
 	}
@@ -110,7 +119,7 @@ public class Expression implements Pushable, CommonText {
 						res1.push(actor);
 						SB_APPEND.push(actor);
 						res2.push(actor);
-						CompilationUnit.convertToString(res2.toBaseType().toInternalName(), actor);
+						CompilationUnit.convertToString(res2.toTypeDescriptor(), actor);
 						SB_APPEND.push(actor);
 						SB_TO_STRING.push(actor);
 						break;
@@ -167,8 +176,8 @@ public class Expression implements Pushable, CommonText {
 	}
 
 	@Override
-	public InternalName toInternalName() {
-		return value.toInternalName();
+	public Type toType() {
+		return value.toType();
 	}
 
 	@Override

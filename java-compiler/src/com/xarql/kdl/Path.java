@@ -33,7 +33,7 @@ public class Path implements Serializable {
         if(base != null)
             return base.rep;
         else
-            return new Path(c.getName().replace(CompilationUnit.JAVA_SOURCE_SEPARATOR, PATH_SEPARATOR));
+            return new Path(c.getCanonicalName().replace(CompilationUnit.JAVA_SOURCE_SEPARATOR, PATH_SEPARATOR));
     }
 
     public String part(int index) {

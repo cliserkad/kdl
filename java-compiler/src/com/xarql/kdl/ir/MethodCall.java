@@ -4,27 +4,25 @@ import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.names.TypeDescriptor;
 
 public class MethodCall implements Pushable, CommonText {
 
 	public final MethodInvocation invocation;
 
-	public MethodCall(Pushable source, kdl.MethodCallContext ctx, Actor actor) throws Exception {
+	public MethodCall(Type parent, kdl.MethodCallContext ctx, Actor actor) throws Exception {
 		// get the method's id
 		final String methodName = ctx.IDENTIFIER().getText();
 
 		// determine which object is the source of the call
-		if(source == null) {
-			source = actor.unit.type;
-		}
+		if(parent == null)
+			parent = actor.unit.type;
 
 		// parse the args
 		final BestList<Pushable> args = parseArguments(ctx.argumentSet(), actor);
 
 		// build a method target and attempt to resolve it
-		MethodTarget known = new MethodTarget(source.toInternalName(), methodName, argTypes(args), false);
+		MethodTarget known = new MethodTarget(parent, methodName, argTypes(args), false);
 		invocation = known.resolve(actor).withOwner(source).withArgs(args);
 	}
 
@@ -39,10 +37,10 @@ public class MethodCall implements Pushable, CommonText {
 		return arguments;
 	}
 
-	public BestList<InternalName> argTypes(BestList<Pushable> args) {
-		final BestList<InternalName> argTypes = new BestList<>();
+	public BestList<TypeDescriptor> argTypes(BestList<Pushable> args) {
+		final BestList<TypeDescriptor> argTypes = new BestList<>();
 		for(Pushable arg : args)
-			argTypes.add(arg.toInternalName());
+			argTypes.add(arg.toType());
 		return argTypes;
 	}
 
@@ -53,8 +51,8 @@ public class MethodCall implements Pushable, CommonText {
 	}
 
 	@Override
-	public InternalName toInternalName() {
-		return invocation.header.toInternalName();
+	public Type toType() {
+		return invocation.header.toType();
 	}
 
 	@Override

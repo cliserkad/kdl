@@ -33,8 +33,13 @@ public enum Operator {
 	public static Operator match(String s) {
 		if(Text.isEmpty(s))
 			return null;
-		else
-			return match(s.trim());
+		else {
+			s = s.trim();
+			for(Operator opr : values())
+				if(opr.rep.equals(s))
+					return opr;
+				return null;
+		}
 	}
 
 }

@@ -4,7 +4,8 @@ import com.xarql.kdl.ir.Variable;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.ReturnValue;
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.names.ToType;
+import com.xarql.kdl.names.TypeDescriptor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -34,20 +35,20 @@ public class Scope implements Opcodes {
 		return start;
 	}
 
-	public Variable newVar(final String name, final ToName type, final boolean mutable) {
-		Variable var = addLocalVariable(new Variable(name, type.toInternalName(), nextIndex(), mutable));
+	public Variable newVar(final String name, final ToType type, final boolean mutable) {
+		Variable var = addLocalVariable(new Variable(name, type.toType(), nextIndex(), mutable));
 		// increment it again to reserve a second slot if its a 64-bit number
 		if(type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
 			index++;
 		return var;
 	}
 
-	public Variable newVar(final String name, final ToName type) {
+	public Variable newVar(final String name, final ToType type) {
 		return newVar(name, type, Variable.DEFAULT_MUTABLE);
 	}
 
 	public Variable newVar(final Details details) {
-		return newVar(details.name.text, details.type, details.mutable);
+		return newVar(details.name.text, details.descriptor, details.mutable);
 	}
 
 	public Variable addLocalVariable(Variable lv) {
@@ -58,18 +59,20 @@ public class Scope implements Opcodes {
 		return lv;
 	}
 
-	public Label end(final int line, final MethodVisitor visitor, final ReturnValue rv) {
+	public Label end(final int line, final MethodVisitor visitor, final TypeDescriptor yield) {
 		final Label ret = new Label();
 		visitor.visitLabel(ret);
 		visitor.visitLineNumber(line, ret);
-		if(rv.isVoid())
+		if(yield.isVoid())
 			visitor.visitInsn(RETURN);
 		else
 			visitor.visitInsn(NOP);
 
 		visitor.visitLabel(end);
-		for(Variable lv : all())
-			visitor.visitLocalVariable(lv.name.text, lv.type.toString(), null, start, end, lv.localIndex);
+		for(Variable lv : all()) {
+			visitor.visitLocalVariable(lv.name.text, lv.descriptor.arrayName(), null, start, end, lv.localIndex);
+			System.out.println(lv);
+		}
 		visitor.visitMaxs(0, 0);
 		visitor.visitEnd();
 

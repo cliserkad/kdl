@@ -8,7 +8,7 @@ import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 import com.xarql.kdl.names.ReturnValue;
 
 import static com.xarql.kdl.names.BaseType.INT;
@@ -18,7 +18,7 @@ import static com.xarql.kdl.names.BaseType.INT;
  */
 public class IndexAccess implements Pushable, CommonText {
 
-	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(InternalName.STRING, "charAt", MethodHeader.toParamList(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
+	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(TypeDescriptor.STRING, "charAt", MethodHeader.toParamList(BaseType.INT.toType()), ReturnValue.CHAR, ACC_PUBLIC);
 
 	public final Type operand;
 	public final Pushable index;
@@ -41,7 +41,7 @@ public class IndexAccess implements Pushable, CommonText {
 		else
 			index.push(actor);
 
-		if(operand.toInternalName().isArray()) {
+		if(operand.toType().isArray()) {
 			if(operand.isBaseType()) {
 				switch(operand.toBaseType()) {
 					case INT:
@@ -64,11 +64,11 @@ public class IndexAccess implements Pushable, CommonText {
 	}
 
 	@Override
-	public InternalName toInternalName() {
-		if(!operand.toInternalName().isArray() && operand.toInternalName().equals(InternalName.STRING))
-			return InternalName.CHAR;
+	public Type toType() {
+		if(!operand.toType().isArray() && operand.toType().equals(TypeDescriptor.STRING))
+			return TypeDescriptor.CHAR;
 		else
-			return operand.toInternalName();
+			return operand.toType();
 	}
 
 	@Override

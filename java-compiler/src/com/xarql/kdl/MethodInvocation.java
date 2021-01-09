@@ -3,8 +3,7 @@ package com.xarql.kdl;
 import com.xarql.kdl.ir.Param;
 import com.xarql.kdl.ir.Pushable;
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.ReturnValue;
+import com.xarql.kdl.names.TypeDescriptor;
 import org.objectweb.asm.Opcodes;
 
 public class MethodInvocation implements Pushable {
@@ -46,12 +45,12 @@ public class MethodInvocation implements Pushable {
 			throw new IllegalStateException("owner object is null but the header is not static: " + header);
 		int arg = 0;
 		for(int i = 0; i < paramUse.length; i++) {
-			final InternalName argType;
+			final TypeDescriptor argType;
 			if(paramUse[i])
-				argType = args.get(arg++).push(actor).toInternalName();
+				argType = args.get(arg++).push(actor).toTypeDescriptor();
 			else
-				argType = new MethodInvocation(owner, defaultParam(header.params.get(i))).push(actor).toInternalName();
-			if(header.paramTypes()[i] == InternalName.STRING)
+				argType = new MethodInvocation(owner, defaultParam(header.params.get(i))).push(actor).toTypeDescriptor();
+			if(header.paramTypes()[i] == BaseType.STRING.toTypeDescriptor())
 				CompilationUnit.convertToString(argType, actor);
 		}
 		header.push(actor);
@@ -59,22 +58,26 @@ public class MethodInvocation implements Pushable {
 	}
 
 	public MethodHeader defaultParam(Param param) {
-		return new MethodHeader(header.owner, header.name + "_" + param.name, new ReturnValue(param.toInternalName()), header.access + Opcodes.ACC_SYNTHETIC);
+		return new MethodHeader(header.owner, header.name + "_" + param.name, param.toTypeDescriptor(), header.access + Opcodes.ACC_SYNTHETIC);
 	}
 
 	@Override
-	public InternalName toInternalName() {
-		return header.returns.toInternalName();
+	public Type toType() {
+		return header.toType();
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return header.returns.isBaseType();
+		return header.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return header.returns.toBaseType();
+		return header.toBaseType();
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return header.toTypeDescriptor();
+	}
 }

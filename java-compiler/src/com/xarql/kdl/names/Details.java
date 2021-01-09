@@ -2,44 +2,43 @@ package com.xarql.kdl.names;
 
 import com.xarql.kdl.CompilationUnit;
 import com.xarql.kdl.MethodHeader;
-import com.xarql.kdl.Path;
+import com.xarql.kdl.Type;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.ir.Constant;
 import com.xarql.kdl.ir.Identifier;
 
-public class Details implements ToName {
+public class Details implements ToDetails {
 
 	public static final String DEFAULT_NAME = "unknown";
-	public static final InternalName DEFAULT_TYPE = null;
+	public static final TypeDescriptor DEFAULT_TYPE = null;
 	public static final boolean DEFAULT_MUTABLE = false;
 	public static final boolean DEFAULT_NULLABLE = false;
 
 	public static final String CHEVRON_REGEX = "[<>]";
 
 	public final Identifier name;
-	public final InternalName type;
+	public final TypeDescriptor descriptor;
 	public final boolean mutable;
 
 	public final boolean constant;
 
-	public Details(final Identifier name, final InternalName type, final boolean mutable) {
+	public Details(final Identifier name, final TypeDescriptor descriptor, final boolean mutable) {
 		this.name = name;
-		this.type = type;
+		this.descriptor = descriptor;
 		this.mutable = mutable;
 		constant = false;
 	}
 
 	public Details(final Details details) {
-		this(details.name, details.type, details.mutable);
+		this(details.name, details.descriptor, details.mutable);
 	}
 
-	public Details(final String name, final InternalName type, final boolean mutable) {
-		this(new Identifier(name), type, mutable);
+	public Details(final String name, final TypeDescriptor descriptor, final boolean mutable) {
+		this(new Identifier(name), descriptor, mutable);
 	}
 
-	public Details(final String name, final InternalName type) {
-		this(name, type, DEFAULT_MUTABLE);
+	public Details(final String name, final TypeDescriptor descriptor) {
+		this(name, descriptor, DEFAULT_MUTABLE);
 	}
 
 	public Details(final String name) {
@@ -54,43 +53,43 @@ public class Details implements ToName {
 		this.constant = ctx.CONST() != null;
 		if(constant) {
 			// type is unknown, as it is determined by the assignment
-			this.type = null;
+			this.descriptor = null;
 			// always immutable
 			this.mutable = false;
 		}
 		else {
 			// determine the type
-			InternalName type;
+			TypeDescriptor type;
 			if (ctx.type().basetype() != null) {
 				if (ctx.type().basetype().BOOLEAN() != null)
-					type = InternalName.BOOLEAN;
+					type = TypeDescriptor.BOOLEAN;
 				else if (ctx.type().basetype().BYTE() != null)
-					type = InternalName.BYTE;
+					type = TypeDescriptor.BYTE;
 				else if (ctx.type().basetype().SHORT() != null)
-					type = InternalName.SHORT;
+					type = TypeDescriptor.SHORT;
 				else if (ctx.type().basetype().CHAR() != null)
-					type = InternalName.CHAR;
+					type = TypeDescriptor.CHAR;
 				else if (ctx.type().basetype().INT() != null)
-					type = InternalName.INT;
+					type = TypeDescriptor.INT;
 				else if (ctx.type().basetype().FLOAT() != null)
-					type = InternalName.FLOAT;
+					type = TypeDescriptor.FLOAT;
 				else if (ctx.type().basetype().LONG() != null)
-					type = InternalName.LONG;
+					type = TypeDescriptor.LONG;
 				else if (ctx.type().basetype().DOUBLE() != null)
-					type = InternalName.DOUBLE;
+					type = TypeDescriptor.DOUBLE;
 				else if (ctx.type().basetype().STRING() != null)
-					type = InternalName.STRING;
+					type = TypeDescriptor.STRING;
 				else
 					throw new UnimplementedException(CommonText.SWITCH_BASETYPE);
 			} else {
-				type = unit.resolveImport(ctx.type().getText()).toInternalName();
+				type = unit.resolveImport(ctx.type().getText()).toType();
 				if (type == null)
 					throw new IllegalArgumentException("Couldn't recognize type");
 			}
 			// detect if the type is an array
 			if (ctx.type().BRACE_L() != null)
 				type = type.toArray(ctx.type().BRACE_L().size());
-			this.type = type;
+			this.descriptor = type;
 			// detect if the value is mutable
 			this.mutable = ctx.TILDE() != null;
 		}
@@ -99,10 +98,10 @@ public class Details implements ToName {
 	}
 
 	public Details withName(final String name) {
-		return new Details(name, type, mutable);
+		return new Details(name, descriptor, mutable);
 	}
 
-	public Details withType(final InternalName type) {
+	public Details withType(final TypeDescriptor type) {
 		return new Details(name, type, mutable);
 	}
 
@@ -121,36 +120,36 @@ public class Details implements ToName {
 	/**
 	 * Forwarding method
 	 *
-	 * @see InternalName#isBaseType()
+	 * @see TypeDescriptor#isBaseType()
 	 */
 	@Override
 	public boolean isBaseType() {
-		return type.isBaseType();
+		return descriptor.isBaseType();
 	}
 
 	/**
 	 * Forwarding method
 	 *
-	 * @see InternalName#toBaseType()
+	 * @see TypeDescriptor#toBaseType()
 	 */
 	@Override
 	public BaseType toBaseType() {
-		return type.toBaseType();
+		return descriptor.toBaseType();
 	}
 
 	/**
 	 * @return type
 	 */
 	@Override
-	public InternalName toInternalName() {
-		return type;
+	public Type toType() {
+		return descriptor.type;
 	}
 
 	@Override
 	public boolean equals(Object object) {
 		if(object instanceof Details) {
 			final Details other = (Details) object;
-			return name.equals(other.name) && type.equals(other.type) && mutable == other.mutable;
+			return name.equals(other.name) && descriptor.equals(other.descriptor) && mutable == other.mutable;
 		} else
 			return false;
 	}
@@ -164,8 +163,8 @@ public class Details implements ToName {
 			name = "???";
 
 		final String type;
-		if(this.type != null)
-			type = this.type.arrayName();
+		if(this.descriptor != null)
+			type = this.descriptor.arrayName();
 		else
 			type = "null";
 
@@ -178,4 +177,13 @@ public class Details implements ToName {
 		return type + mutable + " " + name;
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return descriptor;
+	}
+
+	@Override
+	public Details toDetails() {
+		return this;
+	}
 }

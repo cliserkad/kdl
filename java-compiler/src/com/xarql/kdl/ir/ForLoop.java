@@ -2,7 +2,7 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 
 public class ForLoop extends Conditional {
 
@@ -19,9 +19,9 @@ public class ForLoop extends Conditional {
 
 	public static Condition setUpForLoop(final com.xarql.kdl.antlr.kdl.For_loopContext forLoop, final Actor actor) throws Exception {
 		final Range r = new Range(forLoop.range(), actor);
-		final Variable increment = actor.scope.newVar(forLoop.IDENTIFIER().getText(), InternalName.INT, true);
+		final Variable increment = actor.scope.newVar(forLoop.IDENTIFIER().getText(), TypeDescriptor.INT, true);
 		r.min.push(actor);
-		increment.assign(InternalName.INT, actor);
+		increment.assign(TypeDescriptor.INT, actor);
 		return new Condition(increment, r.max, Comparator.LESS_THAN);
 	}
 
@@ -30,7 +30,7 @@ public class ForLoop extends Conditional {
 		actor.visitLabel(labelSet.onTrue);
 		actor.unit.consumeBlock(ctx.for_loop().block(), actor);
 		new Expression(iterator, new Expression(new Literal<>(1)), Operator.PLUS).push(actor);
-		iterator.assign(InternalName.INT, actor);
+		iterator.assign(TypeDescriptor.INT, actor);
 		actor.visitJumpInsn(GOTO, labelSet.check);
 	}
 

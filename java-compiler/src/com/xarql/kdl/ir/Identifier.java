@@ -45,4 +45,8 @@ public class Identifier {
             return false;
     }
 
+    public String toString() {
+        return text;
+    }
+
 }

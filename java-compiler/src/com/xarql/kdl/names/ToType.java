@@ -1,6 +1,10 @@
 package com.xarql.kdl.names;
 
-public interface ToBaseType {
+import com.xarql.kdl.Type;
+
+public interface ToType {
+
+	Type toType();
 
 	boolean isBaseType();
 

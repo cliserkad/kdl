@@ -1,9 +1,10 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
+import com.xarql.kdl.Type;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 
 /**
  * Represents the access of an array's length.
@@ -33,8 +34,8 @@ public class ArrayLength implements Pushable, CommonText {
 	 * @return InternalName.INT
 	 */
 	@Override
-	public InternalName toInternalName() {
-		return InternalName.INT;
+	public Type toType() {
+		return TypeDescriptor.INT;
 	}
 
 	/**

@@ -9,25 +9,27 @@ import org.objectweb.asm.MethodVisitor;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class MethodHeader implements CommonText, ToName, Member {
+import static com.xarql.kdl.names.BaseType.*;
 
-	public static final MethodHeader MAIN = new MethodHeader(new InternalName(Object.class), "main", toParamList(new InternalName(String.class, 1)), ReturnValue.VOID, ACC_PUBLIC + ACC_STATIC);
-	public static final MethodHeader TO_STRING = new MethodHeader(new InternalName(Object.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);
-	public static final MethodHeader INIT = new MethodHeader(new InternalName(Object.class), "<init>", null, ReturnValue.VOID, ACC_PUBLIC);
-	public static final MethodHeader STATIC_INIT = new MethodHeader(new InternalName(Object.class), "<clinit>", null, ReturnValue.VOID, ACC_PUBLIC + ACC_STATIC + ACC_FINAL);
-	public static final MethodHeader EQUALS = new MethodHeader(new InternalName(Object.class), "equals", toParamList(new InternalName(Object.class)), ReturnValue.BOOLEAN, ACC_PUBLIC);
+public class MethodHeader implements CommonText, ToType, Member {
+
+	public static final MethodHeader MAIN = new MethodHeader(Type.get(Object.class), "main", toParamList(new TypeDescriptor(String.class, 1)), TypeDescriptor.VOID, ACC_PUBLIC + ACC_STATIC);
+	public static final MethodHeader TO_STRING = new MethodHeader(Type.get(Object.class), "toString", null, STRING.toTypeDescriptor(), ACC_PUBLIC);
+	public static final MethodHeader INIT = new MethodHeader(Type.get(Object.class), "<init>", null, TypeDescriptor.VOID, ACC_PUBLIC);
+	public static final MethodHeader STATIC_INIT = new MethodHeader(Type.get(Object.class), "<clinit>", null, TypeDescriptor.VOID, ACC_PUBLIC + ACC_STATIC + ACC_FINAL);
+	public static final MethodHeader EQUALS = new MethodHeader(Type.get(Object.class), "equals", toParamList(new TypeDescriptor(Object.class)), BOOLEAN.toTypeDescriptor(), ACC_PUBLIC);
 
 	public static final String S_INIT = "<init>";
 	public static final String S_STATIC_INIT = "<clinit>";
 	public static final int DEFAULT_ACCESS = ACC_PUBLIC + ACC_STATIC;
 
-	public final InternalName owner;
+	public final Type owner;
 	public final String name;
 	public final BestList<Param> params;
-	public final ReturnValue returns;
+	public final TypeDescriptor yield;
 	public final int access;
 
-	public MethodHeader(InternalName owner, String name, BestList<Param> params, ReturnValue returns, int access) {
+	public MethodHeader(Type owner, String name, BestList<Param> params, TypeDescriptor yield, int access) {
 		this.owner = owner; // TODO: add check against primitives
 		this.name = Text.checkNotEmpty(name);
 
@@ -36,25 +38,25 @@ public class MethodHeader implements CommonText, ToName, Member {
 			this.params = new BestList<>();
 		else {
 			for(Param param : params)
-				if(param == null || param.type == null)
+				if(param == null || param.descriptor == null)
 					throw new NullPointerException("A parameter or argument's type may not be null");
 			this.params = params;
 		}
 
-		this.returns = ReturnValue.nonNull(returns);
+		this.yield = yield;
 		this.access = access;
 	}
 
-	public MethodHeader(InternalName owner, String name, ReturnValue returns, int access) {
-		this(owner, name, null, returns, access);
+	public MethodHeader(Type owner, String name, TypeDescriptor yield, int access) {
+		this(owner, name, null, yield, access);
 	}
 
-	public MethodHeader(InternalName owner, String name, int access) {
+	public MethodHeader(Type owner, String name, int access) {
 		this(owner, name, null, null, access);
 	}
 
 	public MethodHeader(Class<?> jvmClass, Method method) {
-		this.owner = new InternalName(jvmClass);
+		this.owner = Type.get(jvmClass);
 		this.name = method.getName();
 		this.params = new BestList<>();
 		if(method.getParameterTypes().length > 0) {
@@ -62,27 +64,23 @@ public class MethodHeader implements CommonText, ToName, Member {
 			for(Class<?> c : method.getParameterTypes()) {
 				if(c == null)
 					throw new NullPointerException();
-				params.add(new Param(new Details("param" + i, new InternalName(c), true), null));
+				params.add(new Param(new Details("param" + i, new TypeDescriptor(c), true), null));
 				i++;
 			}
 		}
 		if(method.getReturnType().equals(void.class))
-			this.returns = ReturnValue.VOID;
+			this.yield = ReturnValue.VOID;
 		else
-			this.returns = new ReturnValue(method.getReturnType());
+			this.yield = new ReturnValue(method.getReturnType());
 		this.access = method.getModifiers();
 	}
 
-	public MethodHeader withOwner(final Type dc) {
-		return new MethodHeader(dc.toInternalName(), name, params, returns, access);
-	}
-
-	public MethodHeader withOwner(final InternalName owner) {
-		return new MethodHeader(owner, name, params, returns, access);
+	public MethodHeader withOwner(final Type type) {
+		return new MethodHeader(type, name, params, yield, access);
 	}
 
 	public MethodHeader withAccess(final int access) {
-		return new MethodHeader(owner, name, params, returns, access);
+		return new MethodHeader(owner, name, params, yield, access);
 	}
 
 	public MethodHeader withReturnValue(final ReturnValue returnValue) {
@@ -96,15 +94,15 @@ public class MethodHeader implements CommonText, ToName, Member {
 	public String descriptor() {
 		String out = "";
 		out += "(";
-		for(InternalName in : paramTypes())
+		for(TypeDescriptor in : paramTypes())
 			out += in.arrayName();
 		out += ")";
-		out += returns.stringOutput();
+		out += yield.stringOutput();
 		return out;
 	}
 
 	public String owner() {
-		return owner.qualifiedName();
+		return owner.toTypeDescriptor().qualifiedName();
 	}
 
 	public boolean[] availableDefaults() {
@@ -114,7 +112,7 @@ public class MethodHeader implements CommonText, ToName, Member {
 		return out;
 	}
 
-	public static BestList<Param> toParamList(InternalName...types) {
+	public static BestList<Param> toParamList(TypeDescriptor...types) {
 		if(types == null)
 			return null;
 		else {
@@ -122,26 +120,26 @@ public class MethodHeader implements CommonText, ToName, Member {
 		}
 	}
 
-	public static BestList<Param> toParamList(List<InternalName> types) {
+	public static BestList<Param> toParamList(List<TypeDescriptor> types) {
 		final BestList<Param> params = new BestList<>();
 		for(int i = 0; i < types.size(); i++)
 			params.add(new Param(new Details("unknown" + i, types.get(i), true), null));
 		return params;
 	}
 
-	public InternalName[] paramTypes() {
-		final InternalName[] types = new InternalName[params.size()];
+	public TypeDescriptor[] paramTypes() {
+		final TypeDescriptor[] types = new TypeDescriptor[params.size()];
 		for(int i = 0; i < params.size(); i++)
-			types[i] = params.get(i).toInternalName();
+			types[i] = params.get(i).toTypeDescriptor();
 		return types;
 	}
 
 	@Override
 	public String toString() {
 		if(descriptor() != null)
-			return owner.qualifiedName() + "." + name + descriptor();
+			return owner() + "." + name + descriptor();
 		else
-			return owner.qualifiedName() + "." + name;
+			return owner() + "." + name;
 	}
 
 	@Override
@@ -157,14 +155,14 @@ public class MethodHeader implements CommonText, ToName, Member {
 				for(int i = 0; i < md.params.size(); i++)
 					if(!params.get(i).equals(md.params.get(i)))
 						return false;
-				return name.equals(md.name) && returns.equals(md.returns) && owner.equals(md.owner);
+				return name.equals(md.name) && yield.equals(md.yield) && owner.equals(md.owner);
 			}
 		} else
 			return false;
 	}
 
 	private MethodHeader invoke(final int type, final MethodVisitor visitor) {
-		visitor.visitMethodInsn(type, owner.qualifiedName(), name, descriptor(), false);
+		visitor.visitMethodInsn(type, owner(), name, descriptor(), false);
 		return this;
 	}
 
@@ -172,22 +170,22 @@ public class MethodHeader implements CommonText, ToName, Member {
 		return (access & ACC_STATIC) == ACC_STATIC;
 	}
 
-	@Override public InternalName toInternalName() {
-		return returns.toInternalName();
+	@Override public Type toType() {
+		return yield.toType();
 	}
 
 	@Override public boolean isBaseType() {
-		return returns.isBaseType();
+		return yield.isBaseType();
 	}
 
 	@Override public BaseType toBaseType() {
-		return returns.toBaseType();
+		return yield.toBaseType();
 	}
 
 	@Override
 	public Details details() {
 		// methods are not modifiable at runtime
-		return new Details(name, toInternalName(), false);
+		return new Details(name, toTypeDescriptor(), false);
 	}
 
 	@Override
@@ -200,4 +198,8 @@ public class MethodHeader implements CommonText, ToName, Member {
 			return invoke(INVOKEVIRTUAL, actor);
 	}
 
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return yield.toType();
+	}
 }

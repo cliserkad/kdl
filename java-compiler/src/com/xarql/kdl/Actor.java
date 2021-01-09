@@ -24,7 +24,7 @@ public class Actor extends MethodVisitor implements Opcodes, CommonText {
 	public void writeReturn(ReturnValue rv) {
 		if(rv == null)
 			visitInsn(RETURN);
-		else if(rv.isBaseType() && !rv.toInternalName().isArray()) {
+		else if(rv.isBaseType() && !rv.toType().isArray()) {
 			switch(rv.toBaseType()) {
 				case BOOLEAN:
 				case BYTE:

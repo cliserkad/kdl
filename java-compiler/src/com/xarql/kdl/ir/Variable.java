@@ -6,7 +6,7 @@ import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.Details;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 
 public class Variable extends Details implements Assignable, Member, CommonText {
 
@@ -17,14 +17,14 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 	// track if it's been set
 	private boolean init = false;
 
-	public Variable(final String name, final InternalName type, final int localIndex, final boolean mutable) {
+	public Variable(final String name, final TypeDescriptor type, final int localIndex, final boolean mutable) {
 		super(name, type, mutable);
 		if(type == null)
 			throw new NullPointerException();
 		this.localIndex = localIndex;
 	}
 
-	public Variable(final String name, final InternalName type, final int localIndex) {
+	public Variable(final String name, final TypeDescriptor type, final int localIndex) {
 		this(name, type, localIndex, DEFAULT_MUTABLE);
 	}
 
@@ -47,17 +47,17 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 
 	@Override
 	public String toString() {
-		return "LocalVariable: " + name + " --> " + type + " @ " + localIndex;
+		return "LocalVariable: " + name + " --> " + descriptor + " @ " + localIndex;
 	}
 
 	public boolean isArray() {
-		return type.isArray();
+		return descriptor.isArray();
 	}
 
 	@Override
 	public Variable push(final Actor visitor) throws UnimplementedException {
-		if (type.isBaseType() && !type.isArray()) {
-			switch (type.toBaseType()) {
+		if (descriptor.isBaseType() && !descriptor.isArray()) {
+			switch (descriptor.toBaseType()) {
 				case BOOLEAN:
 				case BYTE:
 				case SHORT:
@@ -86,13 +86,13 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 	}
 
 	@Override
-	public Assignable assign(final InternalName incomingType, final Actor actor) throws Exception {
+	public Assignable assign(final TypeDescriptor incomingType, final Actor actor) throws Exception {
 		if(!mutable && isInit()) {
 			throw new IllegalArgumentException(this + " is not mutable and has been set.");
-		} else if(!this.type.toInternalName().compatibleWith(this.type))
+		} else if(!this.descriptor.compatibleWith(incomingType))
 			throw new IncompatibleTypeException(incomingType + INCOMPATIBLE + this);
 		else {
-			if(this.type.isBaseType()) {
+			if(this.descriptor.isBaseType()) {
 				// convert integer to long
 				if(toBaseType() == BaseType.LONG && incomingType.toBaseType() == BaseType.INT)
 					actor.visitInsn(I2L);
@@ -136,7 +136,7 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 	@Override
 	public Assignable assignDefault(Actor actor) throws Exception {
 		if(isBaseType())
-			assign(toBaseType().getDefaultValue().push(actor).toInternalName(), actor);
+			assign(toBaseType().getDefaultValue().push(actor).toTypeDescriptor(), actor);
 		else {
 			actor.visitInsn(ACONST_NULL);
 			actor.visitVarInsn(ASTORE, localIndex);

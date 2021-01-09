@@ -1,18 +1,19 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
+import com.xarql.kdl.Type;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.Details;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 import org.objectweb.asm.Opcodes;
 
 import java.util.Objects;
 
 public class Constant extends Details implements Member {
 
-	public final InternalName owner;
+	public final TypeDescriptor owner;
 
-	public Constant(final String name, final InternalName type, final InternalName owner) {
+	public Constant(final String name, final TypeDescriptor type, final TypeDescriptor owner) {
 		super(name, type, false);
 		if(name == null || name.isEmpty())
 			throw new IllegalArgumentException("Constant name may not be empty");
@@ -25,17 +26,17 @@ public class Constant extends Details implements Member {
 
 	@Override
 	public boolean isBaseType() {
-		return type.isBaseType();
+		return descriptor.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return type.toBaseType();
+		return descriptor.toBaseType();
 	}
 
 	@Override
 	public String toString() {
-		return "Constant: " + name + " @ " + owner + " --> " + type;
+		return "Constant: " + name + " @ " + owner + " --> " + descriptor;
 	}
 
 	@Override
@@ -53,13 +54,13 @@ public class Constant extends Details implements Member {
 	}
 
 	@Override
-	public InternalName toInternalName() {
-		return type;
+	public Type toType() {
+		return descriptor;
 	}
 
 	@Override
 	public Pushable push(final Actor actor) {
-		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.qualifiedName(), name.text, type.arrayName());
+		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.qualifiedName(), name.text, descriptor.arrayName());
 		return this;
 	}
 

@@ -2,8 +2,9 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.CompilationUnit;
+import com.xarql.kdl.Type;
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +33,8 @@ public class StringTemplate implements Pushable {
 	}
 
 	@Override
-	public InternalName toInternalName() {
-		return InternalName.STRING;
+	public Type toType() {
+		return TypeDescriptor.STRING;
 	}
 
 	@Override
@@ -52,8 +53,8 @@ public class StringTemplate implements Pushable {
 		for(Pushable p : elements) {
 			if(p instanceof Constant)
 				p = actor.unit.getConstant(((Constant) p).name.text);
-			InternalName type = p.push(actor).toInternalName();
-			if(!type.equals(InternalName.STRING))
+			TypeDescriptor type = p.push(actor).toType();
+			if(!type.equals(TypeDescriptor.STRING))
 				CompilationUnit.convertToString(type, actor);
 			Expression.SB_APPEND.push(actor);
 		}

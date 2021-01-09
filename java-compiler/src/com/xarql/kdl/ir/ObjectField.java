@@ -2,7 +2,7 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.names.Details;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 import org.objectweb.asm.Opcodes;
 
 public class ObjectField extends StaticField implements Assignable {
@@ -12,7 +12,7 @@ public class ObjectField extends StaticField implements Assignable {
 	public final Pushable owner;
 
 	public ObjectField(Details details, Pushable owner) {
-		super(details, owner.toInternalName());
+		super(details, owner.toType());
 		this.owner = owner;
 	}
 
@@ -20,28 +20,28 @@ public class ObjectField extends StaticField implements Assignable {
 		this(name, null, Variable.DEFAULT_MUTABLE, owner);
 	}
 
-	public ObjectField(String name, InternalName type, boolean mutable, Pushable owner) {
+	public ObjectField(String name, TypeDescriptor type, boolean mutable, Pushable owner) {
 		this(new Details(name, type, mutable), owner);
 	}
 
-	public ObjectField(Details details, InternalName ownerType) {
+	public ObjectField(Details details, TypeDescriptor ownerType) {
 		super(details, ownerType);
 		this.owner = null;
 	}
 
 	@Override
-	public ObjectField assign(InternalName incomingType, Actor actor) throws Exception {
+	public ObjectField assign(TypeDescriptor incomingType, Actor actor) throws Exception {
 		if(owner == null)
 			throw new NullPointerException(NO_OWNER);
-		final InternalName ownerType = owner.push(actor).toInternalName();
+		final TypeDescriptor ownerType = owner.push(actor).toType();
 		actor.visitInsn(Opcodes.SWAP);
-		actor.visitFieldInsn(Opcodes.PUTFIELD, ownerType.qualifiedName(), name.text, type.arrayName());
+		actor.visitFieldInsn(Opcodes.PUTFIELD, ownerType.qualifiedName(), name.text, descriptor.arrayName());
 		return this;
 	}
 
 	@Override
 	public ObjectField assignDefault(Actor actor) throws Exception {
-		final InternalName incomingType = type.toBaseType().getDefaultValue().push(actor).toInternalName();
+		final TypeDescriptor incomingType = descriptor.toBaseType().getDefaultValue().push(actor).toType();
 		assign(incomingType, actor);
 		return this;
 	}
@@ -50,8 +50,8 @@ public class ObjectField extends StaticField implements Assignable {
 	public Pushable push(Actor actor) throws Exception {
 		if(owner == null)
 			throw new NullPointerException(NO_OWNER);
-		final InternalName ownerType = owner.push(actor).toInternalName();
-		actor.visitFieldInsn(Opcodes.GETFIELD, ownerType.qualifiedName(), name.text, type.arrayName());
+		final TypeDescriptor ownerType = owner.push(actor).toType();
+		actor.visitFieldInsn(Opcodes.GETFIELD, ownerType.qualifiedName(), name.text, descriptor.arrayName());
 		return this;
 	}
 

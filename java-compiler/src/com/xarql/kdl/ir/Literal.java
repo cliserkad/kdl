@@ -6,7 +6,6 @@ import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.InternalName;
 
 public class Literal<Type> implements Pushable, CommonText {
 
@@ -45,8 +44,8 @@ public class Literal<Type> implements Pushable, CommonText {
 	}
 
 	@Override
-	public InternalName toInternalName() {
-		return toBaseType().toInternalName();
+	public com.xarql.kdl.Type toType() {
+		return toBaseType().toType();
 	}
 
 	@Override

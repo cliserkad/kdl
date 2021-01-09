@@ -1,11 +1,11 @@
 package com.xarql.kdl.names;
 
 import com.xarql.kdl.Path;
-import com.xarql.kdl.UnimplementedException;
+import com.xarql.kdl.Type;
 import com.xarql.kdl.ir.Literal;
 import org.objectweb.asm.Opcodes;
 
-public enum BaseType implements ToName {
+public enum BaseType implements ToTypeDescriptor {
 
 	BOOLEAN('Z', false, Opcodes.T_BOOLEAN),
 	BYTE('B', 0, Opcodes.T_BYTE),
@@ -15,14 +15,14 @@ public enum BaseType implements ToName {
 	FLOAT('F', 0.0F, Opcodes.T_FLOAT),
 	LONG('J', 0L, Opcodes.T_LONG),
 	DOUBLE('D', 0.0D, Opcodes.T_DOUBLE),
-	STRING("Ljava/lang/String;", "", 0);
+	STRING("java/lang/String", "", 0);
 
-	public final Path rep;
+	public final Type type;
 	private final Object defaultValue;
 	public final int id;
 
 	BaseType(String rep, Object defaultValue, int id) {
-		this.rep = new Path(rep);
+		this.type = Type.get(new Path(rep));
 		this.defaultValue = defaultValue;
 		this.id = id;
 	}
@@ -91,7 +91,7 @@ public enum BaseType implements ToName {
 
 	public static BaseType matchPath(final Path path) {
 		for(BaseType base : values()) {
-			if(base.rep.equals(path))
+			if(base.type.name.equals(path))
 				return base;
 		}
 		return null;
@@ -113,7 +113,7 @@ public enum BaseType implements ToName {
 		return matchPath(path) != null;
 	}
 
-	public boolean compatibleNoDirection(ToName other) {
+	public boolean compatibleNoDirection(ToType other) {
 		if(!other.isBaseType())
 			return false;
 		else
@@ -124,7 +124,7 @@ public enum BaseType implements ToName {
 		return this.compatibleWith(other) || other.compatibleWith(this);
 	}
 
-	public boolean compatibleWith(ToName receiver) {
+	public boolean compatibleWith(ToType receiver) {
 		if(!receiver.isBaseType())
 			return false;
 		else
@@ -141,33 +141,12 @@ public enum BaseType implements ToName {
 
 	@Override
 	public String toString() {
-		return toInternalName().arrayName();
+		return type.name.toString();
 	}
 
 	@Override
-	public InternalName toInternalName() {
-		switch(this) {
-			case BOOLEAN:
-				return InternalName.BOOLEAN;
-			case BYTE:
-				return InternalName.BYTE;
-			case SHORT:
-				return InternalName.SHORT;
-			case CHAR:
-				return InternalName.CHAR;
-			case INT:
-				return InternalName.INT;
-			case FLOAT:
-				return InternalName.FLOAT;
-			case LONG:
-				return InternalName.LONG;
-			case DOUBLE:
-				return InternalName.DOUBLE;
-			case STRING:
-				return InternalName.STRING;
-			default:
-				return null;
-		}
+	public Type toType() {
+		return type;
 	}
 
 	@Override
@@ -178,6 +157,11 @@ public enum BaseType implements ToName {
 	@Override
 	public BaseType toBaseType() {
 		return this;
+	}
+
+	@Override
+	public TypeDescriptor toTypeDescriptor() {
+		return type.toTypeDescriptor();
 	}
 
 }

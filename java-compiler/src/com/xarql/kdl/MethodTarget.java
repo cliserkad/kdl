@@ -1,17 +1,17 @@
 package com.xarql.kdl;
 
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 
 import java.util.Set;
 
 public class MethodTarget {
 
-	public final InternalName owner;
+	public final Type owner;
 	public final String name;
-	public final BestList<InternalName> args;
+	public final BestList<TypeDescriptor> args;
 	public final boolean requireStatic;
 
-	public MethodTarget(InternalName owner, String name, BestList<InternalName> args, boolean requireStatic) {
+	public MethodTarget(Type owner, String name, BestList<TypeDescriptor> args, boolean requireStatic) {
 		this.owner = owner;
 		this.name = name;
 		if(args == null)
@@ -22,7 +22,11 @@ public class MethodTarget {
 	}
 
 	public MethodInvocation resolve(Actor actor) throws SymbolResolutionException {
-		return resolveAgainst(actor.unit.type.methods);
+		try {
+			return resolveAgainst(actor.unit.type.methods);
+		} catch(SymbolResolutionException sre) {
+			throw new SymbolResolutionException(sre.getMessage());
+		}
 	}
 
 	public MethodInvocation resolveAgainst(Set<MethodHeader> methods) throws SymbolResolutionException {
@@ -33,7 +37,12 @@ public class MethodTarget {
 					return new MethodInvocation(null, def, null, usage);
 			}
 		}
-		throw new SymbolResolutionException("Couldn't resolve given method " + this);
+		StringBuilder builder = new StringBuilder();
+		for(MethodHeader def : methods) {
+			builder.append(def);
+			builder.append("\n");
+		}
+		throw new SymbolResolutionException("Couldn't resolve given method " + this + ". Methods available:\n" + builder.toString());
 	}
 
 	public boolean staticCompatible(MethodHeader header) {
@@ -61,4 +70,13 @@ public class MethodTarget {
 		return usage;
 	}
 
+	@Override
+	public String toString() {
+		final String prepend;
+		if(requireStatic)
+			prepend = "static";
+		else
+			prepend = "instance";
+		return prepend + " " + owner + "." + name + "(" + args.toString() + ")";
+	}
 }

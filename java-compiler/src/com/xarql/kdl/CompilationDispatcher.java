@@ -1,7 +1,7 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import java.io.File;
@@ -76,14 +76,14 @@ public class CompilationDispatcher implements CommonText {
 		}
 	}
 
-	public Type getType(InternalName name) {
+	public Type getType(TypeDescriptor name) {
 		for(Type dc : types)
-			if(dc.toInternalName().equals(name))
+			if(dc.toType().equals(name))
 				return dc;
 			return null;
 	}
 
-	public boolean containsType(InternalName name) {
+	public boolean containsType(TypeDescriptor name) {
 		return getType(name) != null;
 	}
 
@@ -164,7 +164,7 @@ public class CompilationDispatcher implements CommonText {
 	public void writeAndVerify(final BestList<CompilationUnit> units) throws IOException, ClassNotFoundException {
 		for(CompilationUnit unit : units) {
 			unit.write();
-			getClassLoader().loadClass(unit.getType().toInternalName().qualifiedName().replace(Type.PATH_SEPARATOR, CompilationUnit.JAVA_SOURCE_SEPARATOR));
+			getClassLoader().loadClass(unit.getType().toType().qualifiedName().replace(Type.PATH_SEPARATOR, CompilationUnit.JAVA_SOURCE_SEPARATOR));
 		}
 	}
 

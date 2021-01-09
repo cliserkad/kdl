@@ -2,11 +2,11 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.TypeDescriptor;
 
 public interface Assignable extends Member {
 
-	public Assignable assign(final InternalName incomingType, final Actor actor) throws Exception;
+	public Assignable assign(final TypeDescriptor incomingType, final Actor actor) throws Exception;
 
 	public Assignable assignDefault(final Actor actor) throws Exception;
 

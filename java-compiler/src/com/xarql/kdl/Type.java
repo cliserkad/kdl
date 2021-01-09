@@ -1,47 +1,60 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.ir.*;
-import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.Details;
-import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.*;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Opcodes;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 /**
  * Immutable version of a custom class's metadata
  */
-public class Type implements ToName, Member {
+public class Type implements ToDetails  {
     public static final char PATH_SEPARATOR = Path.PATH_SEPARATOR;
 
-    public final InternalName name;
+    private static final HashMap<Path, Type> knownTypes = new HashMap<>();
+
+    public final Path name;
     public TrackedMap<Constant, kdl.ReservationContext> constants = new TrackedMap<>();
     public TrackedMap<StaticField, kdl.ReservationContext> fields = new TrackedMap<>();
     public Set<MethodHeader> methods = new HashSet<>();
 
-    public Type(InternalName name) {
+    private Type(Path name) {
         this.name = name;
     }
 
-    public Type(Class<?> clazz) {
-        this.name = new InternalName(clazz);
+    private Type(Class<?> clazz) {
+        this.name = Path.forClass(clazz);
         for(Method method : clazz.getMethods()) {
             methods.add(new MethodHeader(clazz, method));
         }
         for(Field field : clazz.getFields()) {
-            final Details details = new Details(field.getName(), new InternalName(field.getType()), (field.getModifiers() & Opcodes.ACC_FINAL) == Opcodes.ACC_FINAL);
+            final Details details = new Details(field.getName(), new TypeDescriptor(field.getType()), (field.getModifiers() & Opcodes.ACC_FINAL) == Opcodes.ACC_FINAL);
             if((field.getModifiers() & Opcodes.ACC_STATIC) == Opcodes.ACC_STATIC) {
-                fields.add(new StaticField(details, new InternalName(clazz)), null);
+                fields.add(new StaticField(details, new TypeDescriptor(clazz)), null);
             } else {
-                fields.add(new ObjectField(details, new InternalName(clazz)), null);
+                fields.add(new ObjectField(details, new TypeDescriptor(clazz)), null);
             }
         }
+    }
+
+    public static Type get(Class<?> c) {
+        if(knownTypes.containsKey(Path.forClass(c)))
+            return knownTypes.get(Path.forClass(c));
+        else
+            return knownTypes.put(Path.forClass(c), new Type(c));
+    }
+
+    public static Type get(Path name) {
+        if(knownTypes.containsKey(name))
+            return knownTypes.get(name);
+        else
+            return knownTypes.put(name, new Type(name));
     }
 
     public TrackedMap<Identifier, Member> members() {
@@ -55,18 +68,18 @@ public class Type implements ToName, Member {
         return out;
     }
 
-    public void copyTo(Type other) {
-        other.constants = constants;
-        other.fields = fields;
-        other.methods = methods;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o != null && o instanceof Type) {
             Type that = (Type) o;
             return name.equals(that.name);
+        } else if(o instanceof Path) {
+            Path p = (Path) o;
+            return name.equals(p);
+        } else if(o instanceof Class) {
+            Class<?> c = (Class<?>) o;
+            return name.equals(Path.forClass(c));
         } else
             return false;
     }
@@ -78,12 +91,12 @@ public class Type implements ToName, Member {
 
     @Override
     public String toString() {
-        return toInternalName().arrayName();
+        return name.toString();
     }
 
     @Override
-    public InternalName toInternalName() {
-        return name;
+    public Type toType() {
+        return this;
     }
 
     @Override
@@ -97,15 +110,14 @@ public class Type implements ToName, Member {
     }
 
     @Override
-    public Type push(Actor actor) throws Exception {
-        // do nothing
-        return this;
+    public Details toDetails() {
+        // mutable is false as the class file is not allowed to change during runtime
+        return new Details(name.last(), toTypeDescriptor(), false);
     }
 
     @Override
-    public Details details() {
-        // mutable is false as the class file is not allowed to change during runtime
-        return new Details(toInternalName().name(), toInternalName(), false);
+    public TypeDescriptor toTypeDescriptor() {
+        return new TypeDescriptor(this);
     }
 
 }
