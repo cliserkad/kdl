@@ -1,12 +1,12 @@
 // author: Bryan Johnson
 type AmountLoop {
-  const ASSERTION_PASS : "This message should be printed 5 times"
+  const ASSERTION_PASS : "This message should be printed 5 times";
 
   main {
-    int~ a
+    int~ a;
     while a < 5 {
-      assert true
-      a +: 1
+      assert true;
+      a +: 1;
     }
   }
 }

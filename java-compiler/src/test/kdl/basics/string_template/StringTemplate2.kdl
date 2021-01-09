@@ -2,9 +2,9 @@
 type StringTemplate2 {
 
   main {
-    int b: 55
-    println("\$10 is less than \$$b because 10 < $b")
-    println("\$\$\$ money money money \$\$\$")
+    int b: 55;
+    println("\$10 is less than \$$b because 10 < $b");
+    println("\$\$\$ money money money \$\$\$");
   }
 
 }

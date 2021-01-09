@@ -1,10 +1,10 @@
 // tests storing a template to a string
 type StringTemplate3 {
-  const STR: "val1"
+  const STR: "val1";
 
   main {
-    string a: "val2"
-    string s: "Template with $STR and $a stored to a string"
-    println(s)
+    string a: "val2";
+    string s: "Template with $STR and $a stored to a string";
+    println(s);
   }
 }

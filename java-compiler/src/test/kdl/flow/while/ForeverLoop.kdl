@@ -2,7 +2,7 @@
 type ForeverLoop {
   main {
     while true {
-      println("testing ForeverLoop is a mistake")
+      println("testing ForeverLoop is a mistake");
     }
   }
 }

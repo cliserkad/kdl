@@ -4,30 +4,30 @@ use java/util/Scanner
 use java/lang/System
 
 type Quiz {
-  int~ score: 0
+  int~ score: 0;
 
   main {
-    Quiz quiz: Quiz()
-    quiz.take()
+    Quiz quiz: Quiz();
+    quiz.take();
   }
 
   take(this) {
-    Scanner scan: Scanner(System.in)
-    println("This is a mini quiz!")
-    println("Who is the us president?")
-    string~ input: scan.nextLine()
-    input: input.toLowerCase()
-    boolean firstAnswer: input.contains("trump")
-    react(firstAnswer)
+    Scanner scan: Scanner(System.in);
+    println("This is a mini quiz!");
+    println("Who is the us president?");
+    string~ input: scan.nextLine();
+    input: input.toLowerCase();
+    boolean firstAnswer: input.contains("trump");
+    react(firstAnswer);
   }
 
 
   react(this, boolean correct) {
     if correct {
-      score+: 1
-      println("That's RIGHT!")
+      score+: 1;
+      println("That's RIGHT!");
     } else {
-      println("That's WRONG!")
+      println("That's WRONG!");
     }
   }
 

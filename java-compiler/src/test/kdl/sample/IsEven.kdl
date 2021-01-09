@@ -1,18 +1,18 @@
 type IsEven {
   main {
     if args.size > 0 {
-      int input : parseInt(args[0])
-      println(isEven(input))
+      int input : parseInt(args[0]);
+      println(isEven(input));
     } else {
-      println("Please provide a integer argument")
+      println("Please provide a integer argument");
     }
   }
 
   boolean isEven(int n) {
     if n % 2 = 0 {
-      return true
+      return true;
     } else {
-      return false
+      return false;
     }
   }
 

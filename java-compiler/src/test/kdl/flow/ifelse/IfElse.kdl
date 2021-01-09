@@ -1,21 +1,21 @@
 // author: Bryan Johnson
 type IfElse {
-  const GOOD : "hello from IfElse"
-  const FAIL : "This message should not have appeared"
+  const GOOD : "hello from IfElse";
+  const FAIL : "This message should not have appeared";
 
   main {
     if true {
-      println(GOOD)
+      println(GOOD);
     }
     else {
-      println(FAIL)
+      println(FAIL);
     }
 
     if false {
-      println(FAIL)
+      println(FAIL);
     }
     else {
-      println(GOOD)
+      println(GOOD);
     }
   }
 }

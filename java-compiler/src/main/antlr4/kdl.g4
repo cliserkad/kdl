@@ -62,4 +62,4 @@ source: path? use* clazz EOF;
 use: USE pathLit;
 pathLit: IDENTIFIER (SLASH IDENTIFIER)*;
 path: PATH pathLit;
-clazz: TYPE IDENTIFIER CURL_L (reservation | main | methodDefinition)* CURL_R;
+clazz: TYPE IDENTIFIER CURL_L (reservation SEMICOLON | main | methodDefinition)* CURL_R;

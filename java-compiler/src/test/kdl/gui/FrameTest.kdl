@@ -4,7 +4,7 @@ use javax/swing/JFrame
 
 type FrameTest {
   main {
-    JFrame frame: JFrame("Title")
-    frame.setVisible(true)
+    JFrame frame: JFrame("Title");
+    frame.setVisible(true);
   }
 }

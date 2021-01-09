@@ -1,40 +1,40 @@
 // author: Bryan Johnson
 type BooleanCompare {
-  const GOOD : "hello from BooleanCompare"
-  const FAIL : "This message was shown in error"
+  const GOOD : "hello from BooleanCompare";
+  const FAIL : "This message was shown in error";
 
   // compare two boolean literals with = and !=
   main {
     if true {
-      println(GOOD)
+      println(GOOD);
     }
 
     if false {
-      println(FAIL)
+      println(FAIL);
     }
 
     if true = true {
-      println(GOOD)
+      println(GOOD);
     }
 
     if true = false {
-      println(FAIL)
+      println(FAIL);
     }
 
     if true != false {
-      println(GOOD)
+      println(GOOD);
     }
 
     if true != true {
-      println(FAIL)
+      println(FAIL);
     }
 
     if false = false {
-      println(GOOD)
+      println(GOOD);
     }
 
     if false != false {
-      println(FAIL)
+      println(FAIL);
     }
   }
 }

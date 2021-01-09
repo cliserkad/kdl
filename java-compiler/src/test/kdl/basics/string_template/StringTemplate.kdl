@@ -1,9 +1,9 @@
 // tests a typical string template
 type StringTemplate {
-  const STR: "val1"
+  const STR: "val1";
 
   main {
-    string a: "val2"
-    println("STR is $STR and a is $a")
+    string a: "val2";
+    println("STR is $STR and a is $a");
   }
 }

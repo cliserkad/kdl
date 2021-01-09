@@ -1,9 +1,9 @@
 // author: Bryan Johnson
 type NeverLoop {
   main {
-    println("hello from NeverLoop")
+    println("hello from NeverLoop");
     while false {
-      assert false
+      assert false;
     }
   }
 }

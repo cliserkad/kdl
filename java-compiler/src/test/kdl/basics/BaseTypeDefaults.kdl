@@ -1,10 +1,10 @@
 type BaseTypeDefaults {
   main {
-    int i
-    boolean b
-    string s
-    println(i)
-    println(b)
-    println(s)
+    int i;
+    boolean b;
+    string s;
+    println(i);
+    println(b);
+    println(s);
   }
 }
