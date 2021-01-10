@@ -35,7 +35,7 @@ public class ArrayLength implements Pushable, CommonText {
 	 */
 	@Override
 	public Type toType() {
-		return BaseType.INT.type;
+		return BaseType.INT.toType();
 	}
 
 	/**

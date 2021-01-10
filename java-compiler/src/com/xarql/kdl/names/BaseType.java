@@ -17,12 +17,12 @@ public enum BaseType implements ToTypeDescriptor {
 	DOUBLE('D', 0.0D, Opcodes.T_DOUBLE),
 	STRING("java/lang/String", "", 0);
 
-	public final Type type;
+	public final Path path;
 	private final Object defaultValue;
 	public final int id;
 
 	BaseType(String rep, Object defaultValue, int id) {
-		this.type = Type.get(new Path(rep));
+		this.path = new Path(rep);
 		this.defaultValue = defaultValue;
 		this.id = id;
 	}
@@ -91,7 +91,7 @@ public enum BaseType implements ToTypeDescriptor {
 
 	public static BaseType matchPath(final Path path) {
 		for(BaseType base : values()) {
-			if(base.type.name.equals(path))
+			if(base.toType().name.equals(path))
 				return base;
 		}
 		return null;
@@ -141,12 +141,12 @@ public enum BaseType implements ToTypeDescriptor {
 
 	@Override
 	public String toString() {
-		return type.name.toString();
+		return path.toString();
 	}
 
 	@Override
 	public Type toType() {
-		return type;
+		return Type.get(path);
 	}
 
 	@Override
@@ -161,7 +161,7 @@ public enum BaseType implements ToTypeDescriptor {
 
 	@Override
 	public TypeDescriptor toTypeDescriptor() {
-		return type.toTypeDescriptor();
+		return toType().toTypeDescriptor();
 	}
 
 }

@@ -1,15 +1,18 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.Text;
 
 public enum IdentifierStyle {
-    CONSTANT(), VAR(), TYPE(), IMPROPER();
+    CONSTANT(), VAR(), TYPE(), CONSTRUCTOR(), IMPROPER();
 
     public static final String PROPER_REGEX = "[a-zA-Z0-9_]*";
     public static final String CONST_REGEX = "[A-Z0-9_]*";
 
     public static IdentifierStyle match(String name) {
-        if(!isProper(name))
+        if(name.equals(MethodHeader.S_INIT) || name.equals(MethodHeader.S_STATIC_INIT))
+            return CONSTRUCTOR;
+        else if(!isProper(name))
             return IMPROPER;
         else if(name.matches(CONST_REGEX))
             return CONSTANT;

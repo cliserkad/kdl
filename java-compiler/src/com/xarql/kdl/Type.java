@@ -20,42 +20,57 @@ public class Type implements ToDetails  {
 
     private static HashMap<Path, Type> knownTypes;
 
-    public final Path name;
+    public Path name;
     public TrackedMap<Constant, kdl.ReservationContext> constants = new TrackedMap<>();
     public TrackedMap<StaticField, kdl.ReservationContext> fields = new TrackedMap<>();
     public Set<MethodHeader> methods = new HashSet<>();
 
-    private Type(Path name) {
-        this.name = name;
+    private Type() {
+        // do nothing
     }
 
-    private Type(Class<?> clazz) {
-        this.name = Path.forClass(clazz);
-        for(Method method : clazz.getMethods()) {
+    public Type init(Path name) {
+        this.name = name;
+        return this;
+    }
+
+    public Type init(Class<?> c) {
+        init(Path.forClass(c));
+        for(Method method : c.getMethods()) {
             methods.add(new MethodHeader(this, method));
         }
-        for(Field field : clazz.getFields()) {
+        for(Field field : c.getFields()) {
             final Details details = new Details(field.getName(), new TypeDescriptor(field.getType()), (field.getModifiers() & Opcodes.ACC_FINAL) == Opcodes.ACC_FINAL);
             if((field.getModifiers() & Opcodes.ACC_STATIC) == Opcodes.ACC_STATIC) {
-                fields.add(new StaticField(details, new TypeDescriptor(clazz)), null);
+                fields.add(new StaticField(details, new TypeDescriptor(c)), null);
             } else {
-                fields.add(new ObjectField(details, new TypeDescriptor(clazz)), null);
+                fields.add(new ObjectField(details, new TypeDescriptor(c)), null);
             }
         }
+        return this;
     }
 
     public static Type get(Class<?> c) {
-        if(getKnownTypes().containsKey(Path.forClass(c)))
-            return getKnownTypes().get(Path.forClass(c));
-        else
-            return getKnownTypes().put(Path.forClass(c), new Type(c));
+        final Path p = Path.forClass(c);
+        if(getKnownTypes().containsKey(p))
+            return getKnownTypes().get(p);
+        else {
+            Type t = new Type();
+            getKnownTypes().put(p, t);
+            t.init(c);
+            return t;
+        }
     }
 
     public static Type get(Path name) {
         if(getKnownTypes().containsKey(name))
             return getKnownTypes().get(name);
-        else
-            return getKnownTypes().put(name, new Type(name));
+        else {
+            Type t = new Type();
+            getKnownTypes().put(name, t);
+            t.init(name);
+            return t;
+        }
     }
 
     private static HashMap<Path, Type> getKnownTypes() {

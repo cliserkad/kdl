@@ -93,9 +93,9 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 			else {
 				TypeDescriptor actualType = descriptor;
 				if(descriptor.toBaseType() == BYTE)
-					actualType = INT.type.toTypeDescriptor();
+					actualType = INT.toTypeDescriptor();
 				else if(descriptor.toBaseType() == SHORT)
-					actualType = INT.type.toTypeDescriptor();
+					actualType = INT.toTypeDescriptor();
 				stringValueOf = new MethodHeader(STRING.toTypeDescriptor(), "valueOf", MethodHeader.toParamList(actualType), STRING.toTypeDescriptor(), ACC_PUBLIC + ACC_STATIC);
 			}
 		} else

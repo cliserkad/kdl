@@ -28,13 +28,12 @@ public class Path implements Serializable {
 
     public Path(String raw) {
         this(raw.split("" + PATH_SEPARATOR));
-        System.out.println("raw: " + raw + "\nis" + Arrays.toString(raw.split("" + PATH_SEPARATOR)));
     }
 
     public static Path forClass(Class<?> c) {
         BaseType base = BaseType.matchClassStrict(c);
         if(base != null)
-            return base.toType().name;
+            return base.path;
         else
             return new Path(c.getCanonicalName().replace(CompilationUnit.JAVA_SOURCE_SEPARATOR, PATH_SEPARATOR));
     }

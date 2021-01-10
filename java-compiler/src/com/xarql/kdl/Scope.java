@@ -65,10 +65,8 @@ public class Scope implements Opcodes {
 			visitor.visitInsn(NOP);
 
 		visitor.visitLabel(end);
-		for(Variable lv : all()) {
+		for(Variable lv : all())
 			visitor.visitLocalVariable(lv.name.text, lv.descriptor.arrayName(), null, start, end, lv.localIndex);
-			System.out.println(lv);
-		}
 		visitor.visitMaxs(0, 0);
 		visitor.visitEnd();
 
