@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -23,9 +24,6 @@ public class CompilationDispatcher implements CommonText {
 
 
 	public static final FileFilter KDL_FILTER = new RegexFileFilter(".*\\.kdl"); // default to all .kdl files
-
-	public static final String QUIET = "quiet";
-	public static final boolean DEFAULT_QUIET = false;
 
 	private final File input;
 	private final FileFilter filter;
@@ -57,34 +55,9 @@ public class CompilationDispatcher implements CommonText {
 		if(arguments.isEmpty())
 			new CompilationDispatcher(null, null, null).dispatch();
 		else {
-			final CompilationDispatcher dispatcher;
-			if(arguments.get(0).equalsIgnoreCase(QUIET))
-				dispatcher = new CompilationDispatcher(null, KDL_FILTER, null);
-			else {
-				dispatcher = new CompilationDispatcher(null, new RegexFileFilter(arguments.get(0)), null);
-				arguments.remove(0);
-			}
-
-			if(arguments.contains(QUIET))
-				try {
-					dispatcher.dispatchQuietly();
-				} catch(Exception e) {
-					e.printStackTrace();
-				}
-			else
-				dispatcher.dispatch();
+			CompilationDispatcher dispatcher = new CompilationDispatcher(null, new RegexFileFilter(arguments.get(0)), null);
+			dispatcher.dispatch();
 		}
-	}
-
-	public Type getType(TypeDescriptor name) {
-		for(Type dc : types)
-			if(dc.toType().equals(name))
-				return dc;
-			return null;
-	}
-
-	public boolean containsType(TypeDescriptor name) {
-		return getType(name) != null;
 	}
 
 	public CompilationDispatcher dispatch() {
@@ -115,8 +88,7 @@ public class CompilationDispatcher implements CommonText {
 	 * Prints input and output directories to System.out
 	 */
 	public void printDirs() {
-		System.out.println("Input Directory: " + input);
-		System.out.println("Output Directory: " + output);
+		System.out.println("Input Directory: " + input + "\n" + "Output Directory: " + output);
 	}
 
 	private void compile(final BestList<CompilationUnit> units) {
@@ -125,12 +97,7 @@ public class CompilationDispatcher implements CommonText {
 		for(int pass = 0; pass < CompilationUnit.PASSES; pass++) {
 			final ExecutorService threadPool = Executors.newFixedThreadPool(THREADS);
 			for(CompilationUnit unit : units) {
-				try {
-					threadPool.execute(unit);
-				} catch(Exception e) {
-					System.err.println(e.getMessage());
-					e.printStackTrace();
-				}
+				threadPool.execute(unit);
 			}
 			threadPool.shutdown();
 			try {

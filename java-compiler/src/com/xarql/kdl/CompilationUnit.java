@@ -7,6 +7,7 @@ import com.xarql.kdl.ir.*;
 import com.xarql.kdl.names.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -37,6 +38,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 	public Path path;
 	public Type type;
 	public Set<Type> imports;
+	public List<Exception> exceptions;
 
 	// input and output
 	public ClassWriter cw;
@@ -61,6 +63,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 		imports = new HashSet<>();
 		addImport(String.class);
 		tree = null;
+		exceptions = new BestList<>();
 		warnings = new BestList<>("KDL is an unfinished language and may produce broken class files");
 	}
 
@@ -111,6 +114,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 		newPass();
 		ParseTreeWalker.DEFAULT.walk((ParseTreeListener) this, tree);
+		if(!exceptions.isEmpty())
+			throw new ExceptionPack(exceptions);
 
 		if(pass == 1)
 			addImport(getType());
@@ -127,7 +132,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 		try {
 			pass();
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println("From unit " + toString() + " " + e.getMessage() + "\n");
 		}
 	}
 
@@ -204,24 +209,19 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 	@Override
 	public void enterClazz(final kdl.ClazzContext ctx) {
-		if(getPass() == 1) {
-			if(setClassName(ctx.IDENTIFIER().getText())) {}
-			else
-				System.err.println("Type was already named:" + type);
-			owner.types.add(getType());
-			try {
+		tryOrHold(ctx, () -> {
+			if (getPass() == 1) {
+				if(!setClassName(ctx.IDENTIFIER().getText()))
+					throw new IllegalArgumentException("Type was already named:" + type);
+				owner.types.add(getType());
 				ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		} else if(getPass() == 2) {
-			if(!type.constants.isEmpty()) {
-				MethodHeader staticInit = MethodHeader.STATIC_INIT.withOwner(type);
-				Actor actor = defineMethod(staticInit);
+			} else if (getPass() == 2) {
+				if (!type.constants.isEmpty()) {
+					MethodHeader staticInit = MethodHeader.STATIC_INIT.withOwner(type);
+					Actor actor = defineMethod(staticInit);
 
-				for(Constant c : type.constants.keys()) {
-					if(c.owner.equals(getType())) {
-						try {
+					for (Constant c : type.constants.keys()) {
+						if (c.owner.equals(getType())) {
 							final kdl.ReservationContext cDef = type.constants.get(c);
 							final Expression expression = new Expression(type, cDef.expression(), actor);
 							final Constant unsetConst = new Constant(c.name.text, expression.toTypeDescriptor(), type.toTypeDescriptor());
@@ -229,37 +229,31 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 							type.constants.put(unsetConst, cDef);
 							expression.push(actor);
 							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.toTypeDescriptor().qualifiedName(), unsetConst.name.text, expression.toTypeDescriptor().arrayName());
-						} catch (Exception e) {
-							printException(e);
 						}
 					}
+					actor.scope.end(ctx.stop.getLine(), actor, staticInit.yield);
 				}
-				actor.scope.end(ctx.stop.getLine(), actor, staticInit.yield);
-			}
 
-			for(StaticField f : type.fields.keys()) {
-				if(f.ownerType.equals(getType()) && f instanceof ObjectField) {
-					final FieldVisitor fv;
-					int modifier = 0;
-					if(f.mutable)
-						modifier = ACC_FINAL;
-					fv = cw.visitField(ACC_PUBLIC + modifier, f.name.text, f.descriptor.arrayName(), null, f.descriptor.defaultValue());
-					fv.visitEnd();
+				for (StaticField f : type.fields.keys()) {
+					if (f.ownerType.equals(getType()) && f instanceof ObjectField) {
+						final FieldVisitor fv;
+						int modifier = 0;
+						if (f.mutable)
+							modifier = ACC_FINAL;
+						fv = cw.visitField(ACC_PUBLIC + modifier, f.name.text, f.descriptor.arrayName(), null, f.descriptor.defaultValue());
+						fv.visitEnd();
+					}
 				}
-			}
 
-			try {
 				addDefaultConstructor();
-			} catch(Exception e) {
-				printException(e);
 			}
-		}
+		});
 	}
 
 	@Override
 	public void enterReservation(kdl.ReservationContext ctx) {
-		if(getPass() == 1 && ctx.parent.getRuleIndex() == kdl.RULE_clazz) {
-			try {
+		tryOrHold(ctx, () -> {
+			if(getPass() == 1 && ctx.parent.getRuleIndex() == kdl.RULE_clazz) {
 				final Details details = new Details(ctx.details(), this);
 				if(details.constant) {
 					final Constant unsetConst = new Constant(details.name.text, TypeDescriptor.PLACEHOLDER, getType());
@@ -272,13 +266,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 					if (!type.fields.contains(field))
 						type.fields.put(field, ctx);
 					else
-						throw new IllegalArgumentException("The field named " + details.name + " was already declared within " + getType());
+						throw new IllegalArgumentException("The field named " + details.name + " was already declared");
 				}
-			} catch(Exception e) {
-				e.printStackTrace();
-				throw new IllegalArgumentException("Couldn't determine the name, type and mutability of a field at " + ctx.getStart().getLine() + ":" + ctx.getStart().getCharPositionInLine());
 			}
-		}
+		});
 	}
 
 	private void consumeAssignment(kdl.AssignmentContext ctx, Actor actor) throws Exception {
@@ -330,24 +321,23 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 	@Override
 	public void enterPath(final kdl.PathContext ctx) {
-		if(pass == 1)
-			path = path.prepend(ctx.getText().trim().substring(4));
+		tryOrHold(ctx, () -> {
+			if (pass == 1)
+				path = path.prepend(ctx.getText().trim().substring(4));
+		});
 	}
 
 	@Override
 	public void enterUse(final kdl.UseContext ctx) {
-		if(pass == 1) {
-			addImport(ctx.getText().substring(3));
-		}
+		tryOrHold(ctx, () -> {
+			if(pass == 1)
+				addImport(ctx.getText().substring(3));
+		});
 	}
 
-	public void addImport(String text) {
-		try {
-			final Class<?> jvmClass = Class.forName(text.replace(PATH_SEPARATOR, JAVA_SOURCE_SEPARATOR));
-			addImport(jvmClass);
-		} catch(Exception e) {
-			printException(e);
-		}
+	public void addImport(String text) throws Exception {
+		final Class<?> jvmClass = Class.forName(text.replace(PATH_SEPARATOR, JAVA_SOURCE_SEPARATOR));
+		addImport(jvmClass);
 	}
 
 	public void addImport(Class<?> clazz) {
@@ -360,7 +350,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 	@Override
 	public void enterMethodDefinition(final kdl.MethodDefinitionContext ctx) {
-		try {
+		tryOrHold(ctx, () -> {
 			// parse name and return type
 			final Details details;
 			if(ctx.details() != null)
@@ -426,29 +416,32 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 					}
 				}
 			}
-		} catch(Exception e) {
-			printException(e);
-		}
+		});
 	}
 
-	private void printException(final Exception e) {
-		System.err.println("From unit: " + unitName());
-		e.printStackTrace();
+	private void holdException(final Exception e) {
+		exceptions.add(e);
 	}
 
 	@Override
 	public void enterMain(final kdl.MainContext ctx) {
-		if(getPass() == 2) {
-			registerMethod(MethodHeader.MAIN.withOwner(type));
-		} else if(getPass() == 3) {
-			final Actor actor = defineMethod(MethodHeader.MAIN.withOwner(type));
-			actor.scope.newVar("args", new TypeDescriptor(String.class, 1));
-			try {
+		tryOrHold(ctx, () -> {
+			if (getPass() == 2) {
+				registerMethod(MethodHeader.MAIN.withOwner(type));
+			} else if (getPass() == 3) {
+				final Actor actor = defineMethod(MethodHeader.MAIN.withOwner(type));
+				actor.scope.newVar("args", new TypeDescriptor(String.class, 1));
 				consumeBlock(ctx.block(), actor);
-			} catch(Exception e) {
-				printException(e);
+				actor.scope.end(ctx.stop.getLine(), actor, TypeDescriptor.VOID);
 			}
-			actor.scope.end(ctx.stop.getLine(), actor, TypeDescriptor.VOID);
+		});
+	}
+
+	public void tryOrHold(ParserRuleContext ctx, ParserFunction function) {
+		try {
+			function.parse();
+		} catch (Exception e) {
+			holdException(new ContextualException(ctx, e));
 		}
 	}
 
@@ -570,7 +563,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 	@Override
 	public String toString() {
-		return unitName();
+		if(isFromFile())
+			return sourcePath().toString();
+		else
+			return unitName();
 	}
 
 	@Override

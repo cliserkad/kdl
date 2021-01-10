@@ -21,10 +21,7 @@ public class SyntaxErrorHandler extends BaseErrorListener {
 	public void printErrors() {
 		final StringBuilder builder = new StringBuilder();
 		builder.append("Encountered syntax errors while parsing within ");
-		if(unit.isFromFile())
-			builder.append(unit.sourcePath());
-		else
-			builder.append(unit.unitName());
+		builder.append(unit);
 		builder.append("\n");
 		for(SyntaxException e : errors) {
 			builder.append("\t");
