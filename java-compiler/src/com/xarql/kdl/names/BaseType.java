@@ -1,6 +1,6 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.Path;
+import com.xarql.smp.Path;
 import com.xarql.kdl.Type;
 import com.xarql.kdl.ir.Literal;
 import org.objectweb.asm.Opcodes;

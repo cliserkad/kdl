@@ -3,6 +3,7 @@ package com.xarql.kdl;
 import com.xarql.kdl.ir.*;
 import com.xarql.kdl.names.*;
 import com.xarql.kdl.antlr.kdl;
+import com.xarql.smp.Path;
 import org.objectweb.asm.Opcodes;
 
 import java.lang.reflect.Field;
@@ -34,8 +35,16 @@ public class Type implements ToDetails  {
         return this;
     }
 
+    public static Path pathFor(Class<?> c) {
+        BaseType base = BaseType.matchClassStrict(c);
+        if(base != null)
+            return base.path;
+        else
+            return new Path(c.getCanonicalName().replace(CompilationUnit.JAVA_SOURCE_SEPARATOR, PATH_SEPARATOR));
+    }
+
     public Type init(Class<?> c) {
-        init(Path.forClass(c));
+        init(pathFor(c));
         for(Method method : c.getMethods()) {
             methods.add(new MethodHeader(this, method));
         }
@@ -51,7 +60,7 @@ public class Type implements ToDetails  {
     }
 
     public static Type get(Class<?> c) {
-        final Path p = Path.forClass(c);
+        final Path p = pathFor(c);
         if(getKnownTypes().containsKey(p))
             return getKnownTypes().get(p);
         else {
@@ -101,7 +110,7 @@ public class Type implements ToDetails  {
             return name.equals(p);
         } else if(o instanceof Class) {
             Class<?> c = (Class<?>) o;
-            return name.equals(Path.forClass(c));
+            return name.equals(pathFor(c));
         } else
             return false;
     }

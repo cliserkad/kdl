@@ -5,6 +5,7 @@ import com.xarql.kdl.antlr.kdlBaseListener;
 import com.xarql.kdl.antlr.kdlLexer;
 import com.xarql.kdl.ir.*;
 import com.xarql.kdl.names.*;
+import com.xarql.smp.Path;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;

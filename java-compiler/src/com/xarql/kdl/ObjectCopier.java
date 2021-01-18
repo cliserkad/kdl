@@ -1,6 +1,7 @@
 package com.xarql.kdl;
 
 import java.io.*;
+import com.xarql.smp.Path;
 
 public class ObjectCopier {
 
