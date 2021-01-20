@@ -28,4 +28,5 @@ public class ContextualException extends Exception {
 	public StackTraceElement[] getStackTrace() {
 		return reason.getStackTrace();
 	}
+
 }

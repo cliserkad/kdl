@@ -38,7 +38,8 @@ public class MethodInvocation implements Pushable {
 		return new MethodInvocation(owner, header, args, paramUse);
 	}
 
-	@Override public MethodInvocation push(Actor actor) throws Exception {
+	@Override
+	public MethodInvocation push(Actor actor) throws Exception {
 		if(owner != null)
 			owner.push(actor);
 		else if(!header.isStatic())
@@ -80,4 +81,5 @@ public class MethodInvocation implements Pushable {
 	public TypeDescriptor toTypeDescriptor() {
 		return header.toTypeDescriptor();
 	}
+
 }

@@ -79,4 +79,5 @@ public class StringTemplate implements Pushable {
 	public TypeDescriptor toTypeDescriptor() {
 		return BaseType.STRING.toTypeDescriptor();
 	}
+
 }

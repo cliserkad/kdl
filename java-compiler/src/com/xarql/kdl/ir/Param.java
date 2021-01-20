@@ -15,4 +15,5 @@ public class Param extends Details {
 	public Param(Details details) {
 		this(details, null);
 	}
+
 }

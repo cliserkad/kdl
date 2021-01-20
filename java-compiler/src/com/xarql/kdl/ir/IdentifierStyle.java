@@ -4,25 +4,27 @@ import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.Text;
 
 public enum IdentifierStyle {
-    CONSTANT(), VAR(), TYPE(), CONSTRUCTOR(), IMPROPER();
 
-    public static final String PROPER_REGEX = "[a-zA-Z0-9_]*";
-    public static final String CONST_REGEX = "[A-Z0-9_]*";
+	CONSTANT(), VAR(), TYPE(), CONSTRUCTOR(), IMPROPER();
 
-    public static IdentifierStyle match(String name) {
-        if(name.equals(MethodHeader.S_INIT) || name.equals(MethodHeader.S_STATIC_INIT))
-            return CONSTRUCTOR;
-        else if(!isProper(name))
-            return IMPROPER;
-        else if(name.matches(CONST_REGEX))
-            return CONSTANT;
-        else if(Text.isFirstLetterUppercase(name))
-            return TYPE;
-        else
-            return VAR;
-    }
+	public static final String PROPER_REGEX = "[a-zA-Z0-9_]*";
+	public static final String CONST_REGEX = "[A-Z0-9_]*";
 
-    public static boolean isProper(String name) {
-        return name.matches(PROPER_REGEX);
-    }
+	public static IdentifierStyle match(String name) {
+		if(name.equals(MethodHeader.S_INIT) || name.equals(MethodHeader.S_STATIC_INIT))
+			return CONSTRUCTOR;
+		else if(!isProper(name))
+			return IMPROPER;
+		else if(name.matches(CONST_REGEX))
+			return CONSTANT;
+		else if(Text.isFirstLetterUppercase(name))
+			return TYPE;
+		else
+			return VAR;
+	}
+
+	public static boolean isProper(String name) {
+		return name.matches(PROPER_REGEX);
+	}
+
 }

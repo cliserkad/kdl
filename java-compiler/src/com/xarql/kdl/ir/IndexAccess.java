@@ -18,7 +18,8 @@ import static com.xarql.kdl.names.BaseType.*;
  */
 public class IndexAccess implements Pushable, CommonText {
 
-	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(BaseType.STRING, "charAt", MethodHeader.toParamList(INT.toTypeDescriptor()), CHAR.toTypeDescriptor(), ACC_PUBLIC);
+	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(BaseType.STRING, "charAt", MethodHeader.toParamList(INT.toTypeDescriptor()), CHAR.toTypeDescriptor(),
+			ACC_PUBLIC);
 
 	public final TypeDescriptor operand;
 	public final Pushable index;
@@ -33,7 +34,7 @@ public class IndexAccess implements Pushable, CommonText {
 		index = new Expression(operand.toType(), ctx.expression(), actor);
 	}
 
-    @Override
+	@Override
 	public IndexAccess push(final Actor actor) throws Exception {
 		// throw error if value within [ ] isn't an int
 		if(index.toBaseType().ordinal() > INT.ordinal())

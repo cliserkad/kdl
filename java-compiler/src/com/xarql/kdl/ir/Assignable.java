@@ -12,8 +12,6 @@ public interface Assignable extends Member {
 
 	public static Assignable parse(final kdl.AssignmentContext ctx, final Actor actor) throws SymbolResolutionException {
 
-
-
 		return null;
 	}
 

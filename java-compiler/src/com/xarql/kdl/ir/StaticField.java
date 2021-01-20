@@ -70,4 +70,5 @@ public class StaticField extends Details implements Assignable, Member {
 	public Details details() {
 		return this;
 	}
+
 }

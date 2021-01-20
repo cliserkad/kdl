@@ -18,7 +18,7 @@ public class Literal<Type> implements Pushable, CommonText {
 	public Type value;
 
 	public static void main(String[] args) {
-		System.out.println(removeSpacers("1,00_0.0000_0"));   
+		System.out.println(removeSpacers("1,00_0.0000_0"));
 	}
 
 	public Literal(Type value) {
@@ -140,4 +140,5 @@ public class Literal<Type> implements Pushable, CommonText {
 	public TypeDescriptor toTypeDescriptor() {
 		return BaseType.STRING.toTypeDescriptor();
 	}
+
 }

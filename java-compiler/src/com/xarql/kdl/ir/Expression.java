@@ -9,8 +9,10 @@ import com.xarql.kdl.names.TypeDescriptor;
 import static com.xarql.kdl.names.BaseType.STRING;
 
 public class Expression implements Pushable, CommonText {
+
 	public static final MethodHeader INIT_STRING_BUILDER = new MethodHeader(Type.get(StringBuilder.class), MethodHeader.S_INIT, null, null, ACC_PUBLIC);
-	public static final MethodHeader SB_APPEND = new MethodHeader(Type.get(StringBuilder.class), "append", MethodHeader.toParamList(new TypeDescriptor(String.class)), new TypeDescriptor(StringBuilder.class), ACC_PUBLIC);
+	public static final MethodHeader SB_APPEND = new MethodHeader(Type.get(StringBuilder.class), "append", MethodHeader.toParamList(new TypeDescriptor(String.class)),
+			new TypeDescriptor(StringBuilder.class), ACC_PUBLIC);
 	public static final MethodHeader SB_TO_STRING = new MethodHeader(Type.get(StringBuilder.class), "toString", null, BaseType.STRING.toTypeDescriptor(), ACC_PUBLIC);
 
 	public final Pushable value;
@@ -135,7 +137,7 @@ public class Expression implements Pushable, CommonText {
 					}
 				}
 			}
-			break;
+				break;
 			default: {
 				throw new UnimplementedException(SWITCH_OPERATOR);
 			}
@@ -145,7 +147,7 @@ public class Expression implements Pushable, CommonText {
 	public static BaseType computeInt(Pushable res1, Pushable res2, Operator opr, Actor actor) throws Exception {
 		if(res2.toBaseType() == STRING)
 			throw new IncompatibleTypeException(BaseType.INT + INCOMPATIBLE + STRING);
-			// under the hood booleans should be either 0 or 1
+		// under the hood booleans should be either 0 or 1
 		else {
 			res1.push(actor);
 			res2.push(actor);
@@ -195,4 +197,5 @@ public class Expression implements Pushable, CommonText {
 	public TypeDescriptor toTypeDescriptor() {
 		return value.toTypeDescriptor();
 	}
+
 }

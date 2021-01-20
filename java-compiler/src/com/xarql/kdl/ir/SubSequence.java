@@ -10,7 +10,9 @@ import com.xarql.kdl.names.TypeDescriptor;
 import org.objectweb.asm.Opcodes;
 
 public class SubSequence implements Pushable {
-	public static final MethodHeader SUB_STRING = new MethodHeader(BaseType.STRING.toType(), "substring", MethodHeader.toParamList(BaseType.INT.toTypeDescriptor(), BaseType.INT.toTypeDescriptor()), BaseType.STRING.toTypeDescriptor(), Opcodes.ACC_PUBLIC);
+
+	public static final MethodHeader SUB_STRING = new MethodHeader(BaseType.STRING.toType(), "substring",
+			MethodHeader.toParamList(BaseType.INT.toTypeDescriptor(), BaseType.INT.toTypeDescriptor()), BaseType.STRING.toTypeDescriptor(), Opcodes.ACC_PUBLIC);
 
 	public final Pushable operand;
 	public final Range range;
@@ -56,4 +58,5 @@ public class SubSequence implements Pushable {
 	public TypeDescriptor toTypeDescriptor() {
 		return new TypeDescriptor(operand.toType(), Math.max(0, operand.toTypeDescriptor().arrayDimensions - 1));
 	}
+
 }

@@ -82,4 +82,5 @@ public class MethodCall implements Pushable, CommonText {
 	public TypeDescriptor toTypeDescriptor() {
 		return invocation.toTypeDescriptor();
 	}
+
 }

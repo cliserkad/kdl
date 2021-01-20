@@ -10,6 +10,7 @@ import java.util.Objects;
  * Stores a Type and its Array dimensions
  */
 public class TypeDescriptor implements ToTypeDescriptor, CommonText {
+
 	public static final TypeDescriptor VOID = new TypeDescriptor();
 	public static final TypeDescriptor INT_WRAPPER = new TypeDescriptor(Integer.class);
 	public static final TypeDescriptor OBJECT = new TypeDescriptor(Object.class);
@@ -80,14 +81,13 @@ public class TypeDescriptor implements ToTypeDescriptor, CommonText {
 	}
 
 	/**
-	 * Provides the qualified name, surrounded with object markers.
-	 * If this InternalName represents a BaseType which is not string,
-	 * then qualifiedName() is returned.
-	 * Ex: Ljava/lang/String;
+	 * Provides the qualified name, surrounded with object markers. If this
+	 * InternalName represents a BaseType which is not string, then qualifiedName()
+	 * is returned. Ex: Ljava/lang/String;
 	 */
-    public String objectName() {
-    	if(isVoid())
-    		return VOID_REP;
+	public String objectName() {
+		if(isVoid())
+			return VOID_REP;
 		else if(isBaseType() && toBaseType() != BaseType.STRING)
 			return qualifiedName();
 		else
@@ -95,9 +95,8 @@ public class TypeDescriptor implements ToTypeDescriptor, CommonText {
 	}
 
 	/**
-	 * Provides the objectName, prefixed with arrayDimensions amount
-	 * of array dimension markers.
-	 * Ex: [[Ljava/lang/String;
+	 * Provides the objectName, prefixed with arrayDimensions amount of array
+	 * dimension markers. Ex: [[Ljava/lang/String;
 	 */
 	public String arrayName() {
 		StringBuilder dims = new StringBuilder();
@@ -118,8 +117,7 @@ public class TypeDescriptor implements ToTypeDescriptor, CommonText {
 	}
 
 	/**
-	 * Provides the type name of this InternalName.
-	 * Ex: String
+	 * Provides the type name of this InternalName. Ex: String
 	 */
 	public String name() {
 		return type.name.last();

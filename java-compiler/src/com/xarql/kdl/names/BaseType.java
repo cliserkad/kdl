@@ -7,15 +7,8 @@ import org.objectweb.asm.Opcodes;
 
 public enum BaseType implements ToTypeDescriptor {
 
-	BOOLEAN('Z', false, Opcodes.T_BOOLEAN),
-	BYTE('B', 0, Opcodes.T_BYTE),
-	SHORT('S', 0, Opcodes.T_SHORT),
-	CHAR('C', ' ', Opcodes.T_CHAR),
-	INT('I', 0, Opcodes.T_INT),
-	FLOAT('F', 0.0F, Opcodes.T_FLOAT),
-	LONG('J', 0L, Opcodes.T_LONG),
-	DOUBLE('D', 0.0D, Opcodes.T_DOUBLE),
-	STRING("java/lang/String", "", 0);
+	BOOLEAN('Z', false, Opcodes.T_BOOLEAN), BYTE('B', 0, Opcodes.T_BYTE), SHORT('S', 0, Opcodes.T_SHORT), CHAR('C', ' ', Opcodes.T_CHAR), INT('I', 0, Opcodes.T_INT),
+	FLOAT('F', 0.0F, Opcodes.T_FLOAT), LONG('J', 0L, Opcodes.T_LONG), DOUBLE('D', 0.0D, Opcodes.T_DOUBLE), STRING("java/lang/String", "", 0);
 
 	public final Path path;
 	private final Object defaultValue;

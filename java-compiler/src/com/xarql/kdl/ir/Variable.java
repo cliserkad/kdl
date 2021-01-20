@@ -56,8 +56,8 @@ public class Variable extends Details implements Assignable, Member, CommonText 
 
 	@Override
 	public Variable push(final Actor visitor) throws UnimplementedException {
-		if (descriptor.isBaseType() && !descriptor.isArray()) {
-			switch (descriptor.toBaseType()) {
+		if(descriptor.isBaseType() && !descriptor.isArray()) {
+			switch(descriptor.toBaseType()) {
 				case BOOLEAN:
 				case BYTE:
 				case SHORT:

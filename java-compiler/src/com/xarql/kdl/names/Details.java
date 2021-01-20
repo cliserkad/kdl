@@ -56,38 +56,37 @@ public class Details implements ToDetails {
 			this.descriptor = null;
 			// always immutable
 			this.mutable = false;
-		}
-		else {
+		} else {
 			// determine the type
 			TypeDescriptor type;
-			if (ctx.type().basetype() != null) {
-				if (ctx.type().basetype().BOOLEAN() != null)
+			if(ctx.type().basetype() != null) {
+				if(ctx.type().basetype().BOOLEAN() != null)
 					type = BaseType.BOOLEAN.toTypeDescriptor();
-				else if (ctx.type().basetype().BYTE() != null)
+				else if(ctx.type().basetype().BYTE() != null)
 					type = BaseType.BYTE.toTypeDescriptor();
-				else if (ctx.type().basetype().SHORT() != null)
+				else if(ctx.type().basetype().SHORT() != null)
 					type = BaseType.SHORT.toTypeDescriptor();
-				else if (ctx.type().basetype().CHAR() != null)
+				else if(ctx.type().basetype().CHAR() != null)
 					type = BaseType.CHAR.toTypeDescriptor();
-				else if (ctx.type().basetype().INT() != null)
+				else if(ctx.type().basetype().INT() != null)
 					type = BaseType.INT.toTypeDescriptor();
-				else if (ctx.type().basetype().FLOAT() != null)
+				else if(ctx.type().basetype().FLOAT() != null)
 					type = BaseType.FLOAT.toTypeDescriptor();
-				else if (ctx.type().basetype().LONG() != null)
+				else if(ctx.type().basetype().LONG() != null)
 					type = BaseType.LONG.toTypeDescriptor();
-				else if (ctx.type().basetype().DOUBLE() != null)
+				else if(ctx.type().basetype().DOUBLE() != null)
 					type = BaseType.DOUBLE.toTypeDescriptor();
-				else if (ctx.type().basetype().STRING() != null)
+				else if(ctx.type().basetype().STRING() != null)
 					type = BaseType.STRING.toTypeDescriptor();
 				else
 					throw new UnimplementedException(CommonText.SWITCH_BASETYPE);
 			} else {
 				type = unit.resolveImport(ctx.type().getText()).toTypeDescriptor();
-				if (type == null)
+				if(type == null)
 					throw new IllegalArgumentException("Couldn't recognize type");
 			}
 			// detect if the type is an array
-			if (ctx.type().BRACE_L() != null)
+			if(ctx.type().BRACE_L() != null)
 				type = type.toArray(ctx.type().BRACE_L().size());
 			this.descriptor = type;
 			// detect if the value is mutable
@@ -186,4 +185,5 @@ public class Details implements ToDetails {
 	public Details toDetails() {
 		return this;
 	}
+
 }

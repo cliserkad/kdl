@@ -33,4 +33,5 @@ public class Null implements Pushable, CommonText {
 	public TypeDescriptor toTypeDescriptor() {
 		return TypeDescriptor.VOID;
 	}
+
 }

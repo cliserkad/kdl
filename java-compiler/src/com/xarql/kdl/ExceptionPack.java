@@ -3,6 +3,7 @@ package com.xarql.kdl;
 import java.util.List;
 
 public class ExceptionPack extends Exception {
+
 	public static final String NO_MSG = "No message provided";
 
 	private final Exception[] exceptions;
@@ -55,7 +56,7 @@ public class ExceptionPack extends Exception {
 
 	public Exception[] getExceptions() {
 		Exception[] out = new Exception[exceptions.length];
-		System.arraycopy(exceptions, 0, out,0, exceptions.length);
+		System.arraycopy(exceptions, 0, out, 0, exceptions.length);
 		return out;
 	}
 

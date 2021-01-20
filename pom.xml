@@ -75,7 +75,7 @@
 		<dependency>
 			<groupId>com.xarql</groupId>
 			<artifactId>smp</artifactId>
-			<version>0.6</version>
+			<version>0.10</version>
 		</dependency>
 	</dependencies>
 	<distributionManagement>

@@ -13,11 +13,13 @@ import static com.xarql.kdl.names.BaseType.*;
 
 public class MethodHeader implements CommonText, ToType, Member {
 
-	public static final MethodHeader MAIN = new MethodHeader(Type.get(Object.class), "main", toParamList(new TypeDescriptor(String.class, 1)), TypeDescriptor.VOID, ACC_PUBLIC + ACC_STATIC);
+	public static final MethodHeader MAIN = new MethodHeader(Type.get(Object.class), "main", toParamList(new TypeDescriptor(String.class, 1)), TypeDescriptor.VOID,
+			ACC_PUBLIC + ACC_STATIC);
 	public static final MethodHeader TO_STRING = new MethodHeader(Type.get(Object.class), "toString", null, STRING.toTypeDescriptor(), ACC_PUBLIC);
 	public static final MethodHeader INIT = new MethodHeader(Type.get(Object.class), "<init>", null, TypeDescriptor.VOID, ACC_PUBLIC);
 	public static final MethodHeader STATIC_INIT = new MethodHeader(Type.get(Object.class), "<clinit>", null, TypeDescriptor.VOID, ACC_PUBLIC + ACC_STATIC + ACC_FINAL);
-	public static final MethodHeader EQUALS = new MethodHeader(Type.get(Object.class), "equals", toParamList(new TypeDescriptor(Object.class)), BOOLEAN.toTypeDescriptor(), ACC_PUBLIC);
+	public static final MethodHeader EQUALS = new MethodHeader(Type.get(Object.class), "equals", toParamList(new TypeDescriptor(Object.class)), BOOLEAN.toTypeDescriptor(),
+			ACC_PUBLIC);
 
 	public static final String S_INIT = "<init>";
 	public static final String S_STATIC_INIT = "<clinit>";
@@ -112,7 +114,7 @@ public class MethodHeader implements CommonText, ToType, Member {
 		return out;
 	}
 
-	public static BestList<Param> toParamList(ToTypeDescriptor...types) {
+	public static BestList<Param> toParamList(ToTypeDescriptor... types) {
 		if(types == null)
 			return null;
 		else {
@@ -170,15 +172,18 @@ public class MethodHeader implements CommonText, ToType, Member {
 		return (access & ACC_STATIC) == ACC_STATIC;
 	}
 
-	@Override public Type toType() {
+	@Override
+	public Type toType() {
 		return yield.toType();
 	}
 
-	@Override public boolean isBaseType() {
+	@Override
+	public boolean isBaseType() {
 		return yield.isBaseType();
 	}
 
-	@Override public BaseType toBaseType() {
+	@Override
+	public BaseType toBaseType() {
 		return yield.toBaseType();
 	}
 
@@ -202,4 +207,5 @@ public class MethodHeader implements CommonText, ToType, Member {
 	public TypeDescriptor toTypeDescriptor() {
 		return yield;
 	}
+
 }

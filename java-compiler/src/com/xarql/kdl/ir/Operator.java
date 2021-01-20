@@ -4,25 +4,8 @@ import com.xarql.kdl.Text;
 
 public enum Operator {
 
-	PLUS("+"),
-	MINUS("-"),
-	MULTIPLY("*"),
-	DIVIDE("/"),
-	MODULUS("%"),
-	RESOLVE("."),
-	INDEX_ACCESS("["),
-	NOT("!"),
-	INCREMENT("++"),
-	DECREMENT("--"),
-	BIT_SHIFT_LEFT("<<"),
-	BIT_SHIFT_RIGHT(">>"),
-	BIT_SHIFT_RIGHT_UNSIGNED(">>>"),
-	BIT_OR("|"),
-	BIT_AND("&"),
-	BIT_XOR("^"),
-	OR("||"),
-	AND("&&"),
-	XOR("^^");
+	PLUS("+"), MINUS("-"), MULTIPLY("*"), DIVIDE("/"), MODULUS("%"), RESOLVE("."), INDEX_ACCESS("["), NOT("!"), INCREMENT("++"), DECREMENT("--"), BIT_SHIFT_LEFT("<<"),
+	BIT_SHIFT_RIGHT(">>"), BIT_SHIFT_RIGHT_UNSIGNED(">>>"), BIT_OR("|"), BIT_AND("&"), BIT_XOR("^"), OR("||"), AND("&&"), XOR("^^");
 
 	public final String rep;
 
@@ -38,7 +21,7 @@ public enum Operator {
 			for(Operator opr : values())
 				if(opr.rep.equals(s))
 					return opr;
-				return null;
+			return null;
 		}
 	}
 

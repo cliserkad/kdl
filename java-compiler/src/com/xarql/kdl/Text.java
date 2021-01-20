@@ -57,8 +57,8 @@ public class Text {
 	}
 
 	/**
-	 * Determines if a character has 7 or less significant bits.
-	 * Therefore, if a character is part of ASCII.
+	 * Determines if a character has 7 or less significant bits. Therefore, if a
+	 * character is part of ASCII.
 	 */
 	public static boolean isAscii(char c) {
 		return c < 128;
@@ -75,8 +75,8 @@ public class Text {
 	}
 
 	/**
-	 * Determines if a character has 8 or less significant bits.
-	 * Therefore, if a character is part of extended ASCII.
+	 * Determines if a character has 8 or less significant bits. Therefore, if a
+	 * character is part of extended ASCII.
 	 */
 	public static boolean isAsciiExtended(char c) {
 		return c < 256;
@@ -266,7 +266,7 @@ public class Text {
 			for(int i = 0; i < in.length(); i++)
 				if(Character.isLowerCase(in.charAt(i)))
 					return false;
-				return true;
+			return true;
 		}
 	}
 
