@@ -1,0 +1,6 @@
+// author: Bryan Johnson
+type HelloWorld {
+  main {
+    print("hello world")
+  }
+}
