@@ -23,12 +23,30 @@ public class Type implements ToDetails {
 	private static HashMap<Path, Type> knownTypes;
 
 	public Path name;
-	public TrackedMap<Constant, kdl.ReservationContext> constants = new TrackedMap<>();
-	public TrackedMap<StaticField, kdl.ReservationContext> fields = new TrackedMap<>();
-	public Set<MethodHeader> methods = new HashSet<>();
+	private final TrackedMap<Constant, kdl.ReservationContext> constants = new TrackedMap<>();
+	private final TrackedMap<StaticField, kdl.ReservationContext> fields = new TrackedMap<>();
+	private final Set<MethodHeader> methods = new HashSet<>();
 
 	private Type() {
 		// do nothing
+	}
+
+	public TrackedMap<Constant, kdl.ReservationContext> getConstants() {
+		return constants;
+	}
+
+	public void addConstant(Constant constant, kdl.ReservationContext ctx) {
+		if(getConstants().contains(constant))
+			throw new IllegalArgumentException("the name " + constant.name + " is taken");
+
+	}
+
+	public TrackedMap<StaticField, kdl.ReservationContext> getFields() {
+		return fields;
+	}
+
+	public Set<MethodHeader> getMethods() {
+		return methods;
 	}
 
 	public Type init(Path name) {

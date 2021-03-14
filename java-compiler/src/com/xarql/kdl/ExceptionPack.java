@@ -41,15 +41,10 @@ public class ExceptionPack extends Exception {
 
 	public static String stackTrace(StackTraceElement[] elements) {
 		StringBuilder builder = new StringBuilder();
-		int i = 0;
 		for(StackTraceElement ste : elements) {
 			builder.append("\t\tat ");
 			builder.append(ste.toString());
-			i++;
-			if(i < 6)
-				builder.append("\n");
-			else
-				break;
+			builder.append("\n");
 		}
 		return builder.toString();
 	}

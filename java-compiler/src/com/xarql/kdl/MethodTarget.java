@@ -23,7 +23,7 @@ public class MethodTarget {
 
 	public MethodInvocation resolve(Actor actor) throws SymbolResolutionException {
 		try {
-			return resolveAgainst(actor.unit.type.methods);
+			return resolveAgainst(actor.unit.type.getMethods());
 		} catch(SymbolResolutionException sre) {
 			throw new SymbolResolutionException(sre.getMessage());
 		}

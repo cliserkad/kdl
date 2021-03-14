@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.xarql.kdl.Type.PATH_SEPARATOR;
-import static com.xarql.kdl.Type.get;
 import static com.xarql.kdl.names.BaseType.*;
 
 public class CompilationUnit extends kdlBaseListener implements Runnable, ToTypeDescriptor, CommonText {
@@ -108,7 +107,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.name, stringValueOf.descriptor(), false);
 	}
 
-	public boolean pass() throws Exception {
+	public void pass() throws Exception {
 		if(sourceCode == null)
 			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 		if(tree == null)
@@ -121,8 +120,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 		if(pass == 1)
 			addImport(getType());
-
-		return pass >= PASSES;
 	}
 
 	public void warn(String msg) {
@@ -218,17 +215,17 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 				owner.types.add(getType());
 				ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 			} else if(getPass() == 2) {
-				if(!type.constants.isEmpty()) {
+				if(!type.getConstants().isEmpty()) {
 					MethodHeader staticInit = MethodHeader.STATIC_INIT.withOwner(type);
 					Actor actor = defineMethod(staticInit);
 
-					for(Constant c : type.constants.keys()) {
+					for(Constant c : type.getConstants().keys()) {
 						if(c.owner.equals(getType())) {
-							final kdl.ReservationContext cDef = type.constants.get(c);
+							final kdl.ReservationContext cDef = type.getConstants().get(c);
 							final Expression expression = new Expression(type, cDef.expression(), actor);
 							final Constant unsetConst = new Constant(c.name.text, expression.toTypeDescriptor(), type.toTypeDescriptor());
 							addConstant(unsetConst);
-							type.constants.put(unsetConst, cDef);
+							type.getConstants().put(unsetConst, cDef);
 							expression.push(actor);
 							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.toTypeDescriptor().qualifiedName(), unsetConst.name.text, expression.toTypeDescriptor().arrayName());
 						}
@@ -236,7 +233,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 					actor.scope.end(ctx.stop.getLine(), actor, staticInit.yield);
 				}
 
-				for(StaticField f : type.fields.keys()) {
+				for(StaticField f : type.getFields().keys()) {
 					if(f.ownerType.equals(getType()) && f instanceof ObjectField) {
 						final FieldVisitor fv;
 						int modifier = 0;
@@ -259,16 +256,18 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 				final Details details = new Details(ctx.details(), this);
 				if(details.constant) {
 					final Constant unsetConst = new Constant(details.name.text, TypeDescriptor.PLACEHOLDER, getType());
-					if(!type.constants.contains(unsetConst))
-						type.constants.put(unsetConst, ctx);
+					if(!type.getConstants().contains(unsetConst))
+						type.getConstants().put(unsetConst, ctx);
 					else
 						throw new IllegalArgumentException(unsetConst + " was already declared");
 				} else {
 					final ObjectField field = new ObjectField(details, toTypeDescriptor());
-					if(!type.fields.contains(field))
-						type.fields.put(field, ctx);
-					else
+					if(!type.getFields().contains(field)) {
+						type.getFields().put(field, ctx);
+						System.out.println("On pass " + pass + " in parent rule " + ctx.parent.getRuleIndex() + " declared field " + field);
+					} else {
 						throw new IllegalArgumentException("The field named " + details.name + " was already declared");
+					}
 				}
 			}
 		});
@@ -447,13 +446,13 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 	}
 
 	public MethodHeader registerMethod(MethodHeader md) {
-		if(!type.methods.add(md))
+		if(!type.getMethods().add(md))
 			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
 		return md;
 	}
 
 	public boolean hasConstant(final String name) {
-		for(Constant c : type.constants.keys()) {
+		for(Constant c : type.getConstants().keys()) {
 			if(c.name.text.equals(name))
 				return true;
 		}
@@ -461,7 +460,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 	}
 
 	public Constant getConstant(final String name) {
-		for(Constant c : type.constants.keys()) {
+		for(Constant c : type.getConstants().keys()) {
 			if(c.name.text.equals(name))
 				return c;
 		}
@@ -494,7 +493,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 	}
 
 	public Actor defineMethod(MethodHeader target) {
-		for(MethodHeader def : type.methods) {
+		for(MethodHeader def : type.getMethods()) {
 			if(def.equals(target)) {
 				return Actor.build(def, this);
 			}
@@ -527,12 +526,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 		actor.visitVarInsn(ALOAD, 0);
 		actor.visitMethodInsn(INVOKESPECIAL, TypeDescriptor.OBJECT.qualifiedName(), "<init>", "()V", false);
 
-		for(StaticField f : type.fields.keys()) {
+		for(StaticField f : type.getFields().keys()) {
 			if(f.ownerType.equals(getType()) && f instanceof ObjectField) {
 				// push "this"
 				actor.visitVarInsn(ALOAD, 0);
-				if(type.fields.get(f) != null) {
-					final Expression xpr = new Expression(type, type.fields.get(f).expression(), actor);
+				if(type.getFields().get(f) != null) {
+					final Expression xpr = new Expression(type, type.getFields().get(f).expression(), actor);
 					xpr.push(actor);
 				} else {
 					if(f.descriptor.isBaseType())
@@ -553,12 +552,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 	}
 
 	public Type resolveImport(String name) {
-		return resolveImport(new Path(name));
+		for(Type t : imports)
+			if(t.name.last().equals(name))
+				return t;
+			return null;
 	}
 
 	public Type resolveImport(Path name) {
 		for(Type t : imports)
-			if(t.name.equals(name))
+			if(t.name.last().equals(name.last()))
 				return t;
 		return null;
 	}

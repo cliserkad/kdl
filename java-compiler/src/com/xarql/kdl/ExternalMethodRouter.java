@@ -19,7 +19,7 @@ public class ExternalMethodRouter implements CommonText {
 
 	public static void writeMethods(final CompilationUnit unit, int line) throws Exception {
 		Actor actor;
-		final String arg = "input";
+		final String arg = "testing";
 		MethodHeader def;
 
 		// add println method to class

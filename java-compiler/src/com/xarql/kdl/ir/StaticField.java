@@ -23,7 +23,7 @@ public class StaticField extends Details implements Assignable, Member {
 	@Override
 	public Pushable push(Actor actor) throws Exception {
 		if(descriptor == null) {
-			StaticField proper = actor.unit.type.fields.equivalentKey(this);
+			StaticField proper = actor.unit.type.getFields().equivalentKey(this);
 			return proper.push(actor);
 		} else {
 			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.qualifiedName(), name.text, descriptor.arrayName());
