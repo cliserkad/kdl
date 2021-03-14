@@ -18,7 +18,7 @@ public class Assertion extends Conditional {
 		actor.visitLabel(labelSet.onTrue);
 		if(actor.unit.hasConstant("ASSERTION_PASS")) {
 			actor.unit.getConstant("ASSERTION_PASS").push(actor);
-			PRINT_MTD.withOwner(actor.unit.getType()).withAccess(ACC_PUBLIC + ACC_STATIC).push(actor);
+			PRINT_MTD.withOwner(actor.unit.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC).invoke(actor);
 		}
 		actor.visitJumpInsn(GOTO, labelSet.exit); // jump over the false instructions
 	}
@@ -34,7 +34,7 @@ public class Assertion extends Conditional {
 			msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
 		new Literal<>(msg).push(actor);
 		// print the text of the assertion condition to the error stream
-		ERROR_MTD.withOwner(actor.unit.getType()).withAccess(ACC_PUBLIC + ACC_STATIC).push(actor);
+		ERROR_MTD.withOwner(actor.unit.getClazz()).withAccess(ACC_PUBLIC + ACC_STATIC).invoke(actor);
 	}
 
 }

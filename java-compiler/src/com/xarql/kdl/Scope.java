@@ -1,7 +1,10 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.ir.Variable;
-import com.xarql.kdl.names.*;
+import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.Details;
+import com.xarql.kdl.names.ReturnValue;
+import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -31,20 +34,20 @@ public class Scope implements Opcodes {
 		return start;
 	}
 
-	public Variable newVar(final String name, final ToTypeDescriptor descriptor, final boolean mutable) {
-		Variable var = addLocalVariable(new Variable(name, descriptor.toTypeDescriptor(), nextIndex(), mutable));
+	public Variable newVariable(final String name, final ToName type, final boolean mutable) {
+		Variable var = addLocalVariable(new Variable(name, type.toInternalName(), nextIndex(), mutable));
 		// increment it again to reserve a second slot if its a 64-bit number
-		if(descriptor.toBaseType() == BaseType.LONG || descriptor.toBaseType() == BaseType.DOUBLE)
+		if(type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
 			index++;
 		return var;
 	}
 
-	public Variable newVar(final String name, final ToTypeDescriptor type) {
-		return newVar(name, type, Variable.DEFAULT_MUTABLE);
+	public Variable newVariable(final String name, final ToName type) {
+		return newVariable(name, type, Variable.DEFAULT_MUTABLE);
 	}
 
-	public Variable newVar(final Details details) {
-		return newVar(details.name.text, details.descriptor, details.mutable);
+	public Variable newVariable(final Details details) {
+		return newVariable(details.name, details.type, details.mutable);
 	}
 
 	public Variable addLocalVariable(Variable lv) {
@@ -55,18 +58,18 @@ public class Scope implements Opcodes {
 		return lv;
 	}
 
-	public Label end(final int line, final MethodVisitor visitor, final TypeDescriptor yield) {
+	public Label end(final int line, final MethodVisitor visitor, final ReturnValue rv) {
 		final Label ret = new Label();
 		visitor.visitLabel(ret);
 		visitor.visitLineNumber(line, ret);
-		if(yield.isVoid())
+		if(rv.isVoid())
 			visitor.visitInsn(RETURN);
 		else
 			visitor.visitInsn(NOP);
 
 		visitor.visitLabel(end);
-		for(Variable lv : all())
-			visitor.visitLocalVariable(lv.name.text, lv.descriptor.arrayName(), null, start, end, lv.localIndex);
+		for(Variable lv : getVariables())
+			visitor.visitLocalVariable(lv.name, lv.type.toString(), null, start, end, lv.localIndex);
 		visitor.visitMaxs(0, 0);
 		visitor.visitEnd();
 
@@ -80,18 +83,18 @@ public class Scope implements Opcodes {
 		return false;
 	}
 
-	public Variable get(String name) throws SymbolResolutionException {
+	public Variable getVariable(String name) {
 		for(Variable lv : variables)
-			if(lv.name.text.equals(name))
+			if(lv.name.equals(name))
 				return lv;
-		throw new SymbolResolutionException("The variable \"" + name + "\" does not exist in " + this);
+		throw new IllegalArgumentException("The variable with name " + name + " does not exist in " + this);
 	}
 
 	public int nextIndex() {
 		return index++;
 	}
 
-	public BestList<Variable> all() {
+	public BestList<Variable> getVariables() {
 		BestList<Variable> out = new BestList<>();
 		for(Variable lv : variables)
 			out.add(lv);

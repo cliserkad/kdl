@@ -8,58 +8,68 @@ options {
     tokenVocab = kdlLexer;
 }
 
+arrayLength: VARNAME DOT SIZE;
+
 // literals
 bool: TRUE | FALSE;
-integer: NUMBER | BIN_LIT | HEX_LIT;
-literal: bool | CHAR_LIT | STRING_LIT | integer | FRACTION | NULL;
+decimalNumber: DIGIT? (DIGIT | SEPARATOR | UNDERSCORE)* DOT DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
+integer: DIGIT (DIGIT | SEPARATOR | UNDERSCORE)*;
+literal: bool | CHAR_LIT | STRING_LIT | integer | decimalNumber;
 
-imperative: (expression | reservation | assignment | returnStatement) SEMICOLON;
-statement: imperative | conditional;
-block: CURL_L statement* CURL_R;
-
-methodCall: IDENTIFIER argumentSet;
-argumentSet: PAREN_L (expression (COMMA expression)*)? PAREN_R;
-
-value: literal | IDENTIFIER | methodCall | THIS | indexAccess | subSequence;
-operator: PLUS | MINUS | SLASH | MULTIPLY | MODULUS | DOT | NOT | INCREMENT | DECREMENT
-		| BIT_SHIFT_LEFT | BIT_SHIFT_RIGHT | BIT_SHIFT_RIGHT_UNSIGNED | BIT_AND | BIT_OR | BIT_XOR;
-expression: operator? value expression?;
-indexAccess: BRACE_L expression BRACE_R;
-range: expression? DOT DOT expression;
-subSequence: BRACE_L range BRACE_R;
-
-condition: expression (comparator expression)? (appender condition)?;
-comparator: EQUAL | NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL |
-			ADDRESS_EQUAL | ADDRESS_NOT_EQUAL | IS_A | IS_NOT_A;
-appender: AND | OR | XOR;
+statement: methodCallStatement | variableDeclaration | assignment | returnStatement | conditional | newObject;
+methodCallStatement: methodCall;
+block: BODY_OPEN statement* BODY_CLOSE;
 
 // for loop
-for_loop: FOR IDENTIFIER COLON range block;
-for_each_loop: FOR IDENTIFIER COLON expression block;
+for_loop: FOR VARNAME ASSIGN range block;
+for_each_loop: FOR VARNAME ASSIGN expression block;
+range: expression? DOT DOT expression;
 
 // conditionals
-conditional: branch | loop | for_loop | for_each_loop | assertion;
-branch: IF condition block inverse?;
-inverse: ELSE block;
-assertion: ASSERT condition SEMICOLON;
-loop: WHILE condition block;
+conditional: r_if | assertion | r_while | for_loop | for_each_loop;
+r_if: R_IF condition block r_else?;
+r_else: R_ELSE (block | statement);
+assertion: ASSERT condition;
+r_while: WHILE condition block;
 
-details: (type TILDE? QUESTION_MARK? | CONST) IDENTIFIER;
-reservation: details (COMMA IDENTIFIER)* (COLON expression)?;
-assignment: expression operator? COLON expression;
+constant: (CLASSNAME DOT)? CONSTNAME;
+field: VARNAME (DOT VARNAME)*;
+staticField: CLASSNAME DOT VARNAME;
+variable: VARNAME;
+value: methodCall | arrayLength| literal | variable | constant | field | staticField | indexAccess | subSequence | R_NULL | newObject;
+newObject: CLASSNAME + parameterSet;
+operator: PLUS | MINUS | DIVIDE | MULTIPLY | MODULUS;
+expression: value (operator expression)?;
+
+condition: expression (comparator expression)?;
+comparator: EQUAL | NOT_EQUAL | REF_EQUAL | REF_NOT_EQUAL | MORE_THAN | LESS_THAN | MORE_OR_EQUAL | LESS_OR_EQUAL;
+appender: AND | OR;
+
+variableDeclaration: details (SEPARATOR VARNAME)* (ASSIGN expression)?;
+assignment: (VARNAME | field) ((ASSIGN expression) | operatorAssign);
+operatorAssign: operator ASSIGN value;
+details: type MUTABLE? VARNAME;
+indexAccess: VARNAME BRACE_OPEN expression BRACE_CLOSE;
+subSequence: VARNAME BRACE_OPEN range BRACE_CLOSE;
+
+// method calls
+methodCall: ((VARNAME | CLASSNAME) DOT)? VARNAME parameterSet;
+parameterSet: PARAM_OPEN (expression (SEPARATOR expression)*)? PARAM_CLOSE;
 
 // method definitions
-main: MAIN block;
-methodDefinition: (details | IDENTIFIER TILDE?) parameterSet block;
-parameterSet: PAREN_L ((THIS | param) (COMMA param)*)? PAREN_R;
-param: details (COLON expression)?;
-returnStatement: RETURN expression?;
+methodDefinition: (details | VARNAME MUTABLE?) paramSet block;
+paramSet: PARAM_OPEN ((VARNAME | param) (SEPARATOR param)*)? PARAM_CLOSE;
+param: details (ASSIGN value)?;
 
-type: (basetype | IDENTIFIER) (BRACE_L BRACE_R)*;
+returnStatement: RETURN expression;
+
+type: (basetype | CLASSNAME) (BRACE_OPEN BRACE_CLOSE)*;
 basetype: BOOLEAN | BYTE | SHORT | CHAR | INT | FLOAT | LONG | DOUBLE | STRING;
 
 source: path? use* clazz EOF;
-use: USE pathLit;
-pathLit: IDENTIFIER (SLASH IDENTIFIER)*;
-path: PATH pathLit;
-clazz: TYPE IDENTIFIER CURL_L (reservation SEMICOLON | main | methodDefinition)* CURL_R;
+use: USE QUALIFIED_NAME;
+path: PATH PATH_LIT;
+clazz: TYPE CLASSNAME BODY_OPEN (constantDef | fieldDef | main | methodDefinition)* BODY_CLOSE;
+constantDef: CONST CONSTNAME ASSIGN value;
+fieldDef: variableDeclaration;
+main: MAIN block;

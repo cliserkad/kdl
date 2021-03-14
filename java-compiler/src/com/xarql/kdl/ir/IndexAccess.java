@@ -1,95 +1,84 @@
 package com.xarql.kdl.ir;
 
-import com.xarql.kdl.*;
-import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.IncompatibleTypeException;
 import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.ToTypeDescriptor;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 
-import static com.xarql.kdl.names.BaseType.*;
+import static com.xarql.kdl.BestList.list;
+import static com.xarql.kdl.names.BaseType.INT;
 
 /**
  * Represents the access of an array's element
  */
-public class IndexAccess implements Pushable, CommonText {
+public class IndexAccess extends BasePushable implements CommonText {
 
-	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(BaseType.STRING, "charAt", MethodHeader.toParamList(INT.toTypeDescriptor()), CHAR.toTypeDescriptor(),
-			ACC_PUBLIC);
+	public static final MethodHeader STRING_CHAR_AT = new MethodHeader(InternalName.STRING, "charAt", MethodHeader.toParamList(BaseType.INT.toInternalName()), ReturnValue.CHAR, ACC_PUBLIC);
 
-	public final TypeDescriptor operand;
+	public final Variable variable;
 	public final Pushable index;
 
-	public IndexAccess(final ToTypeDescriptor operand, final Pushable index) {
-		this.operand = operand.toTypeDescriptor();
+	public IndexAccess(final Variable variable, final Pushable index) {
+		this.variable = variable;
 		this.index = index;
 	}
 
-	public IndexAccess(final ToTypeDescriptor operand, kdl.IndexAccessContext ctx, Actor actor) throws Exception {
-		this.operand = operand.toTypeDescriptor();
-		index = new Expression(operand.toType(), ctx.expression(), actor);
-	}
-
 	@Override
-	public IndexAccess push(final Actor actor) throws Exception {
+	public IndexAccess push(final Actor visitor) throws Exception {
+		visitor.visitVarInsn(ALOAD, variable.localIndex);
 		// throw error if value within [ ] isn't an int
 		if(index.toBaseType().ordinal() > INT.ordinal())
 			throw new IncompatibleTypeException("The input for an array access must be an integer");
 		else
-			index.push(actor);
+			index.push(visitor);
 
-		if(operand.isArray()) {
-			if(operand.isBaseType()) {
-				switch(operand.toBaseType()) {
+		if(variable.isArray()) {
+			if(variable.type.isBaseType()) {
+				switch(variable.type.toBaseType()) {
 					case INT:
 					case BOOLEAN:
-						actor.visitInsn(IALOAD);
+						visitor.visitInsn(IALOAD);
 						break;
 					case STRING:
-						actor.visitInsn(AALOAD);
+						visitor.visitInsn(AALOAD);
 						break;
 					default:
 						throw new UnimplementedException(SWITCH_BASETYPE);
 				}
 			} else
-				actor.visitInsn(AALOAD);
-		} else if(operand.toBaseType() == BaseType.STRING)
-			STRING_CHAR_AT.push(actor);
+				visitor.visitInsn(AALOAD);
+		} else if(variable.toBaseType() == BaseType.STRING)
+			STRING_CHAR_AT.invoke(visitor);
 		else
-			throw new IllegalArgumentException(operand + " is not an array nor a string");
+			throw new IllegalArgumentException(variable + " is not an array nor a string");
 		return this;
 	}
 
 	@Override
-	public Type toType() {
-		return toTypeDescriptor().toType();
+	public InternalName toInternalName() {
+		if(!variable.isArray() && variable.toInternalName().equals(InternalName.STRING))
+			return InternalName.CHAR;
+		else
+			return variable.toInternalName();
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return operand.isBaseType();
+		return variable.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return operand.toBaseType();
+		return variable.toBaseType();
 	}
 
 	@Override
 	public String toString() {
-		return "IndexAccess --> {\n\t" + operand + "\n\t" + index + "\n}";
-	}
-
-	@Override
-	public TypeDescriptor toTypeDescriptor() {
-		if(!operand.isArray() && operand.type.equals(STRING.toType()))
-			return CHAR.toTypeDescriptor();
-		else
-			return new TypeDescriptor(operand.type, Math.max(0, operand.arrayDimensions - 1));
+		return "ArrayAccess --> {\n\t" + variable + "\n\t" + index + "\n}";
 	}
 
 }

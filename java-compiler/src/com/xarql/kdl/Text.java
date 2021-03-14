@@ -5,89 +5,38 @@ public class Text {
 	public static final char[] PUNCTUATION_MARKS = { ':', '.', ',', ';', '?', '!', '"', '\'' };
 	public static final char[] ESCAPE_CHARS = { '\n', '\t', '\r', '\f' }; // newline, tab, return, feed
 
-	/**
-	 * Determines if a character is in the range a-z
-	 */
 	public static boolean a_z(char c) {
-		return c > 96 && c < 123;
+		int val = c;
+		return val > 96 && val < 123;
 	}
 
-	/**
-	 * @see Text#a_z(char)
-	 */
-	public static boolean a_z(String text) {
-		for(int i = 0; i < text.length(); i++)
-			if(!a_z(text.charAt(i)))
-				return false;
-		return true;
-	}
-
-	/**
-	 * Determines if a character is in the range A-Z
-	 */
 	public static boolean A_Z(char c) {
-		return c > 64 && c < 91;
+		int val = c;
+		return val > 64 && val < 91;
 	}
 
 	/**
-	 * @see Text#A_Z(char)
-	 */
-	public static boolean A_Z(String text) {
-		for(int i = 0; i < text.length(); i++)
-			if(!A_Z(text.charAt(i)))
-				return false;
-		return true;
-	}
-
-	/**
-	 * Determines if a character is a standard typable character
-	 */
-	public static boolean isTypable(char c) {
-		return c > 31 && c < 127;
-	}
-
-	/**
-	 * @see Text#isTypable(char)
-	 */
-	public static boolean isTypable(String text) {
-		for(int i = 0; i < text.length(); i++)
-			if(!isTypable(text.charAt(i)))
-				return false;
-		return true;
-	}
-
-	/**
-	 * Determines if a character has 7 or less significant bits. Therefore, if a
-	 * character is part of ASCII.
+	 * Tests to see if a character is part of ASCII or not
+	 *
+	 * @param c any char
+	 * @return whether ASCII contains c
 	 */
 	public static boolean isAscii(char c) {
-		return c < 128;
+		int val = c;
+		if(val > 31 && val < 127) // standard ascii characters
+			return true;
+
+		// if c is an escape character such as newline or tab
+		for(int i = 0; i < ESCAPE_CHARS.length; i++)
+			if(c == ESCAPE_CHARS[i])
+				return true;
+
+		return false; // default
 	}
 
-	/**
-	 * @see Text#isAscii(char)
-	 */
 	public static boolean isAscii(String text) {
 		for(int i = 0; i < text.length(); i++)
 			if(!isAscii(text.charAt(i)))
-				return false;
-		return true;
-	}
-
-	/**
-	 * Determines if a character has 8 or less significant bits. Therefore, if a
-	 * character is part of extended ASCII.
-	 */
-	public static boolean isAsciiExtended(char c) {
-		return c < 256;
-	}
-
-	/**
-	 * @see Text#isAsciiExtended(char)
-	 */
-	public static boolean isAsciiExtended(String text) {
-		for(int i = 0; i < text.length(); i++)
-			if(!isAsciiExtended(text.charAt(i)))
 				return false;
 		return true;
 	}
@@ -240,34 +189,8 @@ public class Text {
 		return output;
 	}
 
-	public static boolean isFirstLetterUppercase(String in) {
+	public static boolean firstLetterIsUppercase(String in) {
 		return !isEmpty(in) && Character.isUpperCase(in.charAt(0));
-	}
-
-	public static boolean isFirstLetterLowercase(String in) {
-		return !isEmpty(in) && Character.isLowerCase(in.charAt(0));
-	}
-
-	public static boolean hasUppercase(String in) {
-		if(isEmpty(in))
-			return false;
-		else {
-			for(int i = 0; i < in.length(); i++)
-				if(Character.isUpperCase(in.charAt(i)))
-					return false;
-			return true;
-		}
-	}
-
-	public static boolean hasLowercase(String in) {
-		if(isEmpty(in))
-			return false;
-		else {
-			for(int i = 0; i < in.length(); i++)
-				if(Character.isLowerCase(in.charAt(i)))
-					return false;
-			return true;
-		}
 	}
 
 }

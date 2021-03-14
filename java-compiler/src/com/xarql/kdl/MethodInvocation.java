@@ -3,7 +3,8 @@ package com.xarql.kdl;
 import com.xarql.kdl.ir.Param;
 import com.xarql.kdl.ir.Pushable;
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.Opcodes;
 
 public class MethodInvocation implements Pushable {
@@ -38,48 +39,47 @@ public class MethodInvocation implements Pushable {
 		return new MethodInvocation(owner, header, args, paramUse);
 	}
 
-	@Override
-	public MethodInvocation push(Actor actor) throws Exception {
+	@Override public MethodInvocation push(Actor actor) throws Exception {
 		if(owner != null)
 			owner.push(actor);
 		else if(!header.isStatic())
 			throw new IllegalStateException("owner object is null but the header is not static: " + header);
 		int arg = 0;
 		for(int i = 0; i < paramUse.length; i++) {
-			final TypeDescriptor argType;
+			final InternalName argType;
 			if(paramUse[i])
-				argType = args.get(arg++).push(actor).toTypeDescriptor();
+				argType = args.get(arg++).push(actor).toInternalName();
 			else
-				argType = new MethodInvocation(owner, defaultParam(header.params.get(i))).push(actor).toTypeDescriptor();
-			if(header.paramTypes()[i] == BaseType.STRING.toTypeDescriptor())
+				argType = new MethodInvocation(owner, defaultParam(header.params.get(i))).push(actor).toInternalName();
+			if(header.paramTypes()[i] == InternalName.STRING)
 				CompilationUnit.convertToString(argType, actor);
 		}
-		header.push(actor);
+		header.invoke(actor);
 		return this;
 	}
 
 	public MethodHeader defaultParam(Param param) {
-		return new MethodHeader(header.owner, header.name + "_" + param.name, param.toTypeDescriptor(), header.access + Opcodes.ACC_SYNTHETIC);
+		return new MethodHeader(header.owner, header.name + "_" + param.name, new ReturnValue(param.toInternalName()), header.access + Opcodes.ACC_SYNTHETIC);
 	}
 
 	@Override
-	public Type toType() {
-		return header.toType();
+	public InternalName pushType(Actor actor) throws Exception {
+		return push(actor).toInternalName();
+	}
+
+	@Override
+	public InternalName toInternalName() {
+		return header.returns.toInternalName();
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return header.isBaseType();
+		return header.returns.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return header.toBaseType();
-	}
-
-	@Override
-	public TypeDescriptor toTypeDescriptor() {
-		return header.toTypeDescriptor();
+		return header.returns.toBaseType();
 	}
 
 }

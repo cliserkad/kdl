@@ -12,16 +12,16 @@ public class IfElse extends Conditional {
 	@Override
 	public void defineOnTrue(kdl.ConditionalContext ctx, Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onTrue);
-		actor.unit.consumeBlock(ctx.branch().block(), actor);
+		actor.unit.consumeBlock(ctx.r_if().block(), actor);
 		actor.visitJumpInsn(GOTO, labelSet.exit);
 	}
 
 	@Override
 	public void defineOnFalse(kdl.ConditionalContext ctx, Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onFalse);
-		if(ctx.branch().inverse() != null) {
-			if(ctx.branch().inverse().block() != null)
-				actor.unit.consumeBlock(ctx.branch().inverse().block(), actor);
+		if(ctx.r_if().r_else() != null) {
+			if(ctx.r_if().r_else().block() != null)
+				actor.unit.consumeBlock(ctx.r_if().r_else().block(), actor);
 			else
 				throw new IllegalArgumentException("Missing block for else clause of if statement");
 		}

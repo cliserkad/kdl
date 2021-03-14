@@ -1,10 +1,10 @@
 type ContainsCake {
   main {
     if args.size > 0 {
-      string s: args[0];
-      println(s.contains("cake"));
+      string s: args[0]
+      println(s.contains("cake"))
     } else {
-      println("No argument given");
+      println("No argument given")
     }
   }
 }

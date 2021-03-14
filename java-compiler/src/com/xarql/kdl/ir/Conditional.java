@@ -4,7 +4,8 @@ import com.xarql.kdl.*;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -43,10 +44,10 @@ public abstract class Conditional implements Opcodes {
 	}
 
 	private void check(final Actor actor) throws Exception {
-		final BaseType aType = condition.a.push(actor).toBaseType();
+		final BaseType aType = condition.a.pushType(actor).toBaseType();
 		// if the condition has two values
 		if(condition.b != null) { // if there are two values
-			final BaseType bType = condition.b.push(actor).toBaseType();
+			final BaseType bType = condition.b.pushType(actor).toBaseType();
 
 			// check type compatibility
 			if(!aType.compatibleNoDirection(bType))
@@ -88,28 +89,28 @@ public abstract class Conditional implements Opcodes {
 	 * Writes the instructions needed to determine that the String on the stack is
 	 * not null and not empty. Expects that a String is at the top of the stack.
 	 */
-	public final void testStringUsability(final Actor actor) throws Exception {
+	public final void testStringUsability(final MethodVisitor visitor) {
 		Label isEmpty = new Label();
-		actor.visitInsn(DUP); // duplicate string
-		actor.visitJumpInsn(IFNONNULL, isEmpty); // test against null; destroys first copy. Could jump to isEmpty
-		actor.visitInsn(POP); // remove unnecessary copy as no check will take place
-		actor.visitJumpInsn(GOTO, labelSet.onFalse); // skip isEmpty check
+		visitor.visitInsn(DUP); // duplicate string
+		visitor.visitJumpInsn(IFNONNULL, isEmpty); // test against null; destroys first copy. Could jump to isEmpty
+		visitor.visitInsn(POP); // remove unnecessary copy as no check will take place
+		visitor.visitJumpInsn(GOTO, labelSet.onFalse); // skip isEmpty check
 
 		// use isEmpty() on the second copy of the string
-		actor.visitLabel(isEmpty);
-		new MethodHeader(BaseType.STRING, "isEmpty", null, BaseType.BOOLEAN.toTypeDescriptor(), ACC_PUBLIC + ACC_STATIC).push(actor);
+		visitor.visitLabel(isEmpty);
+		new MethodHeader(InternalName.STRING, "isEmpty", null, ReturnValue.BOOLEAN, ACC_PUBLIC + ACC_STATIC).invoke(visitor);
 
 		// negative vs positive jump
 		if(condition.positive)
-			actor.visitJumpInsn(IFEQ, labelSet.onTrue); // if the string is not empty, then skip to true clause
+			visitor.visitJumpInsn(IFEQ, labelSet.onTrue); // if the string is not empty, then skip to true clause
 		else
-			actor.visitJumpInsn(IFNE, labelSet.onFalse); // if the string is empty, then skip to false clause
+			visitor.visitJumpInsn(IFNE, labelSet.onFalse); // if the string is empty, then skip to false clause
 	}
 
-	public final void testStrings(final Actor actor) throws Exception {
+	public final void testStrings(final MethodVisitor visitor) throws Exception {
 		switch(condition.cmp) {
 			case EQUAL:
-				MethodHeader.EQUALS.withOwner(BaseType.STRING.toType()).push(actor);
+				MethodHeader.EQUALS.withOwner(InternalName.STRING).invoke(visitor);
 				break;
 			default:
 				throw new UnimplementedException("Only == has been implemented for strings");
@@ -117,9 +118,9 @@ public abstract class Conditional implements Opcodes {
 
 		// negative vs positive jump
 		if(condition.positive)
-			actor.visitJumpInsn(IFNE, labelSet.onTrue); // if the strings are not equal, then skip to true clause
+			visitor.visitJumpInsn(IFNE, labelSet.onTrue); // if the strings are not equal, then skip to true clause
 		else
-			actor.visitJumpInsn(IFEQ, labelSet.onFalse); // if the string are equal, then skip to false clause
+			visitor.visitJumpInsn(IFEQ, labelSet.onFalse); // if the string are equal, then skip to false clause
 	}
 
 	public final void testIntegers(final MethodVisitor visitor) throws Exception {

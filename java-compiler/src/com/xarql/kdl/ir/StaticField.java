@@ -2,73 +2,64 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.names.Details;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.Opcodes;
 
-import java.util.Objects;
+public class StaticField extends Details implements Assignable {
 
-public class StaticField extends Details implements Assignable, Member {
+	public final InternalName ownerType;
 
-	public final TypeDescriptor ownerType;
-
-	public StaticField(Details details, TypeDescriptor ownerType) {
+	public StaticField(Details details, InternalName ownerType) {
 		super(details);
 		this.ownerType = ownerType;
 	}
 
-	public StaticField(String name, TypeDescriptor ownerType) {
+	public StaticField(String name, InternalName ownerType) {
 		this(new Details(name), ownerType);
 	}
 
 	@Override
 	public Pushable push(Actor actor) throws Exception {
-		if(descriptor == null) {
-			StaticField proper = actor.unit.type.getFields().equivalentKey(this);
+		if(type == null) {
+			StaticField proper = actor.unit.fields().equivalentKey(this);
 			return proper.push(actor);
 		} else {
-			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.qualifiedName(), name.text, descriptor.arrayName());
+			actor.visitFieldInsn(Opcodes.GETSTATIC, ownerType.nameString(), name, type.objectString());
 			return this;
 		}
 	}
 
 	@Override
-	public StaticField assign(TypeDescriptor incomingType, Actor actor) throws Exception {
-		actor.visitFieldInsn(Opcodes.PUTSTATIC, ownerType.qualifiedName(), name.text, descriptor.arrayName());
+	public InternalName pushType(Actor actor) throws Exception {
+		return push(actor).toInternalName();
+	}
+
+	@Override
+	public StaticField assign(InternalName incomingType, Actor actor) throws Exception {
+		actor.visitFieldInsn(Opcodes.PUTSTATIC, ownerType.nameString(), name, type.objectString());
 		return this;
 	}
 
 	@Override
 	public StaticField assignDefault(Actor actor) throws Exception {
 		if(isBaseType())
-			toBaseType().getDefaultValue().push(actor);
+			toBaseType().defaultValue.push(actor);
 		else
 			actor.visitInsn(Opcodes.ACONST_NULL);
-		return assign(descriptor, actor);
+		return assign(type, actor);
 	}
 
 	@Override
 	public boolean equals(Object object) {
-		if(this == object)
-			return true;
-		else if(object != null && object instanceof StaticField) {
+		if(object instanceof StaticField) {
 			final StaticField other = (StaticField) object;
 			return other.ownerType.equals(ownerType) && other.name.equals(name);
 		} else
 			return false;
 	}
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(ownerType, name);
-	}
-
 	public String toString() {
-		return ownerType.qualifiedName() + " " + super.toString();
-	}
-
-	@Override
-	public Details details() {
-		return this;
+		return ownerType.nameString() + " " + super.toString();
 	}
 
 }

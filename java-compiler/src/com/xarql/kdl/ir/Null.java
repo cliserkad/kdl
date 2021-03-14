@@ -1,12 +1,11 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.Type;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
 
-public class Null implements Pushable, CommonText {
+public class Null extends BasePushable implements CommonText {
 
 	@Override
 	public Pushable push(final Actor visitor) throws Exception {
@@ -15,8 +14,8 @@ public class Null implements Pushable, CommonText {
 	}
 
 	@Override
-	public Type toType() {
-		return Type.OBJECT;
+	public InternalName toInternalName() {
+		return InternalName.OBJECT;
 	}
 
 	@Override
@@ -27,11 +26,6 @@ public class Null implements Pushable, CommonText {
 	@Override
 	public BaseType toBaseType() {
 		return null;
-	}
-
-	@Override
-	public TypeDescriptor toTypeDescriptor() {
-		return TypeDescriptor.VOID;
 	}
 
 }

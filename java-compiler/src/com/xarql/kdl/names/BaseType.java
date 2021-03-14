@@ -1,27 +1,54 @@
 package com.xarql.kdl.names;
 
-import com.xarql.smp.Path;
-import com.xarql.kdl.Type;
 import com.xarql.kdl.ir.Literal;
 import org.objectweb.asm.Opcodes;
 
-public enum BaseType implements ToTypeDescriptor {
+public enum BaseType implements ToName {
 
-	BOOLEAN('Z', false, Opcodes.T_BOOLEAN), BYTE('B', 0, Opcodes.T_BYTE), SHORT('S', 0, Opcodes.T_SHORT), CHAR('C', ' ', Opcodes.T_CHAR), INT('I', 0, Opcodes.T_INT),
-	FLOAT('F', 0.0F, Opcodes.T_FLOAT), LONG('J', 0L, Opcodes.T_LONG), DOUBLE('D', 0.0D, Opcodes.T_DOUBLE), STRING("java/lang/String", "", 0);
+	BOOLEAN('Z', new Literal<>(false), Opcodes.T_BOOLEAN), BYTE('B', new Literal<>(0), Opcodes.T_BYTE), SHORT('S', new Literal<>(0), Opcodes.T_SHORT),
+	CHAR('C', new Literal<>(' '), Opcodes.T_CHAR), INT('I', new Literal<>(0), Opcodes.T_INT), FLOAT('F', new Literal<>(0.0F), Opcodes.T_FLOAT),
+	LONG('J', new Literal<>(0L), Opcodes.T_LONG), DOUBLE('D', new Literal<>(0.0D), Opcodes.T_DOUBLE), STRING("Ljava/lang/String;", new Literal<>(""), 0);
 
-	public final Path path;
-	private final Object defaultValue;
+	public final String rep;
+	public final Literal<?> defaultValue;
 	public final int id;
 
-	BaseType(String rep, Object defaultValue, int id) {
-		this.path = new Path(rep);
+	BaseType(String rep, Literal<?> defaultValue, int id) {
+		this.rep = rep;
 		this.defaultValue = defaultValue;
 		this.id = id;
 	}
 
-	BaseType(char rep, Object defaultValue, int id) {
+	BaseType(char rep, Literal<?> defaultValue, int id) {
 		this("" + rep, defaultValue, id);
+	}
+
+	public static boolean isClassBaseType(Class<?> clazz) {
+		return matchClass(clazz) != null;
+	}
+
+	public static boolean isBaseType(final Object value) {
+		final Class c = value.getClass();
+		if(c.equals(boolean.class) || c.equals(Boolean.class))
+			return true;
+		else if(c.equals(byte.class) || c.equals(Byte.class))
+			return true;
+		else if(c.equals(short.class) || c.equals(Short.class))
+			return true;
+		else if(c.equals(char.class) || c.equals(Character.class))
+			return true;
+		else if(c.equals(int.class) || c.equals(Integer.class))
+			return true;
+		else if(c.equals(float.class) || c.equals(Float.class))
+			return true;
+		else if(c.equals(long.class) || c.equals(Long.class))
+			return true;
+		else if(c.equals(double.class) || c.equals(Double.class))
+			return true;
+		else if(c.equals(String.class))
+			return true;
+		else
+			return false;
 	}
 
 	/**
@@ -82,31 +109,20 @@ public enum BaseType implements ToTypeDescriptor {
 			return null;
 	}
 
-	public static BaseType matchPath(final Path path) {
-		for(BaseType base : values()) {
-			if(base.toType().name.equals(path))
-				return base;
-		}
-		return null;
-	}
-
 	public static BaseType matchValue(Object value) {
 		return matchClass(value.getClass());
 	}
 
-	public static boolean isBaseType(Class<?> clazz) {
-		return matchClass(clazz) != null;
+	@Override
+	public InternalName toInternalName() {
+		return new InternalName(this);
 	}
 
-	public static boolean isBaseType(final Object value) {
-		return matchValue(value) != null;
+	public Literal<?> getDefaultValue() {
+		return defaultValue;
 	}
 
-	public static boolean isBaseType(final Path path) {
-		return matchPath(path) != null;
-	}
-
-	public boolean compatibleNoDirection(ToType other) {
+	public boolean compatibleNoDirection(ToName other) {
 		if(!other.isBaseType())
 			return false;
 		else
@@ -117,7 +133,7 @@ public enum BaseType implements ToTypeDescriptor {
 		return this.compatibleWith(other) || other.compatibleWith(this);
 	}
 
-	public boolean compatibleWith(ToType receiver) {
+	public boolean compatibleWith(ToName receiver) {
 		if(!receiver.isBaseType())
 			return false;
 		else
@@ -128,18 +144,9 @@ public enum BaseType implements ToTypeDescriptor {
 		return ordinal() <= receiver.ordinal();
 	}
 
-	public Literal<?> getDefaultValue() {
-		return new Literal<>(defaultValue);
-	}
-
 	@Override
 	public String toString() {
-		return path.toString();
-	}
-
-	@Override
-	public Type toType() {
-		return Type.get(path);
+		return toInternalName().objectString();
 	}
 
 	@Override
@@ -150,11 +157,6 @@ public enum BaseType implements ToTypeDescriptor {
 	@Override
 	public BaseType toBaseType() {
 		return this;
-	}
-
-	@Override
-	public TypeDescriptor toTypeDescriptor() {
-		return toType().toTypeDescriptor();
 	}
 
 }

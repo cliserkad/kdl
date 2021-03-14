@@ -1,12 +1,12 @@
-path test/kdl/obj
+path test.kdl.obj;
 
 type Car {
-  int year: 1998;
-  string model: "Honda Accord";
+  int year: 1998
+  string model: "Honda Accord"
 
   main {
-    Car car: Car();
-    println("success");
+    Car car: Car()
+    println("success")
   }
 
 }

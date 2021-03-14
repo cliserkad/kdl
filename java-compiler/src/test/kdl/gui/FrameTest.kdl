@@ -1,10 +1,10 @@
-path test/kdl/gui
+path test.kdl.gui;
 
-use javax/swing/JFrame
+use javax.swing.JFrame
 
 type FrameTest {
   main {
-    JFrame frame: JFrame("Title");
-    frame.setVisible(true);
+    JFrame frame: JFrame("Title")
+    frame.setVisible(true)
   }
 }

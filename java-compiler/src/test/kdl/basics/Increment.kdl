@@ -1,10 +1,10 @@
 type Increment {
   main {
-    int~ a;
-    print("a is ");
-    println(a);
-    a : a + 1;
-    print("a is now ");
-    println(a);
+    int~ a
+    print("a is ")
+    println(a)
+    a : a + 1
+    print("a is now ")
+    println(a)
   }
 }

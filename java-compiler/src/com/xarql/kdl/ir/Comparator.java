@@ -2,7 +2,7 @@ package com.xarql.kdl.ir;
 
 public enum Comparator {
 
-	EQUAL("="), MORE_THAN(">"), LESS_THAN("<"), MORE_OR_EQUAL(">="), LESS_OR_EQUAL("<="), NOT_EQUAL("!="), ADDRESS_EQUAL("@"), ADDRESS_NOT_EQUAL("!@"), IS_A("#"), IS_NOT_A("!#");
+	EQUAL("="), MORE_THAN(">"), LESS_THAN("<"), MORE_OR_EQUAL(">="), LESS_OR_EQUAL("<="), NOT_EQUAL("!="), REF_EQUAL("?"), REF_NOT_EQUAL("!?");
 
 	String rep;
 

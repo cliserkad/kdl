@@ -1,44 +1,45 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.Type;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
 
 /**
  * Represents the access of an array's length.
  */
-public class ArrayLength implements Pushable, CommonText {
+public class ArrayLength extends BasePushable implements CommonText {
 
-	public final Pushable array;
+	public final Variable array;
 
-	public ArrayLength(final Pushable array) {
+	public ArrayLength(final Variable array) {
 		this.array = array;
 	}
 
 	/**
 	 * Pushes an int to the stack that is equal to the array's length
 	 *
-	 * @param actor any Actor
+	 * @param visitor any MethodVisitor
 	 * @throws Exception unused
 	 */
 	@Override
-	public ArrayLength push(Actor actor) throws Exception {
+	public Pushable push(Actor actor) throws Exception {
 		array.push(actor);
 		actor.visitInsn(ARRAYLENGTH);
 		return this;
 	}
 
 	/**
-	 * @return BaseType.INT
+	 * @return InternalName.INT
 	 */
 	@Override
-	public Type toType() {
-		return BaseType.INT.toType();
+	public InternalName toInternalName() {
+		return InternalName.INT;
 	}
 
 	/**
+	 * Determines if this will provide a base type
+	 *
 	 * @return true
 	 */
 	@Override
@@ -47,16 +48,13 @@ public class ArrayLength implements Pushable, CommonText {
 	}
 
 	/**
+	 * An array's length is always an INT
+	 *
 	 * @return BaseType.INT
 	 */
 	@Override
 	public BaseType toBaseType() {
 		return BaseType.INT;
-	}
-
-	@Override
-	public TypeDescriptor toTypeDescriptor() {
-		return BaseType.INT.toTypeDescriptor();
 	}
 
 }

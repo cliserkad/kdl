@@ -1,30 +1,30 @@
 type ForRange {
 
   main {
-    printDefaultTo10();
-    print0To9();
-    print1To9();
+    printDefaultTo10()
+    print0To9()
+    print1To9()
   }
 
   printDefaultTo10() {
       for i: ..10 {
-        print(i);
+        print(i)
       }
-      println("");
+      println("")
     }
 
   print0To9() {
     for i: 0..10 {
-      print(i);
+      print(i)
     }
-    println("");
+    println("")
   }
 
   print1To9() {
     for i: 1..10 {
-      print(i);
+      print(i)
     }
-    println("");
+    println("")
   }
 
 }

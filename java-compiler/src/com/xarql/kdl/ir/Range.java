@@ -12,11 +12,11 @@ public class Range {
 
 	public Range(final kdl.RangeContext ctx, final Actor actor) throws Exception {
 		if(ctx.expression().size() > 1)
-			min = new Expression(actor.unit.type, ctx.expression(0), actor);
+			min = new Expression(ctx.expression(0), actor);
 		else
 			min = new Literal<>(DEFAULT_MIN);
 
-		max = new Expression(actor.unit.type, ctx.expression(ctx.expression().size() - 1), actor);
+		max = new Expression(ctx.expression(ctx.expression().size() - 1), actor);
 	}
 
 }

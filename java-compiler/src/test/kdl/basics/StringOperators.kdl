@@ -1,7 +1,7 @@
 type StringOperators {
   main {
-    string~ msg : "hello from ";
-    msg +: "StringOperators";
-    println(msg);
+    string~ msg : "hello from "
+    msg +: "StringOperators"
+    println(msg)
   }
 }

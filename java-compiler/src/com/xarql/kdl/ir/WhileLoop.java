@@ -11,7 +11,7 @@ public class WhileLoop extends Conditional {
 	@Override
 	public void defineOnTrue(com.xarql.kdl.antlr.kdl.ConditionalContext ctx, Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onTrue);
-		actor.unit.consumeBlock(ctx.loop().block(), actor);
+		actor.unit.consumeBlock(ctx.r_while().block(), actor);
 		actor.visitJumpInsn(GOTO, labelSet.check);
 	}
 

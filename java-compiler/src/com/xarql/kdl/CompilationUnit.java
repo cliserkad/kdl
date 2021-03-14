@@ -5,10 +5,8 @@ import com.xarql.kdl.antlr.kdlBaseListener;
 import com.xarql.kdl.antlr.kdlLexer;
 import com.xarql.kdl.ir.*;
 import com.xarql.kdl.names.*;
-import com.xarql.smp.Path;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -16,17 +14,16 @@ import org.objectweb.asm.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import static com.xarql.kdl.Type.PATH_SEPARATOR;
+import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.BaseType.*;
 
-public class CompilationUnit extends kdlBaseListener implements Runnable, ToTypeDescriptor, CommonText {
+public class CompilationUnit extends kdlBaseListener implements Runnable, CommonText {
 
-	public static final char JAVA_SOURCE_SEPARATOR = '.';
 	public static final int CONST_ACCESS = ACC_PUBLIC + ACC_STATIC + ACC_FINAL;
 	public static final String INCORRECT_FILE_NAME = "The input file name must match its class name.";
 	public static final int PASSES = 3;
@@ -34,19 +31,18 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 	// used to generate a numerical id
 	private static int unitCount = 0;
 
-	public final int id;
-	public final CompilationDispatcher owner;
-	public Path path;
-	public Type type;
-	public Set<Type> imports;
-	public List<Exception> exceptions;
-
+	private final CompilationDispatcher owner;
+	private final Set<InternalName> imports;
+	private final ClassWriter cw;
+	private final int id;
 	// input and output
-	public ClassWriter cw;
-	private final List<String> warnings;
 	private File sourceFile;
 	private String sourceCode;
 	private File outputDir;
+	private Scope currentScope;
+	private CustomClass clazz;
+	private boolean nameSet;
+	private String pkgName;
 	private ParseTree tree;
 
 	// pass 1 collects imports, classname, and constant names, methodNames
@@ -58,14 +54,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 		this.owner = owner;
 		pass = 0;
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
-		id = unitCount++;
-		type = null;
-		path = new Path();
 		imports = new HashSet<>();
+		id = unitCount++;
 		addImport(String.class);
 		tree = null;
-		exceptions = new BestList<>();
-		warnings = new BestList<>("KDL is an unfinished language and may produce broken class files");
 	}
 
 	public CompilationUnit(CompilationDispatcher owner, File sourceFile, File outputDir) {
@@ -86,28 +78,28 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 	/**
 	 * Converts the top item of the stack in to a string
 	 *
-	 * @param descriptor The type of the element on the stack
-	 * @param visitor    Any MethodVisitor
+	 * @param name    The type of the element on the stack
+	 * @param visitor Any MethodVisitor
 	 */
-	public static void convertToString(final TypeDescriptor descriptor, final MethodVisitor visitor) {
+	public static void convertToString(final InternalName name, final MethodVisitor visitor) {
 		MethodHeader stringValueOf;
-		if(!descriptor.isArray() && descriptor.isBaseType()) {
-			if(descriptor.toBaseType() == STRING)
+		if(name.isBaseType()) {
+			if(name.toBaseType() == STRING)
 				return;
 			else {
-				TypeDescriptor actualType = descriptor;
-				if(descriptor.toBaseType() == BYTE)
-					actualType = INT.toTypeDescriptor();
-				else if(descriptor.toBaseType() == SHORT)
-					actualType = INT.toTypeDescriptor();
-				stringValueOf = new MethodHeader(STRING.toTypeDescriptor(), "valueOf", MethodHeader.toParamList(actualType), STRING.toTypeDescriptor(), ACC_PUBLIC + ACC_STATIC);
+				InternalName actualName = name;
+				if(name.toBaseType() == BYTE)
+					actualName = InternalName.INT;
+				else if(name.toBaseType() == SHORT)
+					actualName = InternalName.INT;
+				stringValueOf = new MethodHeader(InternalName.STRING, "valueOf", MethodHeader.toParamList(actualName), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 			}
 		} else
-			stringValueOf = new MethodHeader(STRING.toTypeDescriptor(), "valueOf", MethodHeader.toParamList(TypeDescriptor.OBJECT), STRING.toTypeDescriptor(), ACC_PUBLIC + ACC_STATIC);
+			stringValueOf = new MethodHeader(InternalName.STRING, "valueOf", MethodHeader.toParamList(InternalName.OBJECT), ReturnValue.STRING, ACC_PUBLIC + ACC_STATIC);
 		visitor.visitMethodInsn(INVOKESTATIC, stringValueOf.owner(), stringValueOf.name, stringValueOf.descriptor(), false);
 	}
 
-	public void pass() throws Exception {
+	public boolean pass() throws Exception {
 		if(sourceCode == null)
 			sourceCode = new String(Files.readAllBytes(sourceFile.toPath()));
 		if(tree == null)
@@ -115,37 +107,25 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 		newPass();
 		ParseTreeWalker.DEFAULT.walk((ParseTreeListener) this, tree);
-		if(!exceptions.isEmpty())
-			throw new ExceptionPack(exceptions);
 
 		if(pass == 1)
-			addImport(getType());
-	}
+			addImport(getClazz().toInternalName());
 
-	public void warn(String msg) {
-		warnings.add(msg);
+		return pass >= PASSES;
 	}
 
 	@Override
 	public void run() {
 		try {
 			pass();
-		} catch(Exception e) {
-			System.err.println("From unit " + toString() + " " + e.getMessage() + "\n");
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
-	public boolean isFromFile() {
-		return sourceFile != null;
-	}
-
-	public java.nio.file.Path sourcePath() {
-		return sourceFile.toPath();
-	}
-
 	public String unitName() {
-		if(type != null)
-			return type.name.toString();
+		if(clazz != null && clazz.name != null && !clazz.name.isEmpty())
+			return clazz.name;
 		else if(sourceFile != null)
 			return sourceFile.getName();
 		else
@@ -169,7 +149,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 		if(syntaxErrorHandler.hasErrors()) {
 			syntaxErrorHandler.printErrors();
-			throw new Exception();
+			throw new Exception("Encountered syntax errors while parsing.");
 		}
 
 		return tree;
@@ -181,10 +161,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 			write();
 
 		// check input file name
-		if(sourceFile != null && !sourceFile.getName().replace(".kdl", "").equalsIgnoreCase(type.name.last().toString()))
-			throw new IllegalArgumentException(INCORRECT_FILE_NAME + " file:" + sourceFile.getName() + " class:" + type.name);
+		if(sourceFile != null && !sourceFile.getName().replace(".kdl", "").equalsIgnoreCase(clazz.name))
+			throw new IllegalArgumentException(INCORRECT_FILE_NAME + " file:" + sourceFile.getName() + " class:" + clazz.name);
 
-		destination = new File(destination, type.name.last() + ".class");
+		destination = new File(destination, clazz.qualifiedName() + ".class");
 		destination.getParentFile().mkdirs();
 		destination.createNewFile();
 
@@ -198,6 +178,15 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 		return write(outputDir);
 	}
 
+	public InternalName resolveAgainstImports(String classname) {
+		for(InternalName in : imports) {
+			String str = in.nameString();
+			if(str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(classname))
+				return in;
+		}
+		throw new IllegalArgumentException("Couldn't recognize type: " + classname);
+	}
+
 	public int getPass() {
 		return pass;
 	}
@@ -206,193 +195,246 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 		pass++;
 	}
 
+	public TrackedMap<Constant, kdl.ConstantDefContext> constants() {
+		return owner.constants;
+	}
+
+	public TrackedMap<StaticField, kdl.FieldDefContext> fields() {
+		return owner.fields;
+	}
+
+	public Set<MethodHeader> methods() {
+		return owner.methods;
+	}
+
 	@Override
 	public void enterClazz(final kdl.ClazzContext ctx) {
-		tryOrHold(ctx, () -> {
-			if(getPass() == 1) {
-				if(!setClassName(ctx.IDENTIFIER().getText()))
-					throw new IllegalArgumentException("Type was already named:" + type);
-				owner.types.add(getType());
-				ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
-			} else if(getPass() == 2) {
-				if(!type.getConstants().isEmpty()) {
-					MethodHeader staticInit = MethodHeader.STATIC_INIT.withOwner(type);
-					Actor actor = defineMethod(staticInit);
+		if(getPass() == 1) {
+			setClassName(ctx.CLASSNAME().getText());
+			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
+		} else if(getPass() == 2) {
+			if(!constants().isEmpty()) {
+				MethodHeader staticInit = MethodHeader.STATIC_INIT.withOwner(clazz);
+				addMethodDef(staticInit);
+				Actor actor = new Actor(defineMethod(staticInit), this);
 
-					for(Constant c : type.getConstants().keys()) {
-						if(c.owner.equals(getType())) {
-							final kdl.ReservationContext cDef = type.getConstants().get(c);
-							final Expression expression = new Expression(type, cDef.expression(), actor);
-							final Constant unsetConst = new Constant(c.name.text, expression.toTypeDescriptor(), type.toTypeDescriptor());
+				for(Constant c : constants().keys()) {
+					if(c.owner.equals(getClazz().toInternalName())) {
+						try {
+							final kdl.ConstantDefContext cDef = constants().get(c);
+							final Pushable pushable = Pushable.parse(actor, cDef.value());
+							final Constant unsetConst = new Constant(c.name, pushable.toInternalName(), clazz.toInternalName());
 							addConstant(unsetConst);
-							type.getConstants().put(unsetConst, cDef);
-							expression.push(actor);
-							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.toTypeDescriptor().qualifiedName(), unsetConst.name.text, expression.toTypeDescriptor().arrayName());
+							constants().put(unsetConst, cDef);
+							pushable.push(actor);
+							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, pushable.toInternalName().objectString());
+						} catch (Exception e) {
+							printException(e);
 						}
 					}
-					actor.scope.end(ctx.stop.getLine(), actor, staticInit.yield);
 				}
-
-				for(StaticField f : type.getFields().keys()) {
-					if(f.ownerType.equals(getType()) && f instanceof ObjectField) {
-						final FieldVisitor fv;
-						int modifier = 0;
-						if(f.mutable)
-							modifier = ACC_FINAL;
-						fv = cw.visitField(ACC_PUBLIC + modifier, f.name.text, f.descriptor.arrayName(), null, f.descriptor.defaultValue());
-						fv.visitEnd();
-					}
-				}
-
-				addDefaultConstructor();
+				getCurrentScope().end(ctx.stop.getLine(), actor, staticInit.returns);
 			}
-		});
-	}
 
-	@Override
-	public void enterReservation(kdl.ReservationContext ctx) {
-		tryOrHold(ctx, () -> {
-			if(getPass() == 1 && ctx.parent.getRuleIndex() == kdl.RULE_clazz) {
-				final Details details = new Details(ctx.details(), this);
-				if(details.constant) {
-					final Constant unsetConst = new Constant(details.name.text, TypeDescriptor.PLACEHOLDER, getType());
-					if(!type.getConstants().contains(unsetConst))
-						type.getConstants().put(unsetConst, ctx);
+			for(StaticField f : fields().keys()) {
+				if(f.ownerType.equals(getClazz().toInternalName()) && f instanceof ObjectField) {
+					final FieldVisitor fv;
+					final Object defaultValue;
+					if(f.type.toBaseType() == STRING)
+						defaultValue = "placeholder";
+					else if(f.type.isBaseType())
+						defaultValue = f.toBaseType().defaultValue.value;
 					else
-						throw new IllegalArgumentException(unsetConst + " was already declared");
-				} else {
-					final ObjectField field = new ObjectField(details, toTypeDescriptor());
-					if(!type.getFields().contains(field)) {
-						type.getFields().put(field, ctx);
-						System.out.println("On pass " + pass + " in parent rule " + ctx.parent.getRuleIndex() + " declared field " + field);
-					} else {
-						throw new IllegalArgumentException("The field named " + details.name + " was already declared");
-					}
+						defaultValue = null;
+					int modifier = 0;
+					if(f.mutable)
+						modifier = ACC_FINAL;
+					fv = cw.visitField(ACC_PUBLIC + modifier, f.name, f.type.objectString(), null, defaultValue);
+					fv.visitEnd();
 				}
 			}
-		});
-	}
 
-	private void consumeAssignment(kdl.AssignmentContext ctx, Actor actor) throws Exception {
-		final Assignable target = Assignable.parse(ctx, actor);
-		final TypeDescriptor resultType;
-		if(ctx.operator() != null)
-			resultType = new Expression(target, new Expression(type, ctx.expression().get(1), actor), Operator.match(ctx.operator().getText())).push(actor).toTypeDescriptor();
-		else
-			resultType = new Expression(type, ctx.expression().get(1), actor).push(actor).toTypeDescriptor();
-		target.assign(resultType, actor);
-	}
-
-	private void consumeVariableDeclaration(kdl.ReservationContext ctx, Actor actor) throws Exception {
-		final Variable target = actor.scope.newVar(new Details(ctx.details(), this));
-		if(ctx.COLON() != null) {
-			target.assign(new Expression(type, ctx.expression(), actor).push(actor).toTypeDescriptor(), actor);
-		} else
-			target.assignDefault(actor);
-	}
-
-	public void consumePart(final kdl.StatementContext ctx, Actor actor) throws Exception {
-		if(ctx.imperative() != null) {
-			if(ctx.imperative().reservation() != null) {
-				consumeVariableDeclaration(ctx.imperative().reservation(), actor);
-			} else if(ctx.imperative().assignment() != null) {
-				consumeAssignment(ctx.imperative().assignment(), actor);
-			} else if(ctx.imperative().expression() != null) {
-				new Expression(type, ctx.imperative().expression(), actor).push(actor);
-			} else if(ctx.imperative().returnStatement() != null) {
-				final TypeDescriptor yield;
-				if(ctx.imperative().returnStatement().expression() == null)
-					yield = TypeDescriptor.VOID;
-				else
-					yield = new Expression(type, ctx.imperative().returnStatement().expression(), actor).push(actor).toTypeDescriptor();
-				actor.writeReturn(yield);
-			} else
-				throw new UnimplementedException("A type of Imperative couldn't be interpreted " + ctx.getText());
-		} else if(ctx.conditional() != null) {
-			ConditionalHandler.handle(ctx.conditional(), actor);
-		} else
-			throw new UnimplementedException("A type of Statement couldn't be interpreted " + ctx.getText());
-	}
-
-	public void consumeBlock(final kdl.BlockContext ctx, Actor actor) throws Exception {
-		for(kdl.StatementContext statement : ctx.statement()) {
-			consumePart(statement, actor);
+			try {
+				addDefaultConstructor();
+			} catch(Exception e) {
+				printException(e);
+			}
 		}
 	}
 
 	@Override
+	public void enterFieldDef(kdl.FieldDefContext ctx) {
+		// collect details
+		if(getPass() == 1) {
+			try {
+				final Details details = new Details(ctx.variableDeclaration().details(), this);
+				final ObjectField field = new ObjectField(details, getClazz());
+				if(!fields().contains(field))
+					fields().put(field, ctx);
+				else
+					throw new IllegalArgumentException("The field named " + details.name + " was already declared within " + getClazz());
+			} catch(Exception e) {
+				throw new IllegalArgumentException(
+						"Couldn't determine the name, type and mutability of a field at " + ctx.getStart().getLine() + ":" + ctx.getStart().getCharPositionInLine());
+			}
+		}
+	}
+
+	@Override
+	public void enterConstantDef(final kdl.ConstantDefContext ctx) {
+		// collect details
+		if(getPass() == 1) {
+			final String name = ctx.CONSTNAME().toString();
+			final Constant unsetConst = new Constant(name, InternalName.PLACEHOLDER, getClazz().toInternalName());
+			if(!constants().contains(unsetConst))
+				constants().put(unsetConst, ctx);
+			else
+				throw new IllegalArgumentException(unsetConst + " was already declared");
+		}
+	}
+
+	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, Actor actor) throws Exception {
+		new MethodCall(ctx, actor).push(actor);
+	}
+
+	private void consumeNewObject(kdl.NewObjectContext ctx, Actor actor) throws Exception {
+		new NewObject(ctx, actor).push(actor);
+	}
+
+	private void consumeAssignment(kdl.AssignmentContext ctx, Actor actor) throws Exception {
+		final Assignable target = Assignable.parse(ctx, actor);
+		final InternalName resultType;
+		if(ctx.operatorAssign() != null)
+			resultType = new Expression(target, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator().getText())).pushType(actor);
+		else
+			resultType = new Expression(ctx.expression(), actor).pushType(actor);
+		target.assign(resultType, actor);
+	}
+
+	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, Actor actor) throws Exception {
+		final Variable target = getCurrentScope().newVariable(new Details(ctx.details(), this));
+		if(ctx.ASSIGN() != null) {
+			target.assign(new Expression(ctx.expression(), actor).pushType(actor), actor);
+		} else
+			target.assignDefault(actor);
+	}
+
+	public void consumeStatement(final kdl.StatementContext ctx, Actor actor) throws Exception {
+		if(ctx.variableDeclaration() != null) {
+			consumeVariableDeclaration(ctx.variableDeclaration(), actor);
+		} else if(ctx.assignment() != null) {
+			consumeAssignment(ctx.assignment(), actor);
+		} else if(ctx.methodCallStatement() != null) {
+			consumeMethodCallStatement(ctx.methodCallStatement(), actor);
+		} else if(ctx.conditional() != null) {
+			// forward to the handler to partition code
+			ConditionalHandler.handle(ctx.conditional(), actor);
+		} else if(ctx.returnStatement() != null) {
+			final ReturnValue rv;
+			if(ctx.returnStatement().expression() == null)
+				rv = null;
+			else
+				rv = new ReturnValue(ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), actor), actor));
+			actor.writeReturn(rv);
+		} else if(ctx.newObject() != null) {
+			consumeNewObject(ctx.newObject(), actor);
+		} else
+			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
+	}
+
+	public void consumeBlock(final kdl.BlockContext ctx, Actor actor) throws Exception {
+		for(kdl.StatementContext statement : ctx.statement())
+			consumeStatement(statement, actor);
+	}
+
+	@Override
 	public void enterPath(final kdl.PathContext ctx) {
-		tryOrHold(ctx, () -> {
-			if(pass == 1)
-				path = path.prepend(ctx.getText().trim().substring(4));
-		});
+		if(pass == 1)
+			pkgName = ctx.getText().trim().substring(4).replace(';', ' ').trim();
 	}
 
 	@Override
 	public void enterUse(final kdl.UseContext ctx) {
-		tryOrHold(ctx, () -> {
-			if(pass == 1)
-				addImport(ctx.getText().substring(3));
-		});
+		if(pass == 1) {
+			addImport(ctx.getText().substring(3));
+		}
 	}
 
-	public void addImport(String text) throws Exception {
-		final Class<?> jvmClass = Class.forName(text.replace(PATH_SEPARATOR, JAVA_SOURCE_SEPARATOR));
-		addImport(jvmClass);
+	public void addImport(String text) {
+		try {
+			final Class<?> jvmClass = Class.forName(text);
+			addImport(jvmClass);
+		} catch(Exception e) {
+			printException(e);
+		}
 	}
 
 	public void addImport(Class<?> clazz) {
-		addImport(Type.get(clazz));
+		imports.add(new InternalName(clazz));
+		for(Method method : clazz.getMethods()) {
+			methods().add(new MethodHeader(clazz, method));
+		}
+		for(java.lang.reflect.Field field : clazz.getFields()) {
+			final Details details = new Details(field.getName(), new InternalName(field.getType()), (field.getModifiers() & ACC_FINAL) == ACC_FINAL);
+			if((field.getModifiers() & ACC_STATIC) == ACC_STATIC) {
+				fields().add(new StaticField(details, new InternalName(clazz)), null);
+			} else {
+				fields().add(new ObjectField(details, new InternalName(clazz)), null);
+			}
+		}
 	}
 
-	public void addImport(Type dc) {
-		imports.add(dc);
+	public void addImport(InternalName internalName) {
+		imports.add(internalName);
 	}
 
 	@Override
 	public void enterMethodDefinition(final kdl.MethodDefinitionContext ctx) {
-		tryOrHold(ctx, () -> {
+		try {
 			// parse name and return type
 			final Details details;
 			if(ctx.details() != null)
 				details = new Details(ctx.details(), this).filterName();
 			else
-				details = new Details(ctx.IDENTIFIER().getText(), null).filterName();
-			final TypeDescriptor rv = details.descriptor;
+				details = new Details(ctx.VARNAME().getText(), null).filterName();
+			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
 			final BestList<Param> params = new BestList<>();
-			for(kdl.ParamContext param : ctx.parameterSet().param())
-				params.add(new Param(new Details(param.details(), this), param.expression()));
+			for(kdl.ParamContext param : ctx.paramSet().param())
+				params.add(new Param(new Details(param.details(), this), param.value()));
 
 			// check if the method accesses any fields
 			final boolean initializer;
 			final int staticModifier;
-			if(details.name.text.equals(MethodHeader.S_INIT)) {
+			if(details.name.equals(MethodHeader.S_INIT)) {
 				staticModifier = 0;
 				initializer = true;
 			} else {
-				if(ctx.parameterSet().THIS() == null)
+				if(ctx.paramSet().VARNAME() == null)
 					staticModifier = ACC_STATIC;
-				else
-					staticModifier = 0;
-
+				else {
+					if(ctx.paramSet().VARNAME().getText().equals("this"))
+						staticModifier = 0;
+					else
+						throw new IllegalArgumentException("Only \"this\" may be used as a non typed argument");
+				}
 				initializer = false;
 			}
 
-			MethodHeader def = new MethodHeader(type.toType(), details.name.text, params, rv, ACC_PUBLIC + staticModifier);
+			MethodHeader def = new MethodHeader(clazz.toInternalName(), details.name, params, rv, ACC_PUBLIC + staticModifier);
 
 			if(getPass() == 2) {
-				registerMethod(def);
+				addMethodDef(def);
 			} else if(getPass() == 3) {
 				// define user specified method
-				final Actor actor = defineMethod(def);
+				final Actor actor = new Actor(defineMethod(def), this);
 				// instance of owning type will always occupy slot 0
 				if(staticModifier == 0)
-					actor.scope.newVar("this", getType());
+					getCurrentScope().newVariable("this", getClazz().toInternalName());
 				// parameters will always occupy the first few slots
 				for(Param param : params)
-					actor.scope.newVar(param.name.text, param.descriptor);
+					getCurrentScope().newVariable(param.name, param.type);
 
 				if(initializer) {
 					// call Object.super(this);
@@ -402,66 +444,69 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 				consumeBlock(ctx.block(), actor);
 
-				actor.scope.end(ctx.stop.getLine(), actor, rv);
+				getCurrentScope().end(ctx.stop.getLine(), actor, rv);
 
 				// add in helper methods for default values
 				for(Param param : params) {
 					if(param.defaultValue != null) {
-						final TypeDescriptor returnValue = param.toTypeDescriptor();
-						final MethodHeader defaultProvider = new MethodHeader(type.toType(), details.name + "_" + param.name, null, returnValue, def.access + Opcodes.ACC_SYNTHETIC);
-						final Actor defaultWriter = defineMethod(defaultProvider);
-						new Expression(type, param.defaultValue, actor).push(defaultWriter);
+						final ReturnValue returnValue = new ReturnValue(param.toInternalName());
+						final MethodHeader defaultProvider = new MethodHeader(clazz.toInternalName(), details.name + "_" + param.name, null, returnValue, def.access + Opcodes.ACC_SYNTHETIC);
+						addMethodDef(defaultProvider);
+						final Actor defaultWriter = new Actor(defineMethod(defaultProvider), this);
+						Pushable.parse(actor, param.defaultValue).push(defaultWriter);
 						defaultWriter.writeReturn(returnValue);
-						actor.scope.end(ctx.start.getLine(), defaultWriter, returnValue);
+						getCurrentScope().end(ctx.start.getLine(), defaultWriter, returnValue);
 					}
 				}
+
 			}
-		});
+		} catch(Exception e) {
+			printException(e);
+		}
 	}
 
-	private void holdException(final Exception e) {
-		exceptions.add(e);
+	private void printException(final Exception e) {
+		System.err.println("From unit: " + unitName());
+		e.printStackTrace();
 	}
 
 	@Override
 	public void enterMain(final kdl.MainContext ctx) {
-		tryOrHold(ctx, () -> {
-			if(getPass() == 2) {
-				registerMethod(MethodHeader.MAIN.withOwner(type));
-			} else if(getPass() == 3) {
-				final Actor actor = defineMethod(MethodHeader.MAIN.withOwner(type));
-				actor.scope.newVar("args", new TypeDescriptor(String.class, 1));
+		if(getPass() == 2) {
+			addMethodDef(MethodHeader.MAIN.withOwner(clazz));
+		} else if(getPass() == 3) {
+			final Actor actor = new Actor(defineMethod(MethodHeader.MAIN.withOwner(clazz)), this);
+			getCurrentScope().newVariable("args", new InternalName(String.class, 1));
+			try {
 				consumeBlock(ctx.block(), actor);
-				actor.scope.end(ctx.stop.getLine(), actor, TypeDescriptor.VOID);
+			} catch(Exception e) {
+				printException(e);
 			}
-		});
-	}
-
-	public void tryOrHold(ParserRuleContext ctx, ParserFunction function) {
-		try {
-			function.parse();
-		} catch(Exception e) {
-			holdException(new ContextualException(ctx, e));
+			getCurrentScope().end(ctx.stop.getLine(), actor, ReturnValue.VOID);
 		}
 	}
 
-	public MethodHeader registerMethod(MethodHeader md) {
-		if(!type.getMethods().add(md))
+	public Variable getLocalVariable(final String name) {
+		return getCurrentScope().getVariable(name.trim());
+	}
+
+	public MethodHeader addMethodDef(MethodHeader md) {
+		if(!methods().add(md))
 			throw new IllegalArgumentException("The method " + md + " already exists in " + unitName());
 		return md;
 	}
 
 	public boolean hasConstant(final String name) {
-		for(Constant c : type.getConstants().keys()) {
-			if(c.name.text.equals(name))
+		for(Constant c : constants().keys()) {
+			if(c.name.equals(name))
 				return true;
 		}
 		return false;
 	}
 
 	public Constant getConstant(final String name) {
-		for(Constant c : type.getConstants().keys()) {
-			if(c.name.text.equals(name))
+		for(Constant c : constants().keys()) {
+			if(c.name.equals(name))
 				return c;
 		}
 		throw new IllegalArgumentException("Constant " + name + " does not exist");
@@ -474,31 +519,34 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 	 * @return success of operation
 	 */
 	public boolean setClassName(final String name) {
-		if(type == null) {
-			path = path.append(name);
-			type = Type.get(path);
+		if(!nameSet) {
+			pkgName = nonNull(pkgName);
+			clazz = new CustomClass(pkgName, name);
+			nameSet = true;
 
 			// give name to ClassWriter
-			// use version 15, as it is the latest with an openJDK implementation
-			cw.visit(V15, ACC_PUBLIC + ACC_SUPER, type.toTypeDescriptor().qualifiedName(), null, TypeDescriptor.OBJECT.qualifiedName(), null);
-			cw.visitSource(type.name + ".kdl", null);
+			cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, clazz.toInternalName().nameString(), null, InternalName.OBJECT.nameString(), null);
+			cw.visitSource(clazz.name + ".kdl", null);
 
 			return true;
 		} else
 			return false;
 	}
 
-	public Type getType() {
-		return type;
+	public CustomClass getClazz() {
+		return clazz;
 	}
 
-	public Actor defineMethod(MethodHeader target) {
-		for(MethodHeader def : type.getMethods()) {
-			if(def.equals(target)) {
-				return Actor.build(def, this);
+	public MethodVisitor defineMethod(MethodHeader md) {
+		for(MethodHeader def : methods()) {
+			if(def.equals(md)) {
+				final MethodVisitor mv = cw.visitMethod(md.access, md.name, md.descriptor(), null, null);
+				currentScope = new Scope("Method " + md.name + " of class " + clazz, mv);
+				mv.visitCode();
+				return mv;
 			}
 		}
-		return Actor.build(registerMethod(target), this);
+		throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
 	}
 
 	public FieldVisitor addConstant(final Constant c) {
@@ -507,16 +555,17 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 		if(c.toBaseType() == STRING)
 			defaultValue = "placeholder";
 		else if(c.isBaseType())
-			defaultValue = c.toBaseType().getDefaultValue().value;
+			defaultValue = c.toBaseType().defaultValue.value;
 		else
 			defaultValue = null;
-		fv = cw.visitField(CONST_ACCESS, c.name.text, c.descriptor.arrayName(), null, defaultValue);
+		fv = cw.visitField(CONST_ACCESS, c.name, c.type.objectString(), null, defaultValue);
 		fv.visitEnd();
 		return fv;
 	}
 
 	public void addDefaultConstructor() throws Exception {
-		final Actor actor = defineMethod(MethodHeader.INIT.withOwner(getType()));
+		addMethodDef(MethodHeader.INIT.withOwner(getClazz()));
+		final Actor actor = new Actor(defineMethod(MethodHeader.INIT.withOwner(getClazz())), this);
 		actor.visitCode();
 		final Label start = new Label();
 		actor.visitLabel(start);
@@ -524,73 +573,34 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, ToType
 
 		// call Object.super(this);
 		actor.visitVarInsn(ALOAD, 0);
-		actor.visitMethodInsn(INVOKESPECIAL, TypeDescriptor.OBJECT.qualifiedName(), "<init>", "()V", false);
+		actor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 
-		for(StaticField f : type.getFields().keys()) {
-			if(f.ownerType.equals(getType()) && f instanceof ObjectField) {
+		for(StaticField f : fields().keys()) {
+			if(f.ownerType.equals(getClazz().toInternalName()) && f instanceof ObjectField) {
 				// push "this"
 				actor.visitVarInsn(ALOAD, 0);
-				if(type.getFields().get(f) != null) {
-					final Expression xpr = new Expression(type, type.getFields().get(f).expression(), actor);
+				if(fields().get(f).variableDeclaration().ASSIGN() != null) {
+					final Expression xpr = new Expression(fields().get(f).variableDeclaration().expression(), actor);
 					xpr.push(actor);
 				} else {
-					if(f.descriptor.isBaseType())
-						f.descriptor.toBaseType().getDefaultValue().push(actor);
+					if(f.type.isBaseType())
+						f.type.toBaseType().defaultValue.push(actor);
 					else
 						actor.visitInsn(ACONST_NULL);
 				}
-				actor.visitFieldInsn(PUTFIELD, toTypeDescriptor().qualifiedName(), f.name.text, f.descriptor.arrayName());
+				actor.visitFieldInsn(PUTFIELD, getClazz().toInternalName().nameString(), f.name, f.type.objectString());
 			}
 		}
 		final Label finish = new Label();
 		actor.visitLabel(finish);
 		actor.visitInsn(RETURN);
-		// actor.visitLocalVariable("this", type.toInternalName().objectString(), null,
-		// start, finish, 0);
+		actor.visitLocalVariable("this", clazz.toInternalName().objectString(), null, start, finish, 0);
 		actor.visitMaxs(0, 0);
 		actor.visitEnd();
 	}
 
-	public Type resolveImport(String name) {
-		for(Type t : imports)
-			if(t.name.last().equals(name))
-				return t;
-			return null;
-	}
-
-	public Type resolveImport(Path name) {
-		for(Type t : imports)
-			if(t.name.last().equals(name.last()))
-				return t;
-		return null;
-	}
-
-	@Override
-	public String toString() {
-		if(isFromFile())
-			return sourcePath().toString();
-		else
-			return unitName();
-	}
-
-	@Override
-	public Type toType() {
-		return getType();
-	}
-
-	@Override
-	public boolean isBaseType() {
-		return false;
-	}
-
-	@Override
-	public BaseType toBaseType() {
-		return null;
-	}
-
-	@Override
-	public TypeDescriptor toTypeDescriptor() {
-		return toType().toTypeDescriptor();
+	public Scope getCurrentScope() {
+		return currentScope;
 	}
 
 }

@@ -25,5 +25,4 @@ public class StringTemplateTest {
 	public void testVarsEndingInNum() {
 		new StandardKdlTest("StringTemplate4", null, list("99 is lower than 230")).testKDL();
 	}
-
 }

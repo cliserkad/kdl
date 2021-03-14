@@ -2,37 +2,39 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.MethodHeader;
-import com.xarql.kdl.Type;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.Opcodes;
 
-public class SubSequence implements Pushable {
+import static com.xarql.kdl.BestList.list;
 
-	public static final MethodHeader SUB_STRING = new MethodHeader(BaseType.STRING.toType(), "substring",
-			MethodHeader.toParamList(BaseType.INT.toTypeDescriptor(), BaseType.INT.toTypeDescriptor()), BaseType.STRING.toTypeDescriptor(), Opcodes.ACC_PUBLIC);
+public class SubSequence extends BasePushable {
 
-	public final Pushable operand;
+	public static final MethodHeader SUB_STRING = new MethodHeader(InternalName.STRING, "substring", MethodHeader.toParamList(InternalName.INT, InternalName.INT), ReturnValue.STRING,
+			Opcodes.ACC_PUBLIC);
+
+	public final Variable variable;
 	public final Range range;
 
 	public SubSequence(final kdl.SubSequenceContext ctx, final Actor actor) throws Exception {
-		this(new Range(ctx.range(), actor), actor);
+		this(actor.unit.getLocalVariable(ctx.VARNAME().getText()), new Range(ctx.range(), actor));
 	}
 
-	public SubSequence(final Range range, final Actor actor) {
-		operand = null;
+	public SubSequence(final Variable variable, final Range range) {
+		this.variable = variable;
 		this.range = range;
 	}
 
 	@Override
-	public SubSequence push(Actor actor) throws Exception {
-		if(!operand.toTypeDescriptor().isArray() && operand.toBaseType() == BaseType.STRING) {
-			operand.push(actor);
-			range.min.push(actor);
-			range.max.push(actor);
-			SUB_STRING.push(actor);
+	public SubSequence push(Actor visitor) throws Exception {
+		if(!variable.isArray() && variable.toBaseType() == BaseType.STRING) {
+			variable.push(visitor);
+			range.min.push(visitor);
+			range.max.push(visitor);
+			SUB_STRING.invoke(visitor);
 		} else {
 			throw new UnimplementedException("Subsequence only implemented for strings");
 		}
@@ -40,23 +42,18 @@ public class SubSequence implements Pushable {
 	}
 
 	@Override
-	public Type toType() {
-		return operand.toType();
+	public InternalName toInternalName() {
+		return variable.toInternalName();
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return operand.isBaseType();
+		return variable.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return operand.toBaseType();
-	}
-
-	@Override
-	public TypeDescriptor toTypeDescriptor() {
-		return new TypeDescriptor(operand.toType(), Math.max(0, operand.toTypeDescriptor().arrayDimensions - 1));
+		return variable.toBaseType();
 	}
 
 }

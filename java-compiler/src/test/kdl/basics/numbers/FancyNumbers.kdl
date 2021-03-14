@@ -1,9 +1,9 @@
 type FancyNumbers {
-    const DOLLARS: 1,000_00;
-    const DOLLARS_AND_CENTS: 1_000.56;
+    const DOLLARS: 1,000_00
+    const DOLLARS_AND_CENTS: 1_000.56
 
     main {
-      println(DOLLARS);
-      println(DOLLARS_AND_CENTS);
+      println(DOLLARS)
+      println(DOLLARS_AND_CENTS)
     }
 }

@@ -1,6 +1,6 @@
 type Variable {
     main {
-        string msg : "hello from Variable";
-        println(msg);
+        string msg : "hello from Variable"
+        println(msg)
     }
 }

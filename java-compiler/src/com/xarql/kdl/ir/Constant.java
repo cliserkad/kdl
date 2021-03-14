@@ -1,43 +1,43 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.Type;
 import com.xarql.kdl.names.BaseType;
-import com.xarql.kdl.names.Details;
-import com.xarql.kdl.names.ToType;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
 import org.objectweb.asm.Opcodes;
 
 import java.util.Objects;
 
-public class Constant extends Details implements Member {
+public class Constant extends BasePushable {
 
-	public final Type owner;
+	public final String name;
+	public final InternalName type;
+	public final InternalName owner;
 
-	public Constant(final String name, final TypeDescriptor type, final ToType owner) {
-		super(name, type, false);
+	public Constant(final String name, final InternalName type, final InternalName owner) {
 		if(name == null || name.isEmpty())
 			throw new IllegalArgumentException("Constant name may not be empty");
+		this.name = name;
 		if(type == null)
 			throw new NullPointerException();
+		this.type = type;
 		if(owner == null)
 			throw new NullPointerException();
-		this.owner = owner.toType();
+		this.owner = owner;
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return descriptor.isBaseType();
+		return type.isBaseType();
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return descriptor.toBaseType();
+		return type.toBaseType();
 	}
 
 	@Override
 	public String toString() {
-		return "Constant: " + name + " @ " + owner + " --> " + descriptor;
+		return "Constant: " + name + " @ " + owner + " --> " + type;
 	}
 
 	@Override
@@ -55,18 +55,13 @@ public class Constant extends Details implements Member {
 	}
 
 	@Override
-	public Type toType() {
-		return descriptor.toType();
+	public InternalName toInternalName() {
+		return type;
 	}
 
 	@Override
 	public Pushable push(final Actor actor) {
-		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.toTypeDescriptor().qualifiedName(), name.text, descriptor.arrayName());
-		return this;
-	}
-
-	@Override
-	public Details details() {
+		actor.visitFieldInsn(Opcodes.GETSTATIC, owner.nameString(), name, type.objectString());
 		return this;
 	}
 

@@ -2,7 +2,7 @@ package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.BaseType;
+import com.xarql.kdl.names.InternalName;
 
 public class ForLoop extends Conditional {
 
@@ -17,11 +17,11 @@ public class ForLoop extends Conditional {
 		iterator = (Variable) condition.a;
 	}
 
-	public static Condition setUpForLoop(final kdl.For_loopContext forLoop, final Actor actor) throws Exception {
+	public static Condition setUpForLoop(final com.xarql.kdl.antlr.kdl.For_loopContext forLoop, final Actor actor) throws Exception {
 		final Range r = new Range(forLoop.range(), actor);
-		final Variable increment = actor.scope.newVar(forLoop.IDENTIFIER().getText(), BaseType.INT, true);
+		final Variable increment = actor.unit.getCurrentScope().newVariable(forLoop.VARNAME().getText(), InternalName.INT, true);
 		r.min.push(actor);
-		increment.assign(BaseType.INT.toTypeDescriptor(), actor);
+		increment.assign(InternalName.INT, actor);
 		return new Condition(increment, r.max, Comparator.LESS_THAN);
 	}
 
@@ -29,8 +29,8 @@ public class ForLoop extends Conditional {
 	public void defineOnTrue(final kdl.ConditionalContext ctx, final Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onTrue);
 		actor.unit.consumeBlock(ctx.for_loop().block(), actor);
-		new Expression(iterator, new Expression(new Literal<>(1)), Operator.PLUS).push(actor);
-		iterator.assign(BaseType.INT.toTypeDescriptor(), actor);
+		new Expression(iterator, new Literal<>(1), Operator.PLUS).push(actor);
+		iterator.assign(InternalName.INT, actor);
 		actor.visitJumpInsn(GOTO, labelSet.check);
 	}
 

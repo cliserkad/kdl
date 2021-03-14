@@ -1,14 +1,13 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
-import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
-import com.xarql.kdl.names.TypeDescriptor;
+import com.xarql.kdl.names.InternalName;
 
-public class Literal<Type> implements Pushable, CommonText {
+public class Literal<Type> extends BasePushable implements CommonText {
 
 	public static final char MIXIN = '$';
 	public static final char QUOTE = '\"';
@@ -18,7 +17,7 @@ public class Literal<Type> implements Pushable, CommonText {
 	public Type value;
 
 	public static void main(String[] args) {
-		System.out.println(removeSpacers("1,00_0.0000_0"));
+		System.out.println(removeSpacers("1,00_0.0000_0"));   
 	}
 
 	public Literal(Type value) {
@@ -45,8 +44,8 @@ public class Literal<Type> implements Pushable, CommonText {
 	}
 
 	@Override
-	public com.xarql.kdl.Type toType() {
-		return toBaseType().toType();
+	public InternalName toInternalName() {
+		return toBaseType().toInternalName();
 	}
 
 	@Override
@@ -70,8 +69,8 @@ public class Literal<Type> implements Pushable, CommonText {
 				return new Literal<>((int) val);
 			else
 				return new Literal<>(val);
-		} else if(ctx.FRACTION() != null) {
-			final double val = Double.parseDouble(removeSpacers(ctx.FRACTION().getText()));
+		} else if(ctx.decimalNumber() != null) {
+			final double val = Double.parseDouble(removeSpacers(ctx.decimalNumber().getText()));
 			if(val < Float.MAX_VALUE && val > Float.MIN_VALUE)
 				return new Literal<>((float) val);
 			else
@@ -87,13 +86,20 @@ public class Literal<Type> implements Pushable, CommonText {
 							out.add(prev);
 						prev = "";
 						final String target = resolveMixin(found, i);
-						Member m = resolveVar(new Identifier(target), actor);
-						out.add(m);
+						if(actor.unit.hasConstant(target))
+							out.add(actor.unit.getConstant(target));
+						else if(actor.unit.getCurrentScope().contains(target))
+							out.add(actor.unit.getLocalVariable(target));
+						else if(actor.unit.fields().contains(new ObjectField(target, null, false, actor.unit.getClazz())))
+							out.add(actor.unit.fields().equivalentKey(new ObjectField(target, null, false, actor.unit.getClazz())));
+						else
+							throw new IllegalArgumentException(
+									target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);
 						i += target.length();
 					} else
 						prev += MIXIN;
 				} else if(found.charAt(i) == ESCAPE) {
-					// for escape sequences
+
 				} else
 					prev += found.charAt(i);
 			}
@@ -105,15 +111,6 @@ public class Literal<Type> implements Pushable, CommonText {
 				return out;
 		} else
 			throw new UnimplementedException(SWITCH_BASETYPE);
-	}
-
-	public static Member resolveVar(Identifier target, Actor actor) {
-		actor.unit.getType().members().get(target);
-		for(Member m : actor.unit.getType().members()) {
-			if(m.details().name.equals(target) && !(m instanceof MethodHeader))
-				return m;
-		}
-		throw new IllegalArgumentException(target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);
 	}
 
 	public static String removeSpacers(final String s) {
@@ -134,11 +131,6 @@ public class Literal<Type> implements Pushable, CommonText {
 
 	public static String crush(final String s) {
 		return s.substring(1, s.length() - 1);
-	}
-
-	@Override
-	public TypeDescriptor toTypeDescriptor() {
-		return BaseType.STRING.toTypeDescriptor();
 	}
 
 }
