@@ -44,6 +44,3 @@ java HelloWorld
 ### License
 This repository uses the [MIT License](https://github.com/cliserkad/kdl/blob/master/LICENSE.txt). It is extremely permissive, and only requires that you include the copyright notice and itself with derived works. `class` files generated 
 using this repository's code and the `kdl` files that you write do not require any license nor copyright notice.
-
-### Contact
-If you'd like to reach me through Discord, you can [join the support server](https://discord.gg/NR6E9Jt).
