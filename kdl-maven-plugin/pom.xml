@@ -4,10 +4,12 @@
   <parent>
     <groupId>com.xarql</groupId>
     <artifactId>kdl.parent</artifactId>
+    <version>${jgitver.used_version}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>kdl.maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
+  <version>${jgitver.used_version}</version>
   <name>kdl Maven Plugin</name>
   <url>http://maven.apache.org</url>
   <build>
@@ -52,7 +54,7 @@
     <dependency>
       <groupId>com.xarql</groupId>
       <artifactId>kdl.java-compiler</artifactId>
-      <version>${parent.version}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

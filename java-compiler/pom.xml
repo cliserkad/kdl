@@ -5,6 +5,7 @@
     <parent>
         <groupId>com.xarql</groupId>
         <artifactId>kdl.parent</artifactId>
+        <version>${jgitver.used_version}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
