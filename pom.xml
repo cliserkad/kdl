@@ -3,7 +3,13 @@
 	<groupId>com.xarql</groupId>
 	<artifactId>kdl.parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.3.9</version>
+	<version></version>
+	<scm>
+		<connection>scm:git:${project.scm.url}</connection>
+		<developerConnection>scm:git:${project.scm.url}</developerConnection>
+		<url>https://github.com/cliserkad/kdl.git</url>
+		<tag>HEAD</tag>
+	</scm>
     <modules>
 		<module>java-compiler</module>
 		<module>kdl-maven-plugin</module>

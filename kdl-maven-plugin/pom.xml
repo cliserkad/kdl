@@ -4,7 +4,6 @@
   <parent>
     <groupId>com.xarql</groupId>
     <artifactId>kdl.parent</artifactId>
-    <version>0.3.9</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>kdl.maven-plugin</artifactId>
@@ -53,7 +52,7 @@
     <dependency>
       <groupId>com.xarql</groupId>
       <artifactId>kdl.java-compiler</artifactId>
-      <version>0.3.9</version>
+      <version>${parent.version}</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
