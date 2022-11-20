@@ -27,6 +27,8 @@ public interface ExpressionHandler extends CommonText {
 		} else {
 			switch(res.toBaseType()) {
 				case INT:
+				case SHORT:
+				case BYTE:
 				case BOOLEAN: {
 					computeInt(res, calc, opr, actor);
 					return InternalName.INT;
@@ -36,7 +38,7 @@ public interface ExpressionHandler extends CommonText {
 					return InternalName.STRING;
 				}
 				default:
-					throw new UnimplementedException(SWITCH_BASETYPE);
+					throw new UnimplementedException(res.toString());
 			}
 		}
 	}

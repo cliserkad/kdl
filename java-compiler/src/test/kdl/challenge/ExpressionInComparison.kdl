@@ -1,0 +1,18 @@
+type ExpressionInComparison {
+    main {
+        // attempt to compare an expression with 3 parts to another expression with 3 parts
+        // this test checks if the compiler can handle accepting nested expressions
+        if 5 + 7 = 9 + 3 {
+            println("pass")
+        } else {
+            println("fail")
+        }
+
+        // make sure it fails when it should
+        if 5 + 7 = 9 + 2 {
+            println("fail")
+        } else {
+            println("pass")
+        }
+    }
+}
