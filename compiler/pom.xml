@@ -5,7 +5,40 @@
     <parent>
         <artifactId>kdl.parent</artifactId>
         <groupId>com.xarql</groupId>
+        <version>${jgitver.used_version}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>compiler</artifactId>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>com.xarql</groupId>
+                <artifactId>kdl.maven-plugin</artifactId>
+                <version>${jgitver.used_version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>kdl</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>github</id>
+            <name>GitHub cliserkad Apache Maven Packages</name>
+            <layout>default</layout>
+            <url>https://maven.pkg.github.com/cliserkad/kdl</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
