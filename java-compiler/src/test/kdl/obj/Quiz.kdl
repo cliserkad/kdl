@@ -1,4 +1,4 @@
-path test.kdl.obj;
+path test.kdl.obj
 
 use java.util.Scanner
 use java.lang.System

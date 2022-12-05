@@ -179,12 +179,27 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public InternalName resolveAgainstImports(String classname) {
+		final InternalName result = resolve(classname);
+		if(result != null)
+			return result;
+		else {
+			StringBuilder available = new StringBuilder();
+			for(InternalName name : imports)
+				available.append(name.nameString()).append("\n");
+			throw new IllegalArgumentException("Couldn't recognize type: " + classname + "\nAvailable classes:\n" + available);
+		}
+	}
+
+	public boolean isImported(String classname) {
+		return resolve(classname) != null;
+	}
+
+	private InternalName resolve(String classname) {
 		for(InternalName in : imports) {
-			String str = in.nameString();
-			if(str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(classname))
+			if(in.matchesClassname(classname))
 				return in;
 		}
-		throw new IllegalArgumentException("Couldn't recognize type: " + classname);
+		return null;
 	}
 
 	public int getPass() {
@@ -210,7 +225,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	@Override
 	public void enterClazz(final kdl.ClazzContext ctx) {
 		if(getPass() == 1) {
-			setClassName(ctx.CLASSNAME().getText());
+			setClassName(ctx.ID().getText());
 			ExternalMethodRouter.writeMethods(this, ctx.start.getLine());
 		} else if(getPass() == 2) {
 			if(!constants().isEmpty()) {
@@ -284,7 +299,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void enterConstantDef(final kdl.ConstantDefContext ctx) {
 		// collect details
 		if(getPass() == 1) {
-			final String name = ctx.CONSTNAME().toString();
+			final String name = ctx.ID().toString();
 			final Constant unsetConst = new Constant(name, InternalName.PLACEHOLDER, getClazz().toInternalName());
 			if(!constants().contains(unsetConst))
 				constants().put(unsetConst, ctx);
@@ -293,12 +308,12 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		}
 	}
 
-	private void consumeMethodCallStatement(kdl.MethodCallStatementContext ctx, Actor actor) throws Exception {
-		new MethodCall(ctx, actor).push(actor);
-	}
-
-	private void consumeNewObject(kdl.NewObjectContext ctx, Actor actor) throws Exception {
-		new NewObject(ctx, actor).push(actor);
+	private void consumeMethodCall(kdl.MethodCallContext ctx, Actor actor) throws Exception {
+		final String methodName = ctx.addressable().ID().get(ctx.addressable().ID().size() - 1).getText();
+		if(actor.unit.resolve(methodName) != null)
+			new NewObject(ctx, actor).push(actor);
+		else
+			new MethodCall(ctx, actor).push(actor);
 	}
 
 	private void consumeAssignment(kdl.AssignmentContext ctx, Actor actor) throws Exception {
@@ -313,19 +328,21 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 
 	private void consumeVariableDeclaration(kdl.VariableDeclarationContext ctx, Actor actor) throws Exception {
 		final Variable target = getCurrentScope().newVariable(new Details(ctx.details(), this));
-		if(ctx.ASSIGN() != null) {
+		if(ctx.SET() != null) {
 			target.assign(new Expression(ctx.expression(), actor).pushType(actor), actor);
 		} else
 			target.assignDefault(actor);
 	}
+
+
 
 	public void consumeStatement(final kdl.StatementContext ctx, Actor actor) throws Exception {
 		if(ctx.variableDeclaration() != null) {
 			consumeVariableDeclaration(ctx.variableDeclaration(), actor);
 		} else if(ctx.assignment() != null) {
 			consumeAssignment(ctx.assignment(), actor);
-		} else if(ctx.methodCallStatement() != null) {
-			consumeMethodCallStatement(ctx.methodCallStatement(), actor);
+		} else if(ctx.methodCall() != null) {
+			consumeMethodCall(ctx.methodCall(), actor);
 		} else if(ctx.conditional() != null) {
 			// forward to the handler to partition code
 			ConditionalHandler.handle(ctx.conditional(), actor);
@@ -336,8 +353,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			else
 				rv = new ReturnValue(ExpressionHandler.compute(new Expression(ctx.returnStatement().expression(), actor), actor));
 			actor.writeReturn(rv);
-		} else if(ctx.newObject() != null) {
-			consumeNewObject(ctx.newObject(), actor);
 		} else
 			throw new UnimplementedException("A type of statement couldn't be interpreted " + ctx.getText());
 	}
@@ -396,7 +411,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(ctx.details() != null)
 				details = new Details(ctx.details(), this).filterName();
 			else
-				details = new Details(ctx.VARNAME().getText(), null).filterName();
+				details = new Details(ctx.ID().getText(), null).filterName();
 			final ReturnValue rv = new ReturnValue(details.type);
 
 			// parse parameters
@@ -411,10 +426,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				staticModifier = 0;
 				initializer = true;
 			} else {
-				if(ctx.paramSet().VARNAME() == null)
+				if(ctx.paramSet().ID() == null)
 					staticModifier = ACC_STATIC;
 				else {
-					if(ctx.paramSet().VARNAME().getText().equals("this"))
+					if(ctx.paramSet().ID().getText().equals("this"))
 						staticModifier = 0;
 					else
 						throw new IllegalArgumentException("Only \"this\" may be used as a non typed argument");
@@ -484,6 +499,10 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			}
 			getCurrentScope().end(ctx.stop.getLine(), actor, ReturnValue.VOID);
 		}
+	}
+
+	public boolean hasLocalVariable(final String name) {
+		return getCurrentScope().contains(name.trim());
 	}
 
 	public Variable getLocalVariable(final String name) {
@@ -579,7 +598,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 			if(f.ownerType.equals(getClazz().toInternalName()) && f instanceof ObjectField) {
 				// push "this"
 				actor.visitVarInsn(ALOAD, 0);
-				if(fields().get(f).variableDeclaration().ASSIGN() != null) {
+				if(fields().get(f).variableDeclaration().SET() != null) {
 					final Expression xpr = new Expression(fields().get(f).variableDeclaration().expression(), actor);
 					xpr.push(actor);
 				} else {

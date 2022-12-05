@@ -1,4 +1,4 @@
-path test.kdl.scanner;
+path test.kdl.scanner
 
 use java.util.Scanner
 use java.lang.System

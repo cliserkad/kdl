@@ -13,20 +13,32 @@ public class MethodCall extends BasePushable implements CommonText {
 
 	public MethodCall(kdl.MethodCallContext ctx, Actor actor) throws Exception {
 		// parse methodCall alone
-		final String methodName = ctx.VARNAME(ctx.VARNAME().size() - 1).getText();
+		final kdl.AddressableContext address = ctx.addressable();
+		final int addressSize = address.ID().size();
+		final String methodName = address.ID().get(addressSize - 1).getText();
+
 
 		// determine which class owns the method being called
 		final Pushable source;
 		final InternalName owner;
 		boolean requireStatic;
-		if(ctx.CLASSNAME() != null) {
-			source = null;
-			owner = actor.unit.resolveAgainstImports(ctx.CLASSNAME().getText());
-			requireStatic = true;
-		} else if(ctx.VARNAME().size() > 1) {
-			source = actor.unit.getLocalVariable(ctx.VARNAME(0).getText());
-			owner = source.toInternalName();
-			requireStatic = false;
+		// FIXME dirty way to pull suspected classname from addressable. Literally just looks for the 2nd to last ID
+		// Would pull "Math" out of "Math.max()"
+
+		// literal text of invocation target
+		if(addressSize > 1) {
+			final String target = address.ID(addressSize - 2).getText();
+			if(actor.unit.isImported(target)) {
+				source = null;
+				owner = actor.unit.resolveAgainstImports(target);
+				requireStatic = true;
+			} else if(actor.unit.hasLocalVariable(target)) {
+				source = actor.unit.getLocalVariable(target);
+				owner = source.toInternalName();
+				requireStatic = false;
+			} else {
+				throw new SymbolResolutionException(target + "\nFull Text: " + address.getText());
+			}
 		} else if(actor.unit.getCurrentScope().contains("this")) {
 			source = actor.unit.getLocalVariable("this");
 			owner = actor.unit.getClazz().toInternalName();
@@ -41,10 +53,6 @@ public class MethodCall extends BasePushable implements CommonText {
 
 		MethodTarget known = new MethodTarget(owner, methodName, argTypes(args), requireStatic);
 		invocation = known.resolve(actor).withOwner(source).withArgs(args);
-	}
-
-	public MethodCall(kdl.MethodCallStatementContext ctx, Actor actor) throws Exception {
-		this(ctx.methodCall(), actor);
 	}
 
 	public static BestList<Pushable> parseArguments(kdl.ParameterSetContext ctx, Actor actor) throws Exception {

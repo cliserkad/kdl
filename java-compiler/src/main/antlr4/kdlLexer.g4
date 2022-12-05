@@ -15,68 +15,81 @@ QUOTE: '"';
 STRING_LIT: QUOTE (~["\\] | '\\' .)* QUOTE;
 
 // keywords
-TYPE: 'type';
+ASSERT: 'assert';
 CONST: 'const';
+FOR: 'for';
 MAIN: 'main';
-RETURN: 'return';
-USE: 'use';
 PATH: 'path';
-R_IF: 'if';
+RETURN: 'return';
 R_ELSE: 'else';
+R_IF: 'if';
 R_NULL: 'null';
 SIZE: 'size';
-ASSERT: 'assert';
+TYPE: 'type';
+USE: 'use';
 WHILE: 'while';
-FOR: 'for';
 
 // base types
 BOOLEAN: 'boolean';
 BYTE: 'byte';
-SHORT: 'short';
 CHAR: 'char';
-INT: 'int';
-FLOAT: 'float';
-LONG: 'long';
 DOUBLE: 'double';
+FLOAT: 'float';
+INT: 'int';
+LONG: 'long';
+SHORT: 'short';
 STRING: 'string';
 
 // boolean values
-TRUE: 'true';
 FALSE: 'false';
+TRUE: 'true';
 
 // syntax
-BODY_OPEN: '{'; // opening bracket
+SET: ':';
 BODY_CLOSE: '}'; // closing bracket
-PARAM_OPEN: '('; // opening paren
-PARAM_CLOSE: ')'; // closing paren
-BRACE_OPEN: '[';
+BODY_OPEN: '{'; // opening bracket
 BRACE_CLOSE: ']';
+BRACE_OPEN: '[';
 DOT: '.';
-SEPARATOR: ',';
-SEMICOLON: ';';
-ASSIGN: ':';
 MUTABLE: '~';
+PARAM_CLOSE: ')'; // closing paren
+PARAM_OPEN: '('; // opening paren
+SEMICOLON: ';';
+SEPARATOR: ',';
 
 // comparator
-NOT_EQUAL: '!=';
 EQUAL: '=';
-REF_NOT_EQUAL: '!?';
-REF_EQUAL: '?=';
-LESS_THAN: '<';
-MORE_THAN: '>';
 LESS_OR_EQUAL: '<=';
+LESS_THAN: '<';
 MORE_OR_EQUAL: '>=';
+MORE_THAN: '>';
+NOT_EQUAL: '!=';
+REF_EQUAL: '@';
+REF_NOT_EQUAL: '!@';
+
+/*
+// operator assignments
+ADD_SET: ADD SET;
+SUB_SET: SUB SET;
+DIV_SET: DIV SET;
+MUL_SET: MUL SET;
+MOD_SET: MOD SET;
+*/
 
 // operators
-PLUS: '+';
-MINUS: '-';
-DIVIDE: '/';
-MULTIPLY: '*';
-MODULUS: '%';
+ADD: '+';
+SUB: '-';
+DIV: '/';
+MUL: '*';
+MOD: '%';
 
-// appenders
-AND: '&';
-OR: '|';
+// logical combinations
+AND: '&&';
+OR: '||';
+
+// bitwise combinations
+BIT_AND: '&';
+BIT_OR: '|';
 
 DIGIT               : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9';
 fragment UPLETTER   : [A-Z];
@@ -86,11 +99,8 @@ fragment ALPHANUM   : LETTER | DIGIT;
 UNDERSCORE : '_';
 fragment DNTEXT     : DNLETTER+;
 
-CONSTNAME : UPLETTER (UPLETTER | DIGIT | UNDERSCORE)+;
-CLASSNAME : UPLETTER+ DNLETTER (LETTER | DIGIT)+;
-VARNAME   : DNLETTER (LETTER | DIGIT)*;
+// identifiers can be any combination of alphanumeric characters
+ID: LETTER (ALPHANUM | UNDERSCORE)*;
 
-QUALIFIED_NAME: (DNTEXT '.')+ CLASSNAME;
-PATH_LIT: DNTEXT ('.' DNTEXT)* SEMICOLON;
-
+// any single character wrapped in single quotes
 CHAR_LIT: '\'' . '\'';

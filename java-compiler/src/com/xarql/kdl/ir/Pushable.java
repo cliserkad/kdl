@@ -1,6 +1,7 @@
 package com.xarql.kdl.ir;
 
 import com.xarql.kdl.Actor;
+import com.xarql.kdl.SymbolResolutionException;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.Details;
@@ -47,25 +48,41 @@ public interface Pushable extends ToName {
 	public static Pushable parse(final Actor actor, final kdl.ValueContext val) throws Exception {
 		if(val.literal() != null)
 			return Literal.parseLiteral(val.literal(), actor);
-		else if(val.constant() != null)
-			return actor.unit.getConstant(val.constant().CONSTNAME().getText());
-		else if(val.variable() != null)
-			return actor.unit.getLocalVariable(val.variable().VARNAME().getText());
+		else if(val.addressable() != null && val.addressable().ID().size() == 1) {
+			final String id = val.addressable().ID(0).getText();
+			if(actor.unit.hasLocalVariable(id))
+				return actor.unit.getLocalVariable(id);
+			else if(actor.unit.hasConstant(id))
+				return actor.unit.getConstant(id);
+			else
+				throw new SymbolResolutionException(id);
+		}
 		else if(val.indexAccess() != null)
-			return new IndexAccess(actor.unit.getLocalVariable(val.indexAccess().VARNAME().getText()), new Expression(val.indexAccess().expression(), actor));
+			return new IndexAccess(actor.unit.getLocalVariable(val.indexAccess().ID().getText()), new Expression(val.indexAccess().expression(), actor));
 		else if(val.subSequence() != null)
 			return new SubSequence(val.subSequence(), actor);
 		else if(val.arrayLength() != null)
-			return new ArrayLength(actor.unit.getLocalVariable(val.arrayLength().VARNAME().getText()));
+			return new ArrayLength(actor.unit.getLocalVariable(val.arrayLength().ID().getText()));
 		else if(val.R_NULL() != null)
 			return new Null();
-		else if(val.methodCall() != null)
-			return new MethodCall(val.methodCall(), actor);
-		else if(val.newObject() != null)
-			return new NewObject(val.newObject(), actor);
-		else if(val.staticField() != null)
-			return actor.unit.fields().equivalentKey(new StaticField(val.staticField().VARNAME().getText(), actor.unit.resolveAgainstImports(val.staticField().CLASSNAME().getText())));
-		else
+		else if(val.methodCall() != null) {
+			// FIXME this code is duplicated from consumeMethodCall() in CompilationUnit
+			final kdl.MethodCallContext mtd = val.methodCall();
+			final String methodName = mtd.addressable().ID().get(mtd.addressable().ID().size() - 1).getText();
+			if(actor.unit.isImported(methodName))
+				return new NewObject(mtd, actor);
+			else
+				return new MethodCall(mtd, actor);
+		} else if(val.addressable().ID().size() > 1) {
+			// FIXME dirty way of getting suspected classname and varname
+			final String className = val.addressable().ID(0).getText();
+			final String varname = val.addressable().ID(1).getText();
+			final StaticField field = actor.unit.fields().equivalentKey(new StaticField(varname, actor.unit.resolveAgainstImports(className)));
+			if(field != null)
+				return field;
+			else
+				throw new SymbolResolutionException(className + "." + varname + "\nFull text: " + val.getText());
+		} else
 			throw new UnimplementedException("a type of Pushable wasn't parsed correctly\n The input text was \"" + val.getText() + "\"");
 	}
 

@@ -1,0 +1,22 @@
+path test.kdl.obj
+
+type Human {
+    int money
+
+    main {
+        Human linarez: Human(999_999)
+        Human johnson: Human(111_111)
+
+        println(linarez)
+        println(johnson)
+    }
+
+    init(int money) {
+        this.money: money
+    }
+
+    string toString(this) {
+        return "This human has $money dollars"
+    }
+
+}

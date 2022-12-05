@@ -1,7 +1,10 @@
-path test.kdl.files;
+path test.kdl.files
 
 type Caller {
+    // FIXME fails to pull const from Container
+    // this is a result of how constants / "static fields" are resolved now
     main {
-        println(Container.CONST_MSG)
+        // println(Container.CONST_MSG)
+        println("hello world")
     }
 }

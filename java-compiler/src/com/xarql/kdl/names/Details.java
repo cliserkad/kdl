@@ -43,7 +43,7 @@ public class Details implements ToName {
 	}
 
 	public Details(final kdl.DetailsContext ctx, final CompilationUnit unit) throws Exception {
-		String name = ctx.VARNAME().getText();
+		String name = ctx.ID().getText();
 
 		InternalName type;
 		if(ctx.type().basetype() != null) {

@@ -1,4 +1,4 @@
-path test.kdl.obj;
+path test.kdl.obj
 
 type Car2 {
   int year: 1998

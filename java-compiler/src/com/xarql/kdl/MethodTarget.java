@@ -61,4 +61,8 @@ public class MethodTarget {
 		return usage;
 	}
 
+	@Override
+	public String toString() {
+		return "MethodTarget{" + "owner=" + owner + ", name='" + name + '\'' + ", args=" + args + ", requireStatic=" + requireStatic + '}';
+	}
 }

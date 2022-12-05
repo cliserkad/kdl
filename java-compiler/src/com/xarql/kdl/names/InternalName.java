@@ -186,4 +186,9 @@ public class InternalName implements ToName, CommonText {
 			return new InternalName();
 	}
 
+	public boolean matchesClassname(String classname) {
+		final String str = nameString();
+		return str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(classname);
+	}
+
 }

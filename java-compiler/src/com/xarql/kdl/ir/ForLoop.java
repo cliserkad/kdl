@@ -19,7 +19,7 @@ public class ForLoop extends Conditional {
 
 	public static Condition setUpForLoop(final com.xarql.kdl.antlr.kdl.For_loopContext forLoop, final Actor actor) throws Exception {
 		final Range r = new Range(forLoop.range(), actor);
-		final Variable increment = actor.unit.getCurrentScope().newVariable(forLoop.VARNAME().getText(), InternalName.INT, true);
+		final Variable increment = actor.unit.getCurrentScope().newVariable(forLoop.ID().getText(), InternalName.INT, true);
 		r.min.push(actor);
 		increment.assign(InternalName.INT, actor);
 		return new Condition(increment, r.max, Comparator.LESS_THAN);

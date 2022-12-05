@@ -15,8 +15,8 @@ public class NewObject extends BasePushable implements Opcodes {
 	public final InternalName type;
 	private final BestList<Pushable> arguments;
 
-	public NewObject(final kdl.NewObjectContext ctx, Actor actor) throws Exception {
-		type = actor.unit.resolveAgainstImports(ctx.CLASSNAME(0).getText());
+	public NewObject(final kdl.MethodCallContext ctx, Actor actor) throws Exception {
+		type = actor.unit.resolveAgainstImports(ctx.addressable().ID(0).getText());
 		if(type.isBaseType())
 			throw new IllegalArgumentException("Can't instantiate a base type with a constructor. Use a literal instead");
 
