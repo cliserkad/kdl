@@ -7,10 +7,6 @@ public class FizzBuzzTest {
 
 	public static final int[] NUMS = { -50, -30, -15, -5, -3, -1, 0, 1, 3, 5, 15, 30, 40, 45, 50, 99, 22 };
 
-	public static void main(String[] args) {
-		new FizzBuzzTest().testFizzBuzz();
-	}
-
 	@Test
 	public void testFizzBuzz() {
 		BestList<String> fizzBuzzArguments = new BestList<String>();

@@ -24,10 +24,6 @@ public class ProcessOutput {
 		this.command = command;
 	}
 
-	public ProcessOutput rerun() throws Exception {
-		return runProcess(command);
-	}
-
 	public static ProcessOutput runProcess(String command) throws Exception {
 		Process process = Runtime.getRuntime().exec(command);
 		BestList<String> output = captureLines(process.getInputStream());
