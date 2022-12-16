@@ -3,7 +3,7 @@
 	<groupId>com.xarql</groupId>
 	<artifactId>kdl.parent</artifactId>
     <packaging>pom</packaging>
-	<version>${jgitver.used_version}</version>
+	<version>0.4.3</version>
 	<scm>
 		<connection>scm:git:${project.scm.url}</connection>
 		<developerConnection>scm:git:${project.scm.url}</developerConnection>
