@@ -4,7 +4,10 @@ import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.antlr.kdlBaseListener;
 import com.xarql.kdl.antlr.kdlLexer;
 import com.xarql.kdl.ir.*;
-import com.xarql.kdl.names.*;
+import com.xarql.kdl.names.CommonText;
+import com.xarql.kdl.names.Details;
+import com.xarql.kdl.names.InternalName;
+import com.xarql.kdl.names.ReturnValue;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -118,7 +121,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	public void run() {
 		try {
 			pass();
-		} catch (Exception e) {
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -243,7 +246,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 							constants().put(unsetConst, cDef);
 							pushable.push(actor);
 							actor.visitFieldInsn(PUTSTATIC, unsetConst.owner.nameString(), unsetConst.name, pushable.toInternalName().objectString());
-						} catch (Exception e) {
+						} catch(Exception e) {
 							printException(e);
 						}
 					}
@@ -289,8 +292,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 				else
 					throw new IllegalArgumentException("The field named " + details.name + " was already declared within " + getClazz());
 			} catch(Exception e) {
-				throw new IllegalArgumentException(
-						"Couldn't determine the name, type and mutability of a field at " + ctx.getStart().getLine() + ":" + ctx.getStart().getCharPositionInLine());
+				throw new IllegalArgumentException("Couldn't determine the name, type and mutability of a field at " + ctx.getStart().getLine() + ":" + ctx.getStart().getCharPositionInLine());
 			}
 		}
 	}
@@ -333,8 +335,6 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		} else
 			target.assignDefault(actor);
 	}
-
-
 
 	public void consumeStatement(final kdl.StatementContext ctx, Actor actor) throws Exception {
 		if(ctx.variableDeclaration() != null) {
@@ -557,15 +557,14 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	}
 
 	public MethodVisitor defineMethod(MethodHeader md) {
-		for(MethodHeader def : methods()) {
-			if(def.equals(md)) {
-				final MethodVisitor mv = cw.visitMethod(md.access, md.name, md.descriptor(), null, null);
-				currentScope = new Scope("Method " + md.name + " of class " + clazz, mv);
-				mv.visitCode();
-				return mv;
-			}
+		if(methods().contains(md)) {
+			final MethodVisitor mv = cw.visitMethod(md.access, md.name, md.descriptor(), null, null);
+			currentScope = new Scope("Method " + md.name + " of class " + clazz, mv);
+			mv.visitCode();
+			return mv;
+		} else {
+			throw new IllegalArgumentException("None of the detected method definitions match " + md);
 		}
-		throw new IllegalArgumentException("None of the detected method definitions match the given method definition");
 	}
 
 	public FieldVisitor addConstant(final Constant c) {

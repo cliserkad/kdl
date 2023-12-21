@@ -1,14 +1,11 @@
 package com.xarql.kdl;
 
 import com.xarql.kdl.ir.Param;
-import com.xarql.kdl.ir.Pushable;
 import com.xarql.kdl.names.*;
 import org.objectweb.asm.MethodVisitor;
 
 import java.lang.reflect.Method;
 import java.util.List;
-
-import static com.xarql.kdl.BestList.list;
 
 public class MethodHeader implements CommonText, ToName {
 
@@ -115,7 +112,7 @@ public class MethodHeader implements CommonText, ToName {
 		return out;
 	}
 
-	public static BestList<Param> toParamList(InternalName...types) {
+	public static BestList<Param> toParamList(InternalName... types) {
 		if(types == null)
 			return null;
 		else {
@@ -164,6 +161,14 @@ public class MethodHeader implements CommonText, ToName {
 			return false;
 	}
 
+	/**
+	 * Checks the hashcode of the string representation of this method header. It's not stupid if it works.
+	 */
+	@Override
+	public int hashCode() {
+		return toString().hashCode();
+	}
+
 	private MethodHeader invoke0(final int type, final MethodVisitor visitor) {
 		visitor.visitMethodInsn(type, owner.nameString(), name, descriptor(), false);
 		return this;
@@ -182,15 +187,19 @@ public class MethodHeader implements CommonText, ToName {
 		return (access & ACC_STATIC) == ACC_STATIC;
 	}
 
-	@Override public InternalName toInternalName() {
+	@Override
+	public InternalName toInternalName() {
 		return returns.toInternalName();
 	}
 
-	@Override public boolean isBaseType() {
+	@Override
+	public boolean isBaseType() {
 		return returns.isBaseType();
 	}
 
-	@Override public BaseType toBaseType() {
+	@Override
+	public BaseType toBaseType() {
 		return returns.toBaseType();
 	}
+
 }
