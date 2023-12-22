@@ -17,13 +17,12 @@ public class Literal<Type> extends BasePushable implements CommonText {
 	public Type value;
 
 	public static void main(String[] args) {
-		System.out.println(removeSpacers("1,00_0.0000_0"));   
+		System.out.println(removeSpacers("1,00_0.0000_0"));
 	}
 
 	public Literal(Type value) {
 		if(!BaseType.isBaseType(value))
-			throw new IllegalArgumentException(
-					BaseType.matchClass(value.getClass()) + " Literal may only have Types defined in the BaseType enum, but the type was " + value.getClass().getName());
+			throw new IllegalArgumentException(BaseType.matchClass(value.getClass()) + " Literal may only have Types defined in the BaseType enum, but the type was " + value.getClass().getName());
 		else
 			this.value = value;
 	}
@@ -93,13 +92,16 @@ public class Literal<Type> extends BasePushable implements CommonText {
 						else if(actor.unit.fields().contains(new ObjectField(target, null, false, actor.unit.getClazz())))
 							out.add(actor.unit.fields().equivalentKey(new ObjectField(target, null, false, actor.unit.getClazz())));
 						else
-							throw new IllegalArgumentException(
-									target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);
+							throw new IllegalArgumentException(target + " was not a valid mixin target. Use " + QUOTE + ESCAPE + MIXIN + QUOTE + " for the literal text " + QUOTE + MIXIN + QUOTE);
 						i += target.length();
 					} else
 						prev += MIXIN;
 				} else if(found.charAt(i) == ESCAPE) {
-
+					// if double escape occurs, add 1 escape to the literal and skip over the 2nd escape
+					if(found.length() > i + 1 && found.charAt(i + 1) == ESCAPE) {
+						prev += ESCAPE;
+						i++;
+					}
 				} else
 					prev += found.charAt(i);
 			}
