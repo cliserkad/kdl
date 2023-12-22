@@ -1,0 +1,25 @@
+path kdl.compiler
+
+use java.io.File
+use java.io.FileFilter
+use java.lang.System
+
+type CompilationDispatcher {
+    const DEFAULT_INPUT: File(System.getProperty("user.dir")) // default to current directory
+    const DEFAULT_OUTPUT: File(System.getProperty("user.dir"), "/target/classes/") // default to current directory
+
+    File input: DEFAULT_INPUT // File input
+    File output: DEFAULT_OUTPUT // File output
+
+    main {
+        CompilationDispatcher dispatcher: CompilationDispatcher()
+        println(dispatcher)
+        println(DEFAULT_INPUT)
+        println(DEFAULT_OUTPUT)
+    }
+
+    string toString(this) {
+        return "CompilationDispatcher(input: $input, output: $output)"
+    }
+
+}
