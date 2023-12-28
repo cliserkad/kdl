@@ -37,7 +37,7 @@ public class ObjectField extends StaticField implements Assignable {
 
 	@Override
 	public ObjectField assignDefault(Actor actor) throws Exception {
-		final InternalName incomingType = type.toBaseType().defaultValue.pushType(actor);
+		final InternalName incomingType = type.toBaseType().getDefaultValue().pushType(actor);
 		assign(incomingType, actor);
 		return this;
 	}

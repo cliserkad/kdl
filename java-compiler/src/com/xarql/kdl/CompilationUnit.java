@@ -248,7 +248,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					if(f.type.toBaseType() == STRING)
 						defaultValue = "placeholder";
 					else if(f.type.isBaseType())
-						defaultValue = f.toBaseType().defaultValue.value;
+						defaultValue = f.toBaseType().getDefaultValue().value;
 					else
 						defaultValue = null;
 					int modifier = 0;
@@ -560,7 +560,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		if(c.toBaseType() == STRING)
 			defaultValue = "placeholder";
 		else if(c.isBaseType())
-			defaultValue = c.toBaseType().defaultValue.value;
+			defaultValue = c.toBaseType().getDefaultValue().value;
 		else
 			defaultValue = null;
 		fv = cw.visitField(CONST_ACCESS, c.name, c.type.objectString(), null, defaultValue);
@@ -589,7 +589,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 					xpr.push(actor);
 				} else {
 					if(f.type.isBaseType())
-						f.type.toBaseType().defaultValue.push(actor);
+						f.type.toBaseType().getDefaultValue().push(actor);
 					else
 						actor.visitInsn(ACONST_NULL);
 				}
