@@ -26,7 +26,7 @@ public class Expression extends BasePushable {
 		else
 			this.b = null;
 		if(ctx.operator() != null)
-			opr = Operator.match(ctx.operator().getText());
+			opr = Operator.match(ctx.operator());
 		else
 			opr = null;
 		if(opr != null && b == null) {

@@ -1,27 +1,29 @@
 package com.xarql.kdl.ir;
 
+import com.xarql.kdl.antlr.kdl;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
 public enum Operator {
 
-	PLUS('+'), MINUS('-'), MULTIPLY('*'), DIVIDE('/'), MODULUS('%');
+	ADD,
+	SUB,
+	MUL,
+	DIV,
+	MOD;
 
-	char rep;
+	public static Operator match(kdl.OperatorContext ctx) {
+		// TODO make a better method for extracting the token id / terminal node type
+		int token = ctx.getChild(TerminalNode.class, 0).getSymbol().getType();
 
-	Operator(char rep) {
-		this.rep = rep;
-	}
-
-	public static Operator match(char rep) {
-		for(Operator op : Operator.values())
-			if(op.rep == rep)
-				return op;
-		return null;
-	}
-
-	public static Operator match(String s) {
-		if(s != null && !s.isEmpty()) {
-			return match(s.charAt(0));
-		} else
-			return null;
+		return switch(token) {
+			case kdl.ADD -> ADD;
+			case kdl.SUB -> SUB;
+			case kdl.MUL -> MUL;
+			case kdl.DIV -> DIV;
+			case kdl.MOD -> MOD;
+			// TODO: better error handling
+			default -> throw new IllegalArgumentException("Unexpected value: " + ctx.getText());
+		};
 	}
 
 }
