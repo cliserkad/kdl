@@ -28,7 +28,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
+				<version>3.12.1</version>
 				<configuration>
 					<release>17</release>
 				</configuration>
@@ -36,7 +36,7 @@
 			<plugin>
 				<groupId>org.antlr</groupId>
 				<artifactId>antlr4-maven-plugin</artifactId>
-				<version>4.9.2</version>
+				<version>4.13.1</version>
 				<executions>
 					<execution>
 						<goals>
@@ -48,7 +48,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.1.2</version>
+				<version>3.2.3</version>
 				<configuration>
 					<failIfNoTests>true</failIfNoTests>
 				</configuration>
@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>org.ow2.asm</groupId>
 			<artifactId>asm</artifactId>
-			<version>9.4</version>
+			<version>9.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ow2.asm</groupId>
@@ -69,7 +69,7 @@
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr4-runtime</artifactId>
-			<version>4.9.2</version>
+			<version>4.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
