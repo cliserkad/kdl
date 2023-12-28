@@ -9,6 +9,16 @@ import com.xarql.kdl.names.InternalName;
 
 public class Literal<Type> extends BasePushable implements CommonText {
 
+	public static final Literal<Boolean> DEFAULT_BOOLEAN = new Literal<>(false);
+	public static final Literal<Byte> DEFAULT_BYTE = new Literal<>((byte) 0);
+	public static final Literal<Short> DEFAULT_SHORT = new Literal<>((short) 0);
+	public static final Literal<Character> DEFAULT_CHAR = new Literal<>(' ');
+	public static final Literal<Integer> DEFAULT_INT = new Literal<>(0);
+	public static final Literal<Float> DEFAULT_FLOAT = new Literal<>(0.0F);
+	public static final Literal<Long> DEFAULT_LONG = new Literal<>(0L);
+	public static final Literal<Double> DEFAULT_DOUBLE = new Literal<>(0.0D);
+	public static final Literal<String> DEFAULT_STRING = new Literal<>("");
+
 	public static final char MIXIN = '$';
 	public static final char QUOTE = '\"';
 	public static final char ESCAPE = '\\';
@@ -22,9 +32,23 @@ public class Literal<Type> extends BasePushable implements CommonText {
 
 	public Literal(Type value) {
 		if(!BaseType.isBaseType(value))
-			throw new IllegalArgumentException(BaseType.matchClass(value.getClass()) + " Literal may only have Types defined in the BaseType enum, but the type was " + value.getClass().getName());
+			throw new IllegalArgumentException("Literal may only have Types defined in the BaseType enum, but the type was " + value.getClass().getName());
 		else
 			this.value = value;
+	}
+
+	public static Literal<?> getDefaultForBaseType(BaseType baseType) {
+		return switch(baseType) {
+			case BOOLEAN -> DEFAULT_BOOLEAN;
+			case BYTE -> DEFAULT_BYTE;
+			case SHORT -> DEFAULT_SHORT;
+			case CHAR -> DEFAULT_CHAR;
+			case INT -> DEFAULT_INT;
+			case FLOAT -> DEFAULT_FLOAT;
+			case LONG -> DEFAULT_LONG;
+			case DOUBLE -> DEFAULT_DOUBLE;
+			case STRING -> DEFAULT_STRING;
+		};
 	}
 
 	@Override

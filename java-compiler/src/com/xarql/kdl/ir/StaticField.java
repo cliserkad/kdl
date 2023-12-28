@@ -43,7 +43,7 @@ public class StaticField extends Details implements Assignable {
 	@Override
 	public StaticField assignDefault(Actor actor) throws Exception {
 		if(isBaseType())
-			toBaseType().defaultValue.push(actor);
+			toBaseType().getDefaultValue().push(actor);
 		else
 			actor.visitInsn(Opcodes.ACONST_NULL);
 		return assign(type, actor);

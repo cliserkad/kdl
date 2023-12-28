@@ -5,50 +5,35 @@ import org.objectweb.asm.Opcodes;
 
 public enum BaseType implements ToName {
 
-	BOOLEAN('Z', new Literal<>(false), Opcodes.T_BOOLEAN), BYTE('B', new Literal<>(0), Opcodes.T_BYTE), SHORT('S', new Literal<>(0), Opcodes.T_SHORT),
-	CHAR('C', new Literal<>(' '), Opcodes.T_CHAR), INT('I', new Literal<>(0), Opcodes.T_INT), FLOAT('F', new Literal<>(0.0F), Opcodes.T_FLOAT),
-	LONG('J', new Literal<>(0L), Opcodes.T_LONG), DOUBLE('D', new Literal<>(0.0D), Opcodes.T_DOUBLE), STRING("Ljava/lang/String;", new Literal<>(""), 0);
+	BOOLEAN('Z', Opcodes.T_BOOLEAN, boolean.class, Boolean.class),
+	BYTE('B', Opcodes.T_BYTE, byte.class, Byte.class),
+	SHORT('S', Opcodes.T_SHORT, short.class, Short.class),
+	CHAR('C', Opcodes.T_CHAR, char.class, Character.class),
+	INT('I', Opcodes.T_INT, int.class, Integer.class),
+	FLOAT('F', Opcodes.T_FLOAT, float.class, Float.class),
+	LONG('J', Opcodes.T_LONG, long.class, Long.class),
+	DOUBLE('D', Opcodes.T_DOUBLE, double.class, Double.class),
+	STRING("Ljava/lang/String;", 0, String.class, String.class);
 
 	public final String rep;
-	public final Literal<?> defaultValue;
 	public final int id;
+	public final Class<?> primitiveClass;
+	public final Class<?> wrapperClass;
 
-	BaseType(String rep, Literal<?> defaultValue, int id) {
+	BaseType(String rep, int id, Class<?> primitiveClass, Class<?> wrapperClass) {
 		this.rep = rep;
-		this.defaultValue = defaultValue;
 		this.id = id;
+		this.primitiveClass = primitiveClass;
+		this.wrapperClass = wrapperClass;
 	}
 
-	BaseType(char rep, Literal<?> defaultValue, int id) {
-		this("" + rep, defaultValue, id);
-	}
-
-	public static boolean isClassBaseType(Class<?> clazz) {
-		return matchClass(clazz) != null;
+	BaseType(char rep, int id , Class<?> primitiveClass, Class<?> wrapperClass) {
+		this("" + rep, id, primitiveClass, wrapperClass);
 	}
 
 	public static boolean isBaseType(final Object value) {
-		final Class c = value.getClass();
-		if(c.equals(boolean.class) || c.equals(Boolean.class))
-			return true;
-		else if(c.equals(byte.class) || c.equals(Byte.class))
-			return true;
-		else if(c.equals(short.class) || c.equals(Short.class))
-			return true;
-		else if(c.equals(char.class) || c.equals(Character.class))
-			return true;
-		else if(c.equals(int.class) || c.equals(Integer.class))
-			return true;
-		else if(c.equals(float.class) || c.equals(Float.class))
-			return true;
-		else if(c.equals(long.class) || c.equals(Long.class))
-			return true;
-		else if(c.equals(double.class) || c.equals(Double.class))
-			return true;
-		else if(c.equals(String.class))
-			return true;
-		else
-			return false;
+		final Class<?> c = value.getClass();
+		return matchClass(c) != null;
 	}
 
 	/**
@@ -58,26 +43,10 @@ public enum BaseType implements ToName {
 	 * @return BaseType on match, null otherwise
 	 */
 	public static BaseType matchClass(Class<?> c) {
-		if(c.equals(boolean.class) || c.equals(Boolean.class))
-			return BOOLEAN;
-		else if(c.equals(byte.class) || c.equals(Byte.class))
-			return BYTE;
-		else if(c.equals(short.class) || c.equals(Short.class))
-			return SHORT;
-		else if(c.equals(char.class) || c.equals(Character.class))
-			return CHAR;
-		else if(c.equals(int.class) || c.equals(Integer.class))
-			return INT;
-		else if(c.equals(float.class) || c.equals(Float.class))
-			return FLOAT;
-		else if(c.equals(long.class) || c.equals(Long.class))
-			return LONG;
-		else if(c.equals(double.class) || c.equals(Double.class))
-			return DOUBLE;
-		else if(c.equals(String.class))
-			return STRING;
-		else
-			return null;
+		for(final BaseType baseType : values())
+			if(baseType.primitiveClass.equals(c) || baseType.wrapperClass.equals(c))
+				return baseType;
+		return null;
 	}
 
 	/**
@@ -87,26 +56,10 @@ public enum BaseType implements ToName {
 	 * @return BaseType on match, null otherwise
 	 */
 	public static BaseType matchClassStrict(final Class<?> c) {
-		if(c.equals(boolean.class))
-			return BOOLEAN;
-		else if(c.equals(byte.class))
-			return BYTE;
-		else if(c.equals(short.class))
-			return SHORT;
-		else if(c.equals(char.class))
-			return CHAR;
-		else if(c.equals(int.class))
-			return INT;
-		else if(c.equals(float.class))
-			return FLOAT;
-		else if(c.equals(long.class))
-			return LONG;
-		else if(c.equals(double.class))
-			return DOUBLE;
-		else if(c.equals(String.class))
-			return STRING;
-		else
-			return null;
+		for(final BaseType baseType : values())
+			if(baseType.primitiveClass.equals(c))
+				return baseType;
+		return null;
 	}
 
 	public static BaseType matchValue(Object value) {
@@ -119,7 +72,7 @@ public enum BaseType implements ToName {
 	}
 
 	public Literal<?> getDefaultValue() {
-		return defaultValue;
+		return Literal.getDefaultForBaseType(this);
 	}
 
 	public boolean compatibleNoDirection(ToName other) {
