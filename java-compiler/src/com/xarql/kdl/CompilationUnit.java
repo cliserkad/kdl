@@ -309,7 +309,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		final Assignable target = Assignable.parse(ctx, actor);
 		final InternalName resultType;
 		if(ctx.operatorAssign() != null)
-			resultType = new Expression(target, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator().getText())).pushType(actor);
+			resultType = new Expression(target, Pushable.parse(actor, ctx.operatorAssign().value()), Operator.match(ctx.operatorAssign().operator())).pushType(actor);
 		else
 			resultType = new Expression(ctx.expression(), actor).pushType(actor);
 		target.assign(resultType, actor);

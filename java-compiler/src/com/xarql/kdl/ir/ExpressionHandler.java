@@ -7,7 +7,6 @@ import com.xarql.kdl.names.InternalName;
 import com.xarql.kdl.names.ReturnValue;
 import org.objectweb.asm.MethodVisitor;
 
-import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.names.BaseType.STRING;
 
 public interface ExpressionHandler extends CommonText {
@@ -56,7 +55,7 @@ public interface ExpressionHandler extends CommonText {
 
 	public static void computeString(Pushable res1, Pushable res2, Operator opr, Actor actor) throws Exception {
 		switch(opr) {
-			case PLUS: {
+			case ADD: {
 				switch(res2.toBaseType()) {
 					case INT: {
 						createStringBuilder(actor);
@@ -97,19 +96,19 @@ public interface ExpressionHandler extends CommonText {
 			res1.push(actor);
 			res2.push(actor);
 			switch(opr) {
-				case PLUS:
+				case ADD:
 					actor.visitInsn(IADD);
 					break;
-				case MINUS:
+				case SUB:
 					actor.visitInsn(ISUB);
 					break;
-				case MULTIPLY:
+				case MUL:
 					actor.visitInsn(IMUL);
 					break;
-				case DIVIDE:
+				case DIV:
 					actor.visitInsn(IDIV);
 					break;
-				case MODULUS:
+				case MOD:
 					actor.visitInsn(IREM);
 					break;
 				default:

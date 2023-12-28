@@ -29,7 +29,7 @@ public class ForLoop extends Conditional {
 	public void defineOnTrue(final kdl.ConditionalContext ctx, final Actor actor) throws Exception {
 		actor.visitLabel(labelSet.onTrue);
 		actor.unit.consumeBlock(ctx.for_loop().block(), actor);
-		new Expression(iterator, new Literal<>(1), Operator.PLUS).push(actor);
+		new Expression(iterator, new Literal<>(1), Operator.ADD).push(actor);
 		iterator.assign(InternalName.INT, actor);
 		actor.visitJumpInsn(GOTO, labelSet.check);
 	}

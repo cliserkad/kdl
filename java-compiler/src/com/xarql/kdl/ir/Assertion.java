@@ -29,7 +29,7 @@ public class Assertion extends Conditional {
 		// push the text of the assertion condition
 		String msg;
 		if(ctx.assertion().condition().getText().equals(KEYWORD_FALSE))
-			msg = "Failed assertion of false. Thus, this message was shown in error.";
+			msg = "Failed assertion of false. The program likely reached supposedly unreachable code.";
 		else
 			msg = "Failed assertion with condition " + ctx.assertion().condition().getText();
 		new Literal<>(msg).push(actor);
