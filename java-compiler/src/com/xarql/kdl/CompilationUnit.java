@@ -53,7 +53,7 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 	// pass 3 defines methods
 	private int pass;
 
-	private CompilationUnit(CompilationDispatcher owner) {
+	public CompilationUnit(CompilationDispatcher owner, File sourceFile, File outputDir) {
 		this.owner = owner;
 		pass = 0;
 		cw = new ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES);
@@ -61,21 +61,8 @@ public class CompilationUnit extends kdlBaseListener implements Runnable, Common
 		id = unitCount++;
 		addImport(String.class);
 		tree = null;
-	}
-
-	public CompilationUnit(CompilationDispatcher owner, File sourceFile, File outputDir) {
-		this(owner);
 		this.sourceFile = sourceFile;
 		this.outputDir = outputDir;
-	}
-
-	public CompilationUnit(CompilationDispatcher owner, File sourceFile) {
-		this(owner, sourceFile, null);
-	}
-
-	public CompilationUnit(CompilationDispatcher owner, String sourceCode) {
-		this(owner);
-		this.sourceCode = sourceCode;
 	}
 
 	/**
