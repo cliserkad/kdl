@@ -7,10 +7,10 @@ import com.xarql.kdl.names.ToName;
 import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.Text.nonNull;
+import static com.xarql.kdl.names.InternalName.INTERNAL_SEPARATOR;
+import static com.xarql.kdl.names.InternalName.SOURCE_SEPARATOR;
 
 public class CustomClass implements ToName, Pushable {
-	public static final char INTERNAL_SEPARATOR = '/';
-	public static final char SOURCE_SEPARATOR = '.';
 
 	public final String pkg;
 	public final String name;
@@ -28,6 +28,9 @@ public class CustomClass implements ToName, Pushable {
 		this(null, name);
 	}
 
+	/**
+	 * Full name with internal separator. Looks like "com/xarql/kdl/CustomClass"
+	 */
 	public String qualifiedName() {
 		return fullName().replace(SOURCE_SEPARATOR, INTERNAL_SEPARATOR);
 	}

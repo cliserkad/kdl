@@ -18,6 +18,7 @@ public class ReturnValue implements ToName {
 
 	public static final ReturnValue VOID = new ReturnValue();
 	public static final char VOID_REP = 'V';
+	public static final String VOID_REP_STRING = "" + VOID_REP;
 
 	public final InternalName returnType;
 
@@ -71,9 +72,9 @@ public class ReturnValue implements ToName {
 	@Override
 	public InternalName toInternalName() {
 		if(returnType == null)
-			return new InternalName();
+			return InternalName.VOID;
 		else
-			return returnType.toInternalName();
+			return returnType;
 	}
 
 	@Override
