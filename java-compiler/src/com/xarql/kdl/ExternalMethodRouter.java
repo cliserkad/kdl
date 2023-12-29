@@ -7,10 +7,12 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.io.PrintStream;
 
-import static com.xarql.kdl.BestList.list;
 import static com.xarql.kdl.MethodHeader.toParamList;
 import static com.xarql.kdl.names.InternalName.INT_WRAPPER;
 
+/**
+ * Used to inject external methods into a class that are not defined in the source code.
+ */
 public class ExternalMethodRouter implements CommonText {
 
 	public static final MethodHeader PRINTLN_MTD = new MethodHeader(new InternalName(PrintStream.class), PRINTLN, toParamList(InternalName.STRING), VOID, ACC_PUBLIC);

@@ -1,6 +1,6 @@
 package com.xarql.kdl.names;
 
-import com.xarql.kdl.Actor;
+import com.xarql.kdl.AnyOf;
 import com.xarql.kdl.CustomClass;
 import com.xarql.kdl.PlaceHolder;
 
@@ -31,28 +31,24 @@ public class InternalName implements ToName, CommonText {
 	public static final int MIN_DIMENSIONS = 0;
 	public static final int MAX_DIMENSIONS = 255;
 
-	public final Class<?> clazz;
-	public final BaseType base;
-	public final CustomClass cc;
-
+	public final AnyOf<Class<?>, BaseType, CustomClass> data;
 	public final int arrayDimensions;
 
+	public InternalName(final AnyOf<Class<?>, BaseType, CustomClass> data, final int arrayDimensions) {
+		this.data = data;
+		this.arrayDimensions = arrayDimensions;
+	}
+
 	public InternalName() {
-		clazz = null;
-		base = null;
-		cc = null;
-		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
+		this((AnyOf<Class<?>, BaseType, CustomClass>) null, DEFAULT_ARRAY_DIMENSIONS);
 	}
 
 	public InternalName(final Class<?> c, final int arrayDimensions) {
 		if(BaseType.matchClassStrict(c) != null) {
-			base = BaseType.matchClass(c);
-			clazz = null;
+			data = new AnyOf.ElementB<>(BaseType.matchClass(c));
 		} else {
-			clazz = c;
-			base = null;
+			data = new AnyOf.ElementA<>(c);
 		}
-		cc = null;
 		if(arrayDimensions < MIN_DIMENSIONS || arrayDimensions > MAX_DIMENSIONS)
 			throw new IllegalArgumentException("arrayDimensions must be within " + MIN_DIMENSIONS + " & " + MAX_DIMENSIONS);
 		this.arrayDimensions = arrayDimensions;
@@ -63,9 +59,7 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName(final BaseType base, final int arrayDimensions) {
-		this.base = base;
-		clazz = null;
-		cc = null;
+		data = new AnyOf.ElementB<>(base);
 		this.arrayDimensions = arrayDimensions;
 	}
 
@@ -74,28 +68,33 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public InternalName(final CustomClass cc) {
-		this.cc = cc;
-		clazz = null;
-		base = null;
+		data = new AnyOf.ElementC<>(cc);
 		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
 	}
 
 	public boolean isCustom() {
-		return cc != null;
+		// check that data has the 3rd type of the below parameterized ElementC
+		// you can use <> to infer all types, but that is less explicit for the reader
+		// we don't care what the other elements are allowed to hold, so we infer them with ?
+		return data instanceof AnyOf.ElementC<?, ?, CustomClass>;
 	}
 
 	public boolean isClassType() {
-		return clazz != null;
+		// see isCustom() for explanation
+		return data instanceof AnyOf.ElementA<Class<?>, ?, ?>;
 	}
 
 	@Override
 	public boolean isBaseType() {
-		return base != null;
+		return data instanceof AnyOf.ElementB<?, BaseType, ?>;
 	}
 
 	@Override
 	public BaseType toBaseType() {
-		return base;
+		if(data instanceof AnyOf.ElementB<?, BaseType, ?> base)
+			return base.getValue();
+		else
+			return null;
 	}
 
 	private String objectInstance() {
@@ -103,9 +102,7 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public String objectString() {
-		String dims = "";
-		for(int i = 0; i < arrayDimensions; i++)
-			dims += ARRAY_PREFIX;
+		final String dims = ARRAY_PREFIX.repeat(arrayDimensions);
 
 		if(isBaseType() && toBaseType() != BaseType.STRING)
 			return dims + nameString();
@@ -114,17 +111,18 @@ public class InternalName implements ToName, CommonText {
 	}
 
 	public String nameString() {
-		if(isBaseType()) {
-			if(toBaseType() == BaseType.STRING)
-				return String.class.getName().replace('.', '/');
-			else
-				return toBaseType().rep;
-		} else if(isClassType())
-			return clazz.getName().replace('.', '/');
-		else if(isCustom())
-			return cc.qualifiedName();
-		else
+		if(data == null)
 			return "" + ReturnValue.VOID_REP;
+		else {
+			return data.match((clazz -> {
+				return clazz.getName().replace('.', '/');
+			}), (baseType -> {
+				if(baseType == BaseType.STRING)
+					return String.class.getName().replace('.', '/');
+				else
+					return baseType.rep;
+			}), (CustomClass::qualifiedName));
+		}
 	}
 
 	@Override
@@ -134,14 +132,13 @@ public class InternalName implements ToName, CommonText {
 
 	@Override
 	public boolean equals(Object o) {
-		if(o instanceof InternalName) {
-			InternalName in = (InternalName) o;
-			return in.nameString().equals(nameString());
-		} else if(o instanceof BaseType) {
-			BaseType bt = (BaseType) o;
-			return bt == this.base;
+		if(o instanceof InternalName name) {
+			return name.nameString().equals(nameString());
+		} else if(o instanceof BaseType bt) {
+			return bt == toBaseType();
+		} else {
+			return false;
 		}
-		return false;
 	}
 
 	@Override
@@ -164,26 +161,16 @@ public class InternalName implements ToName, CommonText {
 		return arrayDimensions > MIN_DIMENSIONS;
 	}
 
-	public InternalName toArray(final int dimensions) {
-		if(isClassType())
-			return new InternalName(clazz, dimensions);
-		else if(isBaseType())
-			return new InternalName(base, dimensions);
-		else if(isCustom())
-			return new InternalName(cc);
-		else
+	public InternalName toArray(final int dimensions) throws IllegalArgumentException {
+		if(data == null) {
 			throw new IllegalArgumentException("This InternalName represents void, which is not a valid array type.");
+		} else {
+			return new InternalName(data, dimensions);
+		}
 	}
 
 	public InternalName withoutArray() {
-		if(isClassType())
-			return new InternalName(clazz);
-		else if(isBaseType())
-			return new InternalName(base);
-		else if(isCustom())
-			return new InternalName(cc);
-		else
-			return new InternalName();
+		return new InternalName(data, MIN_DIMENSIONS);
 	}
 
 	public boolean matchesClassname(String classname) {
