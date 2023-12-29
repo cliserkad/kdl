@@ -15,6 +15,7 @@ public class InternalName implements ToName, CommonText {
 	public static final InternalName LONG = new InternalName(BaseType.LONG);
 	public static final InternalName DOUBLE = new InternalName(BaseType.DOUBLE);
 	public static final InternalName STRING = new InternalName(BaseType.STRING);
+	public static final InternalName VOID = new InternalName((AnyOf<Class<?>, BaseType, CustomClass>) null, 0);
 	public static final InternalName PLACEHOLDER = new InternalName(PlaceHolder.class);
 
 	public static final InternalName STRING_BUILDER = new InternalName(StringBuilder.class);
@@ -27,49 +28,52 @@ public class InternalName implements ToName, CommonText {
 	public static final String OBJECT_SUFFIX = ";";
 	public static final String OBJECT_PREFIX = "L";
 	public static final String ARRAY_PREFIX = "[";
+	public static final char INTERNAL_SEPARATOR = '/';
+	public static final char SOURCE_SEPARATOR = '.';
+	public static final String INTERNAL_SEPARATOR_STRING = "" + INTERNAL_SEPARATOR;
+	public static final String SOURCE_SEPARATOR_STRING = "" + SOURCE_SEPARATOR;
 	public static final int DEFAULT_ARRAY_DIMENSIONS = 0;
 	public static final int MIN_DIMENSIONS = 0;
 	public static final int MAX_DIMENSIONS = 255;
+	public static final String ARRAY_DIMENSIONS_OUT_OF_BOUNDS_MSG = "array dimensions must be within " + MIN_DIMENSIONS + " & " + MAX_DIMENSIONS;
+	public static final String ARRAY_MAY_NOT_BE_OF_TYPE_VOID_MSG = "This InternalName represents void, which is not a valid array type.";
 
 	public final AnyOf<Class<?>, BaseType, CustomClass> data;
 	public final int arrayDimensions;
 
 	public InternalName(final AnyOf<Class<?>, BaseType, CustomClass> data, final int arrayDimensions) {
 		this.data = data;
+		checkArrayDimensions(arrayDimensions);
 		this.arrayDimensions = arrayDimensions;
-	}
-
-	public InternalName() {
-		this((AnyOf<Class<?>, BaseType, CustomClass>) null, DEFAULT_ARRAY_DIMENSIONS);
 	}
 
 	public InternalName(final Class<?> c, final int arrayDimensions) {
-		if(BaseType.matchClassStrict(c) != null) {
-			data = new AnyOf.ElementB<>(BaseType.matchClass(c));
-		} else {
-			data = new AnyOf.ElementA<>(c);
-		}
-		if(arrayDimensions < MIN_DIMENSIONS || arrayDimensions > MAX_DIMENSIONS)
-			throw new IllegalArgumentException("arrayDimensions must be within " + MIN_DIMENSIONS + " & " + MAX_DIMENSIONS);
-		this.arrayDimensions = arrayDimensions;
+		this(convertIfNecessary(c), arrayDimensions);
 	}
 
 	public InternalName(final Class<?> c) {
 		this(c, DEFAULT_ARRAY_DIMENSIONS);
 	}
 
-	public InternalName(final BaseType base, final int arrayDimensions) {
-		data = new AnyOf.ElementB<>(base);
-		this.arrayDimensions = arrayDimensions;
-	}
-
 	public InternalName(final BaseType base) {
-		this(base, DEFAULT_ARRAY_DIMENSIONS);
+		this(new AnyOf.ElementB<>(base), DEFAULT_ARRAY_DIMENSIONS);
 	}
 
 	public InternalName(final CustomClass cc) {
-		data = new AnyOf.ElementC<>(cc);
-		arrayDimensions = DEFAULT_ARRAY_DIMENSIONS;
+		this(new AnyOf.ElementC<>(cc), DEFAULT_ARRAY_DIMENSIONS);
+	}
+
+	public static AnyOf<Class<?>, BaseType, CustomClass> convertIfNecessary(final Class<?> c) {
+		if(BaseType.matchClassStrict(c) != null) {
+			return new AnyOf.ElementB<>(BaseType.matchClass(c));
+		} else {
+			return new AnyOf.ElementA<>(c);
+		}
+	}
+
+	public static void checkArrayDimensions(final int arrayDimensions) throws IllegalArgumentException {
+		if(arrayDimensions < MIN_DIMENSIONS || arrayDimensions > MAX_DIMENSIONS)
+			throw new IllegalArgumentException(ARRAY_DIMENSIONS_OUT_OF_BOUNDS_MSG);
 	}
 
 	public boolean isCustom() {
@@ -112,17 +116,21 @@ public class InternalName implements ToName, CommonText {
 
 	public String nameString() {
 		if(data == null)
-			return "" + ReturnValue.VOID_REP;
+			return ReturnValue.VOID_REP_STRING;
 		else {
 			return data.match((clazz -> {
-				return clazz.getName().replace('.', '/');
+				return qualifiedName(clazz);
 			}), (baseType -> {
 				if(baseType == BaseType.STRING)
-					return String.class.getName().replace('.', '/');
+					return qualifiedName(String.class);
 				else
 					return baseType.rep;
 			}), (CustomClass::qualifiedName));
 		}
+	}
+
+	public String qualifiedName(Class<?> c) {
+		return c.getName().replace(SOURCE_SEPARATOR, INTERNAL_SEPARATOR);
 	}
 
 	@Override
@@ -163,7 +171,7 @@ public class InternalName implements ToName, CommonText {
 
 	public InternalName toArray(final int dimensions) throws IllegalArgumentException {
 		if(data == null) {
-			throw new IllegalArgumentException("This InternalName represents void, which is not a valid array type.");
+			throw new IllegalArgumentException(ARRAY_MAY_NOT_BE_OF_TYPE_VOID_MSG);
 		} else {
 			return new InternalName(data, dimensions);
 		}
@@ -175,7 +183,7 @@ public class InternalName implements ToName, CommonText {
 
 	public boolean matchesClassname(String classname) {
 		final String str = nameString();
-		return str.contains("/") && str.lastIndexOf("/") + 1 <= str.length() && str.substring(str.lastIndexOf("/") + 1).equals(classname);
+		return str.contains(INTERNAL_SEPARATOR_STRING) && str.lastIndexOf(INTERNAL_SEPARATOR_STRING) + 1 <= str.length() && str.substring(str.lastIndexOf(INTERNAL_SEPARATOR_STRING) + 1).equals(classname);
 	}
 
 }
