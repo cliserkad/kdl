@@ -11,15 +11,15 @@ import java.io.File;
  * Compiles KDL files in a Maven project
  */
 @Mojo(
-		name = "kdl",
-		defaultPhase = LifecyclePhase.COMPILE,
-		requiresDependencyResolution = ResolutionScope.TEST,
-		requiresOnline = false,
-		requiresProject = true
+	name = "kdl",
+	defaultPhase = LifecyclePhase.COMPILE,
+	requiresDependencyResolution = ResolutionScope.TEST,
+	requiresOnline = false,
+	requiresProject = true
 )
 @Execute(
-		goal = "kdl",
-		phase = LifecyclePhase.COMPILE
+	goal = "kdl",
+	phase = LifecyclePhase.COMPILE
 )
 public class KDLCompilerPlugin extends AbstractMojo {
 
@@ -27,10 +27,10 @@ public class KDLCompilerPlugin extends AbstractMojo {
 	 * Location of compiled (output) .class files
 	 */
 	@Parameter(
-			name ="outputDirectory",
-			property ="project.build.directory",
-			required = true,
-			readonly = false
+		name = "outputDirectory",
+		property = "project.build.directory",
+		required = true,
+		readonly = false
 	)
 	private File outputDirectory;
 
@@ -38,15 +38,16 @@ public class KDLCompilerPlugin extends AbstractMojo {
 	 * Location of source (input) .kdl files
 	 */
 	@Parameter(
-			name = "sourceDirectory",
-			property = "project.build.sourceDirectory",
-			required = true,
-			readonly = false
+		name = "sourceDirectory",
+		property = "project.build.sourceDirectory",
+		required = true,
+		readonly = false
 	)
 	private File sourceDirectory;
 
 	/**
 	 * Compile files
+	 * 
 	 * @throws MojoFailureException Forwarded exceptions from compiler
 	 */
 	public void execute() throws MojoFailureException {

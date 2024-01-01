@@ -65,4 +65,5 @@ public class MethodTarget {
 	public String toString() {
 		return "MethodTarget{" + "owner=" + owner + ", name='" + name + '\'' + ", args=" + args + ", requireStatic=" + requireStatic + '}';
 	}
+
 }

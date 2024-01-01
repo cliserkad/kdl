@@ -42,4 +42,5 @@ public class Actor extends MethodVisitor implements Opcodes, CommonText {
 		} else
 			visitInsn(ARETURN);
 	}
+
 }

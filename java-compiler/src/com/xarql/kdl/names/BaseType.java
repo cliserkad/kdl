@@ -27,7 +27,7 @@ public enum BaseType implements ToName {
 		this.wrapperClass = wrapperClass;
 	}
 
-	BaseType(char rep, int id , Class<?> primitiveClass, Class<?> wrapperClass) {
+	BaseType(char rep, int id, Class<?> primitiveClass, Class<?> wrapperClass) {
 		this("" + rep, id, primitiveClass, wrapperClass);
 	}
 

@@ -19,7 +19,7 @@ public class StandardKdlTest {
 	/**
 	 * Makes a StandardKdlTest
 	 *
-	 * @param clazz       name of class
+	 * @param clazz           name of class
 	 * @param arguments       a list of sets of command line arguments
 	 * @param expectedOutputs a list of expected outputs for each set of arguments
 	 */
@@ -44,7 +44,7 @@ public class StandardKdlTest {
 	 * Makes a StandardKdlTest that has no arguments and no output. Use this
 	 * constructor for .kdl files that use assert instead of printing.
 	 *
-	 * @param clazz     name of class
+	 * @param clazz name of class
 	 */
 	public StandardKdlTest(final String clazz) {
 		this(clazz, null, null);

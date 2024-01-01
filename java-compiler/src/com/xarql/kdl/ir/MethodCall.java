@@ -17,7 +17,6 @@ public class MethodCall extends BasePushable implements CommonText {
 		final int addressSize = address.ID().size();
 		final String methodName = address.ID().get(addressSize - 1).getText();
 
-
 		// determine which class owns the method being called
 		final Pushable source;
 		final InternalName owner;

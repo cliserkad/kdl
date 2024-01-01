@@ -23,7 +23,6 @@ public class CompilationDispatcher implements CommonText {
 	public static final File DEFAULT_OUTPUT = new File(System.getProperty("user.dir"), "/target/classes/");
 	public static final int THREADS = Runtime.getRuntime().availableProcessors();
 
-
 	public static final FileFilter KDL_FILTER = new RegexFileFilter(".*\\.kdl"); // default to all .kdl files
 
 	public static final String QUIET = "quiet";
@@ -96,7 +95,7 @@ public class CompilationDispatcher implements CommonText {
 			threadPool.shutdown();
 			try {
 				threadPool.awaitTermination(10, TimeUnit.MINUTES);
-			} catch (InterruptedException e) {
+			} catch(InterruptedException e) {
 				// continue
 			}
 		}
@@ -128,7 +127,7 @@ public class CompilationDispatcher implements CommonText {
 			threadPool.shutdown();
 			try {
 				threadPool.awaitTermination(10, TimeUnit.MINUTES);
-			} catch (InterruptedException e) {
+			} catch(InterruptedException e) {
 				// continue
 			}
 		}
@@ -151,7 +150,7 @@ public class CompilationDispatcher implements CommonText {
 	 * environment, which effectively verifies them.
 	 *
 	 * @param units prepared units
-	 * @throws IOException when a unit can't be written
+	 * @throws IOException            when a unit can't be written
 	 * @throws ClassNotFoundException when a unit is invalid
 	 */
 	public void writeAndVerify(final BestList<CompilationUnit> units) throws IOException, ClassNotFoundException {
@@ -163,13 +162,14 @@ public class CompilationDispatcher implements CommonText {
 
 	/**
 	 * Creates a ClassLoader at the output directory for verification of compiled .class files
+	 * 
 	 * @return an appropriate ClassLoader
 	 * @throws MalformedURLException when output is a bad directory
 	 */
 	public ClassLoader getClassLoader() throws MalformedURLException {
 		if(classLoader == null) {
 			URL url = output.toURI().toURL();
-			URL[] urls = new URL[]{url};
+			URL[] urls = new URL[] { url };
 
 			// Create a new class loader at the output directory
 			classLoader = new URLClassLoader(urls);

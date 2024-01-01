@@ -56,8 +56,7 @@ public interface Pushable extends ToName {
 				return actor.unit.getConstant(id);
 			else
 				throw new SymbolResolutionException(id);
-		}
-		else if(val.indexAccess() != null)
+		} else if(val.indexAccess() != null)
 			return new IndexAccess(actor.unit.getLocalVariable(val.indexAccess().ID().getText()), new Expression(val.indexAccess().expression(), actor));
 		else if(val.subSequence() != null)
 			return new SubSequence(val.subSequence(), actor);

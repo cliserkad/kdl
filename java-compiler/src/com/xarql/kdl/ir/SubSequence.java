@@ -13,8 +13,7 @@ import static com.xarql.kdl.BestList.list;
 
 public class SubSequence extends BasePushable {
 
-	public static final MethodHeader SUB_STRING = new MethodHeader(InternalName.STRING, "substring", MethodHeader.toParamList(InternalName.INT, InternalName.INT), ReturnValue.STRING,
-			Opcodes.ACC_PUBLIC);
+	public static final MethodHeader SUB_STRING = new MethodHeader(InternalName.STRING, "substring", MethodHeader.toParamList(InternalName.INT, InternalName.INT), ReturnValue.STRING, Opcodes.ACC_PUBLIC);
 
 	public final Variable variable;
 	public final Range range;

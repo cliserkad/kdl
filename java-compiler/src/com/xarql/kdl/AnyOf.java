@@ -63,7 +63,7 @@ public abstract class AnyOf<A, B, C> {
 	public String toString() {
 		return getValue().toString();
 	}
-	
+
 	private static void failIfNull(Object o) throws IllegalArgumentException {
 		if(o == null)
 			throw new IllegalArgumentException("value cannot be null");

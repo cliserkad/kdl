@@ -54,6 +54,31 @@
 					<failIfNoTests>true</failIfNoTests>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>2.41.1</version>
+				<configuration>
+					<java>
+						<eclipse>
+							<file>${project.basedir}/java-format.xml</file> <!-- optional -->
+						</eclipse>
+						<!-- USE TABS!!! -->
+						<indent>
+							<tabs>true</tabs>
+							<spacesPerTab>4</spacesPerTab>
+						</indent>
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<phase>compile</phase>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
