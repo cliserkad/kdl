@@ -140,8 +140,12 @@ public class InternalName implements ToName, CommonText {
 
 	@Override
 	public boolean equals(Object o) {
-		if(o instanceof InternalName name) {
-			return name.nameString().equals(nameString());
+		if(o == null) {
+			return false;
+		} else if(o == this) {
+			return true;
+		} else if(o instanceof InternalName name) {
+			return name.data.equals(data) && name.arrayDimensions == arrayDimensions;
 		} else if(o instanceof BaseType bt) {
 			return bt == toBaseType();
 		} else {

@@ -27,8 +27,8 @@ public class Text {
 			return true;
 
 		// if c is an escape character such as newline or tab
-		for(int i = 0; i < ESCAPE_CHARS.length; i++)
-			if(c == ESCAPE_CHARS[i])
+		for(char escapeChar : ESCAPE_CHARS)
+			if(c == escapeChar)
 				return true;
 
 		return false; // default
@@ -44,7 +44,6 @@ public class Text {
 	/**
 	 * Only allow a-z and A-Z
 	 *
-	 * @param word
 	 * @return true if all chars are in the latin alphabet
 	 */
 	public static boolean isLatinWord(String word) {
@@ -173,20 +172,20 @@ public class Text {
 	 * @return lower_case_string
 	 */
 	public static String undoCamelCase(String input) {
-		String output = "";
+		StringBuilder output = new StringBuilder(input.length());
 		for(int i = 0; i < input.length(); i++) {
 			if(!Character.isAlphabetic(input.charAt(i)) && input.charAt(i) != ';')
-				output += "-";
+				output.append("-");
 			if(i == 0)
-				output += (input.charAt(0) + "").toLowerCase();
+				output.append(Character.toLowerCase(input.charAt(0)));
 			else {
 				if(Character.isUpperCase(input.charAt(i)))
-					output += "_" + (input.charAt(i) + "").toLowerCase();
+					output.append("_").append(Character.toLowerCase(input.charAt(i)));
 				else
-					output += "" + input.charAt(i);
+					output.append(input.charAt(i));
 			}
 		}
-		return output;
+		return output.toString();
 	}
 
 	public static boolean firstLetterIsUppercase(String in) {

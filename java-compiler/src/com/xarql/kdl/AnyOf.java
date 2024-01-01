@@ -21,7 +21,14 @@ public abstract class AnyOf<A, B, C> {
 	/**
 	 * used by callers to apply 1 of 3 functions to the value, depending on its type
 	 */
-	public abstract <R> R match(Function<? super A, R> funcA, Function<? super B, R> funcB, Function<? super C, R> funcC);
+	public <R> R match(Function<A, R> funcA, Function<B, R> funcB, Function<C, R> funcC) {
+		return switch(this) {
+			case ElementA<A, ?, ?> a -> funcA.apply(a.getValue());
+			case ElementB<?, B, ?> b -> funcB.apply(b.getValue());
+			case ElementC<?, ?, C> c -> funcC.apply(c.getValue());
+			default -> throw new IllegalStateException("Failed to match type " + this.getClass().getName());
+		};
+	}
 
 	/**
 	 * This method is protected to force the caller to access the value through
@@ -29,6 +36,34 @@ public abstract class AnyOf<A, B, C> {
 	 */
 	protected abstract Object getValue();
 
+	/**
+	 * Provides access to equals() method of underlying value.
+	 * If the Object given is an AnyOf, it will be unwrapped to compare underlying values.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof AnyOf<?, ?, ?> wrapper)
+			return getValue().equals(wrapper.getValue());
+		else
+			return getValue().equals(obj);
+	}
+
+	/**
+	 * Provides access to hashCode() method of underlying value.
+	 */
+	@Override
+	public int hashCode() {
+		return getValue().hashCode();
+	}
+
+	/**
+	 * Provides access to toString() method of underlying value.
+	 */
+	@Override
+	public String toString() {
+		return getValue().toString();
+	}
+	
 	private static void failIfNull(Object o) throws IllegalArgumentException {
 		if(o == null)
 			throw new IllegalArgumentException("value cannot be null");
@@ -48,11 +83,6 @@ public abstract class AnyOf<A, B, C> {
 			return value;
 		}
 
-		@Override
-		public <R> R match(Function<? super A, R> funcA, Function<? super B, R> funcB, Function<? super C, R> funcC) {
-			return funcA.apply(value);
-		}
-
 	}
 
 	public static final class ElementB<A, B, C> extends AnyOf<A, B, C> {
@@ -69,11 +99,6 @@ public abstract class AnyOf<A, B, C> {
 			return value;
 		}
 
-		@Override
-		public <R> R match(Function<? super A, R> funcA, Function<? super B, R> funcB, Function<? super C, R> funcC) {
-			return funcB.apply(value);
-		}
-
 	}
 
 	public static final class ElementC<A, B, C> extends AnyOf<A, B, C> {
@@ -88,11 +113,6 @@ public abstract class AnyOf<A, B, C> {
 		@Override
 		public C getValue() {
 			return value;
-		}
-
-		@Override
-		public <R> R match(Function<? super A, R> funcA, Function<? super B, R> funcB, Function<? super C, R> funcC) {
-			return funcC.apply(value);
 		}
 
 	}

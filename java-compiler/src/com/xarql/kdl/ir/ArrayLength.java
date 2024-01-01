@@ -18,9 +18,6 @@ public class ArrayLength extends BasePushable implements CommonText {
 
 	/**
 	 * Pushes an int to the stack that is equal to the array's length
-	 *
-	 * @param visitor any MethodVisitor
-	 * @throws Exception unused
 	 */
 	@Override
 	public Pushable push(Actor actor) throws Exception {
