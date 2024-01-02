@@ -7,7 +7,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.lang.reflect.Method;
 import java.util.List;
 
-public class MethodHeader implements CommonText, ToName {
+public class MethodHeader implements CommonText, ToInternalName {
 
 	public static final MethodHeader MAIN = new MethodHeader(new InternalName(Object.class), "main", toParamList(new InternalName(String.class, 1)), VOID, ACC_PUBLIC + ACC_STATIC);
 	public static final MethodHeader TO_STRING = new MethodHeader(new InternalName(Object.class), "toString", null, ReturnValue.STRING, ACC_PUBLIC);

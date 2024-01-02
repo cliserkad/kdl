@@ -5,7 +5,7 @@ import com.xarql.kdl.MethodHeader;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
 
-public class Details implements ToName {
+public class Details implements ToInternalName {
 
 	public static final String DEFAULT_NAME = "unknown";
 	public static final InternalName DEFAULT_TYPE = null;

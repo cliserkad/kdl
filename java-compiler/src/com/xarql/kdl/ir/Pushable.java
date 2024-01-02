@@ -4,21 +4,16 @@ import com.xarql.kdl.Actor;
 import com.xarql.kdl.SymbolResolutionException;
 import com.xarql.kdl.UnimplementedException;
 import com.xarql.kdl.antlr.kdl;
-import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.names.ToInternalName;
 
 /**
- * Represents anything that may be pushed on to the JVM stack. Resolvables are a
- * type of Calculable that do not require any instructions to be executed after
- * pushing. After the push method is invoked, only 1 value should be added to
- * the stack.
+ * Represents anything that may be pushed on to the JVM stack. Resolvables are a type of Calculable that do not require any instructions to be executed after pushing. After the push method is invoked, only 1 value should be added to the stack.
  */
-public interface Pushable extends ToName {
+public interface Pushable extends ToInternalName {
 
 	/**
-	 * Pushes this value on to the stack. Executes sub-pushes and instructions if
-	 * needed. Use this over pushType() whenever an InternalName is not required.
+	 * Pushes this value on to the stack. Executes sub-pushes and instructions if needed. Use this over pushType() whenever an InternalName is not required.
 	 *
 	 * @param actor any Actor
 	 * @return instance of implementing class; whatever "this" is
@@ -27,8 +22,7 @@ public interface Pushable extends ToName {
 	public Pushable push(final Actor actor) throws Exception;
 
 	/**
-	 * Pushes this value on to the stack. Returns the type of the value. Should call
-	 * push().
+	 * Pushes this value on to the stack. Returns the type of the value. Should call push().
 	 *
 	 * @param actor any Actor
 	 * @return pushed value type

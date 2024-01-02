@@ -1,6 +1,6 @@
 package com.xarql.kdl.names;
 
-public class ReturnValue implements ToName {
+public class ReturnValue implements ToInternalName {
 
 	public static final ReturnValue BOOLEAN = new ReturnValue(BaseType.BOOLEAN);
 	public static final ReturnValue BYTE = new ReturnValue(BaseType.BYTE);
@@ -26,7 +26,7 @@ public class ReturnValue implements ToName {
 		this(new InternalName(clazz));
 	}
 
-	public ReturnValue(ToName internalName) {
+	public ReturnValue(ToInternalName internalName) {
 		if(internalName == null)
 			this.returnType = null;
 		else

@@ -5,7 +5,6 @@ import com.xarql.kdl.antlr.kdl;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.CommonText;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.ToName;
 
 public class MethodCall extends BasePushable implements CommonText {
 

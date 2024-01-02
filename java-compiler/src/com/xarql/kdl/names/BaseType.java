@@ -3,7 +3,7 @@ package com.xarql.kdl.names;
 import com.xarql.kdl.ir.Literal;
 import org.objectweb.asm.Opcodes;
 
-public enum BaseType implements ToName {
+public enum BaseType implements ToInternalName {
 
 	BOOLEAN('Z', Opcodes.T_BOOLEAN, boolean.class, Boolean.class),
 	BYTE('B', Opcodes.T_BYTE, byte.class, Byte.class),
@@ -75,7 +75,7 @@ public enum BaseType implements ToName {
 		return Literal.getDefaultForBaseType(this);
 	}
 
-	public boolean compatibleNoDirection(ToName other) {
+	public boolean compatibleNoDirection(ToInternalName other) {
 		if(!other.isBaseType())
 			return false;
 		else
@@ -86,7 +86,7 @@ public enum BaseType implements ToName {
 		return this.compatibleWith(other) || other.compatibleWith(this);
 	}
 
-	public boolean compatibleWith(ToName receiver) {
+	public boolean compatibleWith(ToInternalName receiver) {
 		if(!receiver.isBaseType())
 			return false;
 		else

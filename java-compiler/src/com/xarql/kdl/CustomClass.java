@@ -3,14 +3,14 @@ package com.xarql.kdl;
 import com.xarql.kdl.ir.Pushable;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.InternalName;
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.names.ToInternalName;
 import org.objectweb.asm.Opcodes;
 
 import static com.xarql.kdl.Text.nonNull;
 import static com.xarql.kdl.names.InternalName.INTERNAL_SEPARATOR;
 import static com.xarql.kdl.names.InternalName.SOURCE_SEPARATOR;
 
-public class CustomClass implements ToName, Pushable {
+public class CustomClass implements ToInternalName, Pushable {
 
 	public final String pkg;
 	public final String name;

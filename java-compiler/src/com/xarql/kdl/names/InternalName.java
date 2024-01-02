@@ -4,7 +4,7 @@ import com.xarql.kdl.AnyOf;
 import com.xarql.kdl.CustomClass;
 import com.xarql.kdl.PlaceHolder;
 
-public class InternalName implements ToName, CommonText {
+public class InternalName implements ToInternalName, CommonText {
 
 	public static final InternalName BOOLEAN = new InternalName(BaseType.BOOLEAN);
 	public static final InternalName BYTE = new InternalName(BaseType.BYTE);

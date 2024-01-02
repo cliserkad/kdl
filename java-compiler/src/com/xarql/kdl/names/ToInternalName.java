@@ -1,6 +1,8 @@
 package com.xarql.kdl.names;
 
-public interface ToBaseType {
+public interface ToInternalName {
+
+	InternalName toInternalName();
 
 	boolean isBaseType();
 

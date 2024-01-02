@@ -4,7 +4,7 @@ import com.xarql.kdl.ir.Variable;
 import com.xarql.kdl.names.BaseType;
 import com.xarql.kdl.names.Details;
 import com.xarql.kdl.names.ReturnValue;
-import com.xarql.kdl.names.ToName;
+import com.xarql.kdl.names.ToInternalName;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -34,7 +34,7 @@ public class Scope implements Opcodes {
 		return start;
 	}
 
-	public Variable newVariable(final String name, final ToName type, final boolean mutable) {
+	public Variable newVariable(final String name, final ToInternalName type, final boolean mutable) {
 		Variable var = addLocalVariable(new Variable(name, type.toInternalName(), nextIndex(), mutable));
 		// increment it again to reserve a second slot if its a 64-bit number
 		if(type.toBaseType() == BaseType.LONG || type.toBaseType() == BaseType.DOUBLE)
@@ -42,7 +42,7 @@ public class Scope implements Opcodes {
 		return var;
 	}
 
-	public Variable newVariable(final String name, final ToName type) {
+	public Variable newVariable(final String name, final ToInternalName type) {
 		return newVariable(name, type, Variable.DEFAULT_MUTABLE);
 	}
 
