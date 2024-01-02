@@ -68,7 +68,17 @@ public enum BaseType implements ToInternalName {
 
 	@Override
 	public InternalName toInternalName() {
-		return new InternalName(this);
+		return switch(this) {
+			case BOOLEAN -> InternalName.BOOLEAN;
+			case BYTE -> InternalName.BYTE;
+			case SHORT -> InternalName.SHORT;
+			case CHAR -> InternalName.CHAR;
+			case INT -> InternalName.INT;
+			case FLOAT -> InternalName.FLOAT;
+			case LONG -> InternalName.LONG;
+			case DOUBLE -> InternalName.DOUBLE;
+			case STRING -> InternalName.STRING;
+		};
 	}
 
 	public Literal<?> getDefaultValue() {

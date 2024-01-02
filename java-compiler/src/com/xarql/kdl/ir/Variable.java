@@ -24,10 +24,6 @@ public class Variable extends Details implements Assignable, CommonText {
 		this.localIndex = localIndex;
 	}
 
-	public Variable(final String name, final InternalName type, final int localIndex) {
-		this(name, type, localIndex, DEFAULT_MUTABLE);
-	}
-
 	public boolean isInit() {
 		return init;
 	}
