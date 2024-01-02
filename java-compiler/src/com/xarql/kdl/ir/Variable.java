@@ -38,8 +38,7 @@ public class Variable extends Details implements Assignable, CommonText {
 
 	@Override
 	public boolean equals(Object obj) {
-		if(obj instanceof Variable) {
-			Variable other = (Variable) obj;
+		if(obj instanceof Variable other) {
 			return other.name.equals(name);
 		} else
 			return false;
@@ -56,32 +55,19 @@ public class Variable extends Details implements Assignable, CommonText {
 
 	@Override
 	public Variable push(final Actor visitor) throws UnimplementedException {
-		if(type.isBaseType() && !type.isArray()) {
-			switch(type.toBaseType()) {
-				case BOOLEAN:
-				case BYTE:
-				case SHORT:
-				case CHAR:
-				case INT:
-					visitor.visitVarInsn(ILOAD, localIndex);
-					break;
-				case FLOAT:
-					visitor.visitVarInsn(FLOAD, localIndex);
-					break;
-				case LONG:
-					visitor.visitVarInsn(LLOAD, localIndex);
-					break;
-				case DOUBLE:
-					visitor.visitVarInsn(DLOAD, localIndex);
-					break;
-				case STRING:
-					visitor.visitVarInsn(ALOAD, localIndex);
-					break;
-				default:
-					throw new UnimplementedException(SWITCH_BASETYPE);
-			}
-		} else
-			visitor.visitVarInsn(ALOAD, localIndex);
+		final int loadInstruction;
+		if(isBaseType() && !isArray()) {
+			loadInstruction = switch(type.toBaseType()) {
+				case BOOLEAN, BYTE, SHORT, CHAR, INT -> ILOAD;
+				case FLOAT -> FLOAD;
+				case LONG -> LLOAD;
+				case DOUBLE -> DLOAD;
+				case STRING -> ALOAD;
+			};
+		} else {
+			loadInstruction = ALOAD;
+		}
+		visitor.visitVarInsn(loadInstruction, localIndex);
 		return this;
 	}
 
@@ -94,48 +80,35 @@ public class Variable extends Details implements Assignable, CommonText {
 	public Assignable assign(final InternalName incomingType, final Actor actor) throws Exception {
 		if(!mutable && isInit()) {
 			throw new IllegalArgumentException(this + " is not mutable and has been set.");
-		} else if(!this.type.toInternalName().compatibleWith(this.type))
+		} else if(!incomingType.compatibleWith(toInternalName())) {
 			throw new IncompatibleTypeException(incomingType + INCOMPATIBLE + this);
-		else {
-			if(this.type.isBaseType()) {
-				// convert integer to long
-				if(toBaseType() == BaseType.LONG && incomingType.toBaseType() == BaseType.INT)
-					actor.visitInsn(I2L);
-				// convert float to double
-				if(toBaseType() == BaseType.DOUBLE && incomingType.toBaseType() == BaseType.FLOAT)
-					actor.visitInsn(F2D);
-			}
-
+		} else {
+			final int storeInstruction;
 			if(isBaseType()) {
-				switch(toBaseType()) {
-					case BOOLEAN:
-					case BYTE:
-					case SHORT:
-					case CHAR:
-					case INT:
-						actor.visitVarInsn(ISTORE, localIndex);
-						break;
-					case FLOAT:
-						actor.visitVarInsn(FSTORE, localIndex);
-						break;
-					case LONG:
-						actor.visitVarInsn(LSTORE, localIndex);
-						break;
-					case DOUBLE:
-						actor.visitVarInsn(DSTORE, localIndex);
-						break;
-					case STRING:
-						actor.visitVarInsn(ASTORE, localIndex);
-						break;
-					default:
-						throw new UnimplementedException(SWITCH_BASETYPE);
-				}
-
+				storeInstruction = switch(toBaseType()) {
+					case BOOLEAN, BYTE, SHORT, CHAR, INT -> ISTORE;
+					case FLOAT -> FSTORE;
+					case LONG -> {
+						// convert integer to long automatically
+						if(incomingType.toBaseType() == BaseType.INT)
+							actor.visitInsn(I2L);
+						yield LSTORE;
+					}
+					case DOUBLE -> {
+						// convert float to double automatically
+						if(incomingType.toBaseType() == BaseType.FLOAT)
+							actor.visitInsn(F2D);
+						yield DSTORE;
+					}
+					case STRING -> ASTORE;
+				};
 				init();
-			} else
-				actor.visitVarInsn(ASTORE, localIndex);
+			} else {
+				storeInstruction = ASTORE;
+			}
+			actor.visitVarInsn(storeInstruction, localIndex);
+			return this;
 		}
-		return this;
 	}
 
 	@Override
