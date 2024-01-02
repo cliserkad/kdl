@@ -94,7 +94,7 @@ public class Literal<Type> extends BasePushable implements CommonText {
 				return new Literal<>(val);
 		} else if(ctx.decimalNumber() != null) {
 			final double val = Double.parseDouble(removeSpacers(ctx.decimalNumber().getText()));
-			if(val < Float.MAX_VALUE && val > Float.MIN_VALUE)
+			if(val == 0.0d || val < Float.MAX_VALUE && val > Float.MIN_VALUE)
 				return new Literal<>((float) val);
 			else
 				return new Literal<>(val);
