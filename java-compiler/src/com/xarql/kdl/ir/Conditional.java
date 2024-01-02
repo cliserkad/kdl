@@ -50,44 +50,70 @@ public abstract class Conditional implements Opcodes {
 
 	private void check(final Actor actor) throws Exception {
 		final BaseType aType = condition.a.pushType(actor).toBaseType();
+
+		if((condition.b == null) != (condition.cmp == null))
+			throw new IllegalArgumentException("Condition must have two values or no comparison");
+
 		// if the condition has two values
 		if(condition.b != null) { // if there are two values
-			final BaseType bType = condition.b.pushType(actor).toBaseType();
+			final BaseType bType = condition.b.toBaseType();
 
 			// check type compatibility
 			if(!aType.compatibleNoDirection(bType))
 				throw new IncompatibleTypeException("The type " + aType + " is not compatible with " + bType);
 
+			// get larger type
+			final BaseType resultType = BaseType.values()[Math.max(aType.ordinal(), bType.ordinal())];
+
+			if(resultType == BaseType.LONG && aType.isIntInternally()) {
+				actor.visitInsn(I2L);
+			} else if(resultType == BaseType.DOUBLE && aType == BaseType.FLOAT) {
+				actor.visitInsn(F2D);
+			}
+
+			// push b to stack
+			condition.b.push(actor);
+
+			if(resultType == BaseType.LONG && bType.isIntInternally()) {
+				actor.visitInsn(I2L);
+			} else if(resultType == BaseType.DOUBLE && bType == BaseType.FLOAT) {
+				actor.visitInsn(F2D);
+			}
+
 			// this boolean is never used. it only exists to trick the compiler in to doing static analysis
-			final boolean executeSwitch = switch(aType) {
+			final boolean executeSwitch = switch(resultType) {
 				case BOOLEAN, BYTE, SHORT, CHAR, INT -> testIntegers(actor);
 				case STRING -> testStrings(actor);
 				case FLOAT -> testFloats(actor);
+				case LONG -> testLongs(actor);
+				case DOUBLE -> testDoubles(actor);
+			};
+		} else {
+			// test != 0
+			boolean execute = switch(aType) {
+				case BOOLEAN, BYTE, SHORT, CHAR, INT -> testIntAgainst0(actor);
+				case STRING -> testStringUsability(actor);
+				case FLOAT -> {
+					actor.visitInsn(FCONST_0);
+					yield testFloats(actor);
+				}
 				case LONG -> {
-					if(bType.isIntInternally())
-						actor.visitInsn(I2L);
+					actor.visitInsn(LCONST_0);
 					yield testLongs(actor);
 				}
 				case DOUBLE -> {
-					if(bType == BaseType.FLOAT)
-						actor.visitInsn(F2D);
+					actor.visitInsn(DCONST_0);
 					yield testDoubles(actor);
 				}
 			};
-		} else {
-			switch(aType) {
-				case BOOLEAN:
-				case INT:
-					if(condition.positive)
-						actor.visitJumpInsn(IFNE, labelSet.onTrue);
-					else
-						actor.visitJumpInsn(IFEQ, labelSet.onFalse);
-					break;
-				case STRING:
-					testStringUsability(actor);
-					break;
-			}
 		}
+	}
+
+	public final Comparator getComparator() {
+		if(condition.cmp == null)
+			return Comparator.NOT_EQUAL;
+		else
+			return condition.cmp;
 	}
 
 	/**
@@ -131,8 +157,23 @@ public abstract class Conditional implements Opcodes {
 		return true;
 	}
 
+	public void visitJumpInstruction(final MethodVisitor visitor, final int jumpInstruction) {
+		if(condition.positive) {
+			// use normal instruction, jump to true
+			visitor.visitJumpInsn(jumpInstruction, labelSet.onTrue);
+		} else {
+			// use inverse instruction, jump to false
+			final int inverseJumpInstruction;
+			if(jumpInstruction % 2 == 0)
+				inverseJumpInstruction = jumpInstruction - 1;
+			else
+				inverseJumpInstruction = jumpInstruction + 1;
+			visitor.visitJumpInsn(inverseJumpInstruction, labelSet.onFalse);
+		}
+	}
+
 	public final boolean testIntegers(final MethodVisitor visitor) throws Exception {
-		final int jumpInstruction = switch(condition.cmp) {
+		final int jumpInstruction = switch(getComparator()) {
 			case EQUAL -> IF_ICMPEQ;
 			case NOT_EQUAL -> IF_ICMPNE;
 			case LESS_THAN -> IF_ICMPLT;
@@ -141,23 +182,12 @@ public abstract class Conditional implements Opcodes {
 			case LESS_OR_EQUAL -> IF_ICMPLE;
 			case REF_EQUAL, REF_NOT_EQUAL -> throw new IllegalArgumentException("Cannot use REF_EQUAL or REF_NOT_EQUAL with integers");
 		};
-		if(condition.positive) {
-			// use normal instruction, jump to true
-			visitor.visitJumpInsn(jumpInstruction, labelSet.onTrue);
-		} else {
-			// use inverse instruction, jump to false
-			final int inverseJumpInstruction;
-			if(jumpInstruction % 2 == 0)
-				inverseJumpInstruction = jumpInstruction - 1;
-			else
-				inverseJumpInstruction = jumpInstruction + 1;
-			visitor.visitJumpInsn(inverseJumpInstruction, labelSet.onFalse);
-		}
+		visitJumpInstruction(visitor, jumpInstruction);
 		return true;
 	}
 
 	public final boolean testIntAgainst0(final MethodVisitor visitor) throws Exception {
-		final int jumpInstruction = switch(condition.cmp) {
+		final int jumpInstruction = switch(getComparator()) {
 			case EQUAL -> IFEQ;
 			case NOT_EQUAL -> IFNE;
 			case LESS_THAN -> IFLT;
@@ -166,24 +196,13 @@ public abstract class Conditional implements Opcodes {
 			case LESS_OR_EQUAL -> IFLE;
 			case REF_EQUAL, REF_NOT_EQUAL -> throw new IllegalArgumentException("Cannot use REF_EQUAL or REF_NOT_EQUAL with floats");
 		};
-		if(condition.positive) {
-			// use normal instruction, jump to true
-			visitor.visitJumpInsn(jumpInstruction, labelSet.onTrue);
-		} else {
-			// use inverse instruction, jump to false
-			final int inverseJumpInstruction;
-			if(jumpInstruction % 2 == 0)
-				inverseJumpInstruction = jumpInstruction - 1;
-			else
-				inverseJumpInstruction = jumpInstruction + 1;
-			visitor.visitJumpInsn(inverseJumpInstruction, labelSet.onFalse);
-		}
+		visitJumpInstruction(visitor, jumpInstruction);
 		return true;
 	}
 
 	public final boolean testLongs(final MethodVisitor visitor) throws Exception {
 		// Testing longs requires us to first do a comparison test and then use the resulting int to jump
-		if(condition.cmp == REF_EQUAL || condition.cmp == REF_NOT_EQUAL)
+		if(getComparator() == REF_EQUAL || getComparator() == REF_NOT_EQUAL)
 			throw new IllegalArgumentException("Cannot use REF_EQUAL or REF_NOT_EQUAL with longs");
 		else
 			visitor.visitInsn(LCMP); // all other comparisons are supported by LCMP
@@ -194,7 +213,7 @@ public abstract class Conditional implements Opcodes {
 
 	public final boolean testDoubles(final MethodVisitor visitor) throws Exception {
 		// Testing doubles requires us to first do a comparison test and then use the resulting int to jump
-		final int doubleCompareInstruction = switch(condition.cmp) {
+		final int doubleCompareInstruction = switch(getComparator()) {
 			// comparison should fail if either value is NaN
 			case MORE_THAN, MORE_OR_EQUAL, EQUAL, NOT_EQUAL -> DCMPL; // result will represent lesser (-1) if NaN is encountered
 			case LESS_THAN, LESS_OR_EQUAL -> DCMPG; // result will represent greater (1) if NaN is encountered
@@ -208,7 +227,7 @@ public abstract class Conditional implements Opcodes {
 
 	public final boolean testFloats(final MethodVisitor visitor) throws Exception {
 		// Testing floats requires us to first do a comparison test and then use the resulting int to jump
-		final int floatCompareInstruction = switch(condition.cmp) {
+		final int floatCompareInstruction = switch(getComparator()) {
 			// comparison should fail if either value is NaN
 			case MORE_THAN, MORE_OR_EQUAL, EQUAL, NOT_EQUAL -> FCMPL; // result will represent lesser (-1) if NaN is encountered
 			case LESS_THAN, LESS_OR_EQUAL -> FCMPG; // result will represent greater (1) if NaN is encountered
