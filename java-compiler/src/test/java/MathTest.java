@@ -8,7 +8,22 @@ public class MathTest {
 
 	@Test
 	public void testIntComparisons() {
-		new StandardKdlTest("IntComparisons", null, list("pass   0 == 1" + "pass   0 != 1" + "pass   0 < 1" + "pass   0 <= 1" + "pass   0 > 1" + "pass   0 >= 1" + "done")).testKDL();
+		new StandardKdlTest("IntComparisons", null, list("pass   0 == 1pass   0 != 1pass   0 < 1pass   0 <= 1pass   0 > 1pass   0 >= 1done")).testKDL();
+	}
+
+	@Test
+	public void testFloatComparisons() {
+		new StandardKdlTest("FloatComparisons", null, list("pass   0.0 == 1.0pass   0.0 != 1.0pass   0.0 < 1.0pass   0.0 <= 1.0pass   0.0 > 1.0pass   0.0 >= 1.0done")).testKDL();
+	}
+
+	@Test
+	public void testLongComparisons() {
+		new StandardKdlTest("LongComparisons", null, list("pass   0 == 1pass   0 != 1pass   0 < 1pass   0 <= 1pass   0 > 1pass   0 >= 1done")).testKDL();
+	}
+
+	@Test
+	public void testDoubleComparisons() {
+		new StandardKdlTest("DoubleComparisons", null, list("pass   0.0 == 1.0pass   0.0 != 1.0pass   0.0 < 1.0pass   0.0 <= 1.0pass   0.0 > 1.0pass   0.0 >= 1.0done")).testKDL();
 	}
 
 	@Test
