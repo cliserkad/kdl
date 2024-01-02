@@ -1,0 +1,74 @@
+type AllMathOperations {
+    const ASSERTION_PASS: ""
+
+    main {
+        byte b6: 6
+        byte b4: 4
+
+        short s6: 6
+        short s4: 4
+
+        char c6: 6
+        char c4: 4
+
+        int i6: 6
+        int i4: 4
+
+        long l6: 6
+        long l4: 4
+
+        float f6: 6.0
+        float f4: 4.0
+
+        double d6: 6.0
+        double d4: 4.0
+
+        // addition
+        assert b6 + b4 = 10
+        assert s6 + s4 = 10
+        assert c6 + c4 = 10
+        assert i6 + i4 = 10
+        assert l6 + l4 = 10
+        assert f6 + f4 = 10.0
+        assert d6 + d4 = 10.0
+
+        // subtraction
+        assert b6 - b4 = 2
+        assert s6 - s4 = 2
+        assert c6 - c4 = 2
+        assert i6 - i4 = 2
+        assert l6 - l4 = 2
+        assert f6 - f4 = 2.0
+        assert d6 - d4 = 2.0
+
+        // multiplication
+        assert b6 * b4 = 24
+        assert s6 * s4 = 24
+        assert c6 * c4 = 24
+        assert i6 * i4 = 24
+        assert l6 * l4 = 24
+        assert f6 * f4 = 24.0
+        assert d6 * d4 = 24.0
+
+        // division
+        assert b6 / b4 = 1
+        assert s6 / s4 = 1
+        assert c6 / c4 = 1
+        assert i6 / i4 = 1
+        assert l6 / l4 = 1
+        assert f6 / f4 = 1.5
+        assert d6 / d4 = 1.5
+
+        // remainder
+        assert b6 % b4 = 2
+        assert s6 % s4 = 2
+        assert c6 % c4 = 2
+        assert i6 % i4 = 2
+        assert l6 % l4 = 2
+        assert f6 % f4 = 2.0
+        assert d6 % d4 = 2.0
+
+        println("All math operations passed")
+
+    }
+}

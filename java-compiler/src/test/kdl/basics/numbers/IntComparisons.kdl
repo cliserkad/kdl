@@ -1,0 +1,45 @@
+type IntComparisons {
+    main {
+        int a: 0
+        int b: 1
+
+        if a = b {
+            println("fail   $a == $b")
+        } else {
+            println("pass   $a == $b")
+        }
+
+        if a != b {
+            println("pass   $a != $b")
+        } else {
+            println("fail   $a != $b")
+        }
+
+        if a < b {
+            println("pass   $a < $b")
+        } else {
+            println("fail   $a < $b")
+        }
+
+        if a <= b {
+            println("pass   $a <= $b")
+        } else {
+            println("fail   $a <= $b")
+        }
+
+        if a > b {
+            println("fail   $a > $b")
+        } else {
+            println("pass   $a > $b")
+        }
+
+        if a >= b {
+            println("fail   $a >= $b")
+        } else {
+            println("pass   $a >= $b")
+        }
+
+        println("done")
+
+    }
+}

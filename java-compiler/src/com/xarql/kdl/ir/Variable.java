@@ -86,7 +86,7 @@ public class Variable extends Details implements Assignable, CommonText {
 					case FLOAT -> FSTORE;
 					case LONG -> {
 						// convert integer to long automatically
-						if(incomingType.toBaseType() == BaseType.INT)
+						if(incomingType.toBaseType().isIntInternally())
 							actor.visitInsn(I2L);
 						yield LSTORE;
 					}

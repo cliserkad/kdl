@@ -66,6 +66,13 @@ public enum BaseType implements ToInternalName {
 		return matchClass(value.getClass());
 	}
 
+	public boolean isIntInternally() {
+		return switch(this) {
+			case BOOLEAN, BYTE, SHORT, CHAR, INT -> true;
+			default -> false;
+		};
+	}
+
 	@Override
 	public InternalName toInternalName() {
 		return switch(this) {
