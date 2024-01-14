@@ -1,0 +1,11 @@
+// test using "else if" and no brackets together
+type ElseIfNoBrackets {
+    main {
+        if false
+            print("fail")
+        else if true
+            print("pass")
+        else
+            print("fail")
+    }
+}

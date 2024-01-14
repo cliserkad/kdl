@@ -1,21 +1,17 @@
-// author: Bryan Johnson
+// test if else control flow
 type IfElse {
-  const GOOD : "hello from IfElse"
-  const FAIL : "This message should not have appeared"
 
   main {
     if true {
-      println(GOOD)
-    }
-    else {
-      println(FAIL)
+      print("pass")
+    } else {
+      print("fail")
     }
 
     if false {
-      println(FAIL)
-    }
-    else {
-      println(GOOD)
+      print("fail")
+    } else {
+      print("pass")
     }
   }
 }

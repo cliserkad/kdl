@@ -1,0 +1,12 @@
+// tests if "else if" works as expected
+type ElseIf {
+    main {
+        if false {
+            print("fail")
+        } else if true {
+            print("pass")
+        } else {
+            print("fail")
+        }
+    }
+}

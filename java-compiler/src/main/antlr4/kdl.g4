@@ -26,8 +26,8 @@ range: expression? DOT DOT expression;
 
 // conditionals
 conditional: r_if | assertion | r_while | for_loop | for_each_loop;
-r_if: R_IF condition block r_else?;
-r_else: R_ELSE (block | statement);
+r_if: R_IF condition (statement | block) r_else?;
+r_else: R_ELSE (statement | block);
 assertion: ASSERT condition;
 r_while: WHILE condition block;
 
