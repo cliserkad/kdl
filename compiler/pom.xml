@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>kdl.parent</artifactId>
 		<groupId>com.xarql</groupId>
-		<version>0.6.0</version>
+		<version>0.7.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
@@ -18,7 +18,7 @@
 		<plugins>
 			<plugin>
 				<groupId>com.xarql</groupId>
-				<artifactId>kdl.maven-plugin</artifactId>
+				<artifactId>kdl.kdl-maven-plugin</artifactId>
 				<version>${project.parent.version}</version>
 				<executions>
 					<execution>
